@@ -34,7 +34,15 @@ export default function ImageUploader({
       <label>Images</label>
       <div className="images-container">
         <div className="image-upload">
-          <div className="image-preview">
+          <input 
+            type="file" 
+            accept="image/*" 
+            id="first-image" 
+            className="file-input" 
+            onChange={(e) => handleFileSelect(e, true)}
+            style={{ display: 'none' }}
+          />
+          <label htmlFor="first-image" className="image-preview">
             <div className="image-preview-content">
               {firstImage ? (
                 <img src={firstImage} alt="First frame" />
@@ -42,33 +50,10 @@ export default function ImageUploader({
                 "First Frame"
               )}
             </div>
-          </div>
-          <input 
-            type="file" 
-            accept="image/*" 
-            id="first-image" 
-            className="file-input" 
-            onChange={(e) => {
-              console.log("File selected:", e.target.files)
-              handleFileSelect(e, true)
-            }}
-            style={{ display: 'none' }}
-          />
-          <label htmlFor="first-image" className="select-btn">
-            Select First Image
           </label>
         </div>
         
         <div className="image-upload">
-          <div className="image-preview">
-            <div className="image-preview-content">
-              {lastImage ? (
-                <img src={lastImage} alt="Last frame" />
-              ) : (
-                "Last Frame (Optional)"
-              )}
-            </div>
-          </div>
           <input 
             type="file" 
             accept="image/*" 
@@ -77,8 +62,14 @@ export default function ImageUploader({
             onChange={(e) => handleFileSelect(e, false)}
             style={{ display: 'none' }}
           />
-          <label htmlFor="last-image" className="select-btn">
-            Select Last Image
+          <label htmlFor="last-image" className="image-preview">
+            <div className="image-preview-content">
+              {lastImage ? (
+                <img src={lastImage} alt="Last frame" />
+              ) : (
+                "Last Frame (Optional)"
+              )}
+            </div>
           </label>
         </div>
       </div>

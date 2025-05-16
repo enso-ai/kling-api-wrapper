@@ -23,11 +23,34 @@
 .image-preview {
   width: 100%;
   height: 0;
-  padding-bottom: 56.25%; /* 16:9 aspect ratio */
+  padding-bottom: 150%; /* 2:3 aspect ratio */
   background-color: #2a2a2a;
   border-radius: 4px;
   position: relative;
-  margin-bottom: 10px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.image-preview:hover {
+  background-color: #3a3a3a;
+}
+
+.image-preview::after {
+  content: "Click to select image";
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.image-preview:hover::after {
+  opacity: 1;
 }
 
 .image-preview-content {
@@ -51,20 +74,4 @@
   border-radius: 4px;
 }
 
-.select-btn {
-  background-color: #333;
-  color: white;
-  border: none;
-  padding: 8px 15px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  width: 100%;
-  margin-bottom: 10px;
-  text-align: center;
-  display: block;
-}
-
-.select-btn:hover {
-  background-color: #444;
-}
+/* We're removing the select button styles as we're merging it with the preview */

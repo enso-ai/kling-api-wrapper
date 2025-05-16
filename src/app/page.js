@@ -12,8 +12,6 @@ export default function Home() {
   const [results, setResults] = useState([]);
   
   const handleGenerate = async (formData) => {
-    console.log('Generating with data:', formData);
-    
     try {
       // Call the Kling API to create a video
       const options = new VideoOptions(
