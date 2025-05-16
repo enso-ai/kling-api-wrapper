@@ -1,0 +1,10 @@
+.right-panel {
+  width: 60%;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.right-panel h1 {
+  font-size: 24px;
+  margin-bottom: 20px;
+}
