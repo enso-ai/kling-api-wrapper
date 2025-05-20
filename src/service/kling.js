@@ -109,14 +109,14 @@ async function getTaskByIdFromKlingAPI(taskId) {
         'Content-Type': 'application/json'
     };
     
-    const response = await fetch(`${API_DOMAIN}/v1/videos/tasks/${taskId}`, {
+    const response = await fetch(`${API_DOMAIN}/v1/videos/image2video/${taskId}`, {
         headers
     });
     
     const data = await response.json();
     
     if (!response.ok) {
-        throw new Error(`Kling API error: ${data.message || 'Unknown error'}`);
+        throw new Error(`Kling API error (${response.status}): ${data.message || 'Unknown error'}`);
     }
     
     return data;

@@ -67,9 +67,8 @@ const createKlingApiClient = () => {
             onProgress(taskData);
           }
 
-          // Check task status - actual statuses should be adjusted based on API documentation
-          if (taskData.data.task_status === 'completed') {
-            resolve(taskData);
+          if (taskData.data.task_status === 'succeed') {
+            resolve(taskData.data.task_result);
             return;
           } else if (taskData.data.task_status === 'failed') {
             reject(
