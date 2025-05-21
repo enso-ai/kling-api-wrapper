@@ -8,7 +8,7 @@ import DurationSelector from './DurationSelector';
 import GenerateButton from './GenerateButton';
 import { convertImageToBase64 } from '../utils/image';
 
-export default function LeftPanel({ onGenerate }) {
+export default function LeftPanel({ onGenerate, loading }) {
   const [model, setModel] = useState('kling-v1-6');
   const [firstImage, setFirstImage] = useState(null);
   const [lastImage, setLastImage] = useState(null);
@@ -80,7 +80,7 @@ export default function LeftPanel({ onGenerate }) {
         onChange={setDuration} 
       />
       
-      <GenerateButton onClick={handleSubmit} />
+      <GenerateButton onClick={handleSubmit} loading={loading} />
     </div>
   );
 }

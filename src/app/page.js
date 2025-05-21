@@ -10,9 +10,16 @@ import VideoOptions from '../models/VideoOptions';
 
 export default function Home() {
   const [results, setResults] = useState([]);
+  const [loading, setLoading] = useState(false);
   
   const handleGenerate = async (formData) => {
+    if (loading) {
+      console.warn('Already generating a video. Please wait.');
+      return;
+    }
+
     try {
+      setLoading(true);
       // Call the Kling API to create a video
       const options = new VideoOptions(
           formData.modelName,
@@ -40,12 +47,14 @@ export default function Home() {
     } catch (error) {
       console.error('Error generating video:', error);
       // Could add error handling UI in the future
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="kling-container">
-      <LeftPanel onGenerate={handleGenerate} />
+      <LeftPanel onGenerate={handleGenerate} loading={loading} />
       <RightPanel results={results} />
     </div>
   );

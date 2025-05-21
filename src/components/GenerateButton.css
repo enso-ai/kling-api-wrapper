@@ -1,5 +1,5 @@
 .generate-btn {
-    margin: auto 5px 20px 5px;
+  margin: auto 5px 20px 5px;
   background-color: #00a67e;
   color: white;
   border: none;
@@ -9,8 +9,36 @@
   font-weight: bold;
   font-size: 16px;
   width: calc(100% - 10px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .generate-btn:hover {
   background-color: #008f6c;
+}
+
+.generate-btn:disabled,
+.generate-btn.loading {
+  background-color: #7fcfbb;
+  cursor: not-allowed;
+}
+
+.generate-btn:disabled:hover,
+.generate-btn.loading:hover {
+  background-color: #7fcfbb;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+  font-size: 18px;
 }
