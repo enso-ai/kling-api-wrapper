@@ -15,6 +15,9 @@ const createKlingApiClient = () => {
       const data = await response.json();
 
       if (!response.ok) {
+        alert(
+          `Error: ${data.error || 'Unknown error'}`
+        );
         throw new Error(`API error: ${data.error || 'Unknown error'}`);
       }
 
