@@ -9,7 +9,7 @@ import GenerateButton from './GenerateButton';
 import { convertImageToBase64 } from '../utils/image';
 
 export default function LeftPanel({ onGenerate }) {
-  const [model, setModel] = useState('kling1.6');
+  const [model, setModel] = useState('kling-v1-6');
   const [firstImage, setFirstImage] = useState(null);
   const [lastImage, setLastImage] = useState(null);
   const [prompt, setPrompt] = useState('');

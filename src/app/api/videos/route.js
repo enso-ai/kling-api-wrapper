@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import VideoOptions from '../../../models/VideoOptions';
 import { klingClient } from '../../../service/kling';
 
 export async function POST(request) {

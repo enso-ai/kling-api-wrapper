@@ -7,11 +7,10 @@ export default function VideoGrid({ results }) {
   return (
     <div className="video-grid">
       {results.length > 0 ? (
-        results.map(result => (
+        results.map((result) => (
           <VideoPlayer 
-            key={result.id} 
-            url={result.url} 
-            timestamp={result.timestamp} 
+            key={result.taskId}
+            payload={result}
           />
         ))
       ) : (

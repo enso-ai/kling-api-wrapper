@@ -37,7 +37,7 @@ class VideoOptions {
       (key) => requestBody[key] === undefined && delete requestBody[key]
     );
 
-    if (requestBody.imageTail) {
+    if (requestBody.image_tail) {
         requestBody.mode = "pro";
     }
 

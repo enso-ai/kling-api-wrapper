@@ -3,7 +3,8 @@ import { klingClient } from '../../../../service/kling';
 
 export async function GET(request, { params }) {
   try {
-    const taskId = params.taskId;
+    const resolvedParams = await params;
+    const taskId = resolvedParams.taskId;
     
     // Use the server-side utility function to get task information
     const data = await klingClient.getTaskByIdFromKlingAPI(taskId);
