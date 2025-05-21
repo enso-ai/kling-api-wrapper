@@ -9,7 +9,7 @@ export default function ModelSelector({ value, onChange }) {
       <select 
         id="model-type" 
         value={value} 
-        onChange={(e) => { onChange(e.target.value); console.log("target model:", e.target.value) }}
+        onChange={(e) => onChange(e.target.value)}
       >
         <option value="kling-v1-6">Kling 1.6</option>
         <option value="kling-v2-master">Kling 2.0</option>
