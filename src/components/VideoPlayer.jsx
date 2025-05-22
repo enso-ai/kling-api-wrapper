@@ -51,7 +51,9 @@ export default function VideoPlayer({ payload }) {
               className="video-element"
             />
           ) : (
-            <div className="loading-indicator">Loading...</div>
+            <div className="generating-mask">
+              <div className="generating-text">Generating...</div>
+            </div>
           )}
         </div>
       </div>
