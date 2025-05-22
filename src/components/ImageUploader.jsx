@@ -17,7 +17,7 @@ export default function ImageUploader({
     if (file) {
       const reader = new FileReader();
       reader.onload = (e) => {
-        console.log("File loaded:", e.target.result);
+        console.log("File loaded:");
         if (isFirst) {
           console.log("First image selected");
         } else {
