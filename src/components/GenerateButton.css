@@ -18,14 +18,12 @@
   background-color: #008f6c;
 }
 
-.generate-btn:disabled,
-.generate-btn.loading {
+.generate-btn:disabled {
   background-color: #7fcfbb;
   cursor: not-allowed;
 }
 
-.generate-btn:disabled:hover,
-.generate-btn.loading:hover {
+.generate-btn:disabled:hover {
   background-color: #7fcfbb;
 }
 
@@ -40,5 +38,4 @@
 
 .spin {
   animation: spin 1s linear infinite;
-  font-size: 18px;
 }

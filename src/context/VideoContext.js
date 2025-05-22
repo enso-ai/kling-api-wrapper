@@ -142,10 +142,23 @@ export function VideoProvider({ children }) {
         [videoRecords, saveRecordToDB]
     );
 
+    const removeVideoRecord = useCallback(
+        async (taskId) => {
+            setVideoRecords((prev) => prev.filter((record) => record.taskId !== taskId));
+            try {
+                await db.videoRecords.delete(taskId);
+            } catch (error) {
+                console.error("Error deleting video record:", error);
+            }
+        },
+        []
+    );
+
     const value = {
         videoRecords,
         createVideo,
         updateVideoRecord,
+        removeVideoRecord,
         isLoaded,
     };
 

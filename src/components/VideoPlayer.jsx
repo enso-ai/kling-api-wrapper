@@ -7,11 +7,13 @@ export default function VideoPlayer({ payload }) {
   const { taskId, status, createdAt, updatedAt, videoUrl: initialVideoUrl } = payload;
   const [videoUrl, setVideoUrl] = useState(initialVideoUrl);
   const videoRef = useRef(null);
-  const { updateVideoRecord } = useVideoContext();
+  const { updateVideoRecord, removeVideoRecord } = useVideoContext();
 
   useEffect(() => {
     let intervalId;
-    if (taskId && status !== 'succeed' && status !== 'failed') {
+    if (status == 'failed') {
+      removeVideoRecord(taskId)
+    } else if (taskId && status !== 'succeed') {
       // Set up polling interval
       intervalId = setInterval(() => {
         updateVideoRecord(taskId)

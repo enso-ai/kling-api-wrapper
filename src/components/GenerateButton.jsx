@@ -6,12 +6,12 @@ import './GenerateButton.css';
 export default function GenerateButton({ onClick, loading }) {
   return (
     <button 
-      className={`generate-btn ${loading ? 'loading' : ''}`} 
+      className={`generate-btn ${loading ? 'disabled' : ''}`} 
       onClick={onClick}
       disabled={loading}
     >
       {loading ? (
-        <FaRedo className="spin" />
+        <FaRedo className="spin" size={18} />
       ) : (
         "Generate"
       )}
