@@ -1,35 +1,120 @@
-import React, { createContext, useContext, useState, useCallback } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { apiClient } from "../service/backend";
 import VideoRecord from "../models/VideoRecord";
+import VideoOptions from "../models/VideoOptions";
+import { db } from "../service/database";
+
+const MAX_RECORDS = 50; // Maximum number of records to keep with full data
 
 const VideoContext = createContext();
 
 export function VideoProvider({ children }) {
     const [videoRecords, setVideoRecords] = useState([]);
+    const [isLoaded, setIsLoaded] = useState(false);
 
-    // Method to create a new video
-    const createVideo = useCallback(async (formData) => {
-        // Create a VideoRecord with input data
-        const videoRecord = new VideoRecord(formData);
+    // Load records from database on initial mount
+    useEffect(() => {
+        const loadRecordsFromDB = async () => {
+            try {
+                // Get the most recent records, ordered by creation date descending
+                const savedRecords = await db.videoRecords
+                    .orderBy('createdAt')
+                    .reverse()
+                    .limit(MAX_RECORDS)
+                    .toArray();
+                
+                // Convert DB objects back to VideoRecord instances
+                const records = savedRecords.map(VideoRecord.fromDatabase);
+                setVideoRecords(records);
+            } catch (error) {
+                console.error("Failed to load records from database:", error);
+            } finally {
+                setIsLoaded(true);
+            }
+        };
 
-        // Add to state first (with pending status)
-        setVideoRecords((prev) => [videoRecord, ...prev]);
+        loadRecordsFromDB();
+    }, []);
 
-        // Make the actual API request
+    // Save a record to the database (only if it has a taskId)
+    const saveRecordToDB = useCallback(async (record) => {
+        // Only save records that have a taskId
+        if (!record.taskId) return;
+        
         try {
-            const response = await apiClient.createVideo(videoRecord.options);
-            // Update the record with task info
-            videoRecord.updateWithTaskInfo(response.data);
-            setVideoRecords((prev) => [...prev]); // Trigger re-render
+            // Store in Dexie
+            await db.videoRecords.put(record.toDatabase());
         } catch (error) {
-            videoRecord.setError(error);
-            setVideoRecords((prev) => [...prev]); // Trigger re-render
+            console.error("Error saving record to database:", error);
+        }
+    }, []);
+
+    // Method to create a new video (enhanced with DB persistence)
+    const createVideo = useCallback(async (formData) => {
+        // Create VideoOptions to pass to API
+        const options = new VideoOptions(
+            formData.modelName,
+            formData.mode,
+            formData.duration,
+            formData.image,
+            formData.imageTail,
+            formData.prompt,
+            formData.negativePrompt,
+            formData.cfgScale,
+            formData.staticMask,
+            formData.dynamicMasks,
+            formData.cameraControl,
+            formData.callbackUrl,
+            formData.externalTaskId
+        );
+        
+        let videoRecord = null;
+        
+        // Make the API request first
+        try {
+
+            console.log("options from video context", options)
+            const response = await apiClient.createVideo(options);
+            
+            // Only now create the VideoRecord with the taskId
+            videoRecord = new VideoRecord(formData);
+            videoRecord.updateWithTaskInfo(response.data);
+            
+            // Add to state
+            setVideoRecords((prev) => [videoRecord, ...prev]);
+            
+            // Save to database (now that we have a taskId)
+            await saveRecordToDB(videoRecord);
+        } catch (error) {
+            console.error("Error creating video:", error);
+            // We don't create a record for failed requests
+        }
+
+        // Prune old records if we exceed our limit
+        if (videoRecords.length > MAX_RECORDS) {
+            // Keep state limited to MAX_RECORDS
+            setVideoRecords((prev) => prev.slice(0, MAX_RECORDS));
+            
+            // Clean up database to match (only keep MAX_RECORDS)
+            try {
+                const allIds = await db.videoRecords
+                    .orderBy('createdAt')
+                    .reverse()
+                    .offset(MAX_RECORDS)
+                    .primaryKeys();
+                
+                if (allIds.length > 0) {
+                    await db.videoRecords.bulkDelete(allIds);
+                }
+            } catch (error) {
+                console.error("Error pruning database:", error);
+            }
         }
 
         return videoRecord;
-    }, []);
+    }, [videoRecords, saveRecordToDB]);
 
-    // Method to update a video record
+    // Method to update a video record (enhanced with DB persistence)
     const updateVideoRecord = useCallback(
         async (taskId) => {
         try {
@@ -39,6 +124,9 @@ export function VideoProvider({ children }) {
             prev.map((record) => {
                 if (record.taskId === taskId) {
                     record.updateWithTaskResult(taskData);
+                    
+                    // Update in DB (async)
+                    saveRecordToDB(record).catch(console.error);
                 }
                 return record;
             })
@@ -51,13 +139,14 @@ export function VideoProvider({ children }) {
             return null;
         }
         },
-        [videoRecords]
+        [videoRecords, saveRecordToDB]
     );
 
     const value = {
         videoRecords,
         createVideo,
         updateVideoRecord,
+        isLoaded,
     };
 
     return (

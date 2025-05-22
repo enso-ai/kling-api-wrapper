@@ -1,7 +1,7 @@
 import VideoOptions from "./VideoOptions";
 
 class VideoRecord {
-    constructor(formData) {
+    constructor(formData = {}) {
         // Store the input parameters
         this.options = new VideoOptions(
             formData.modelName,
@@ -61,6 +61,32 @@ class VideoRecord {
             videoUrl: this.videoUrl,
             error: this.error,
         };
+    }
+
+    // Serialize for database storage
+    toDatabase() {
+        return {
+            id: this.taskId, // Use taskId as primary key
+            status: this.status,
+            createdAt: this.createdAt,
+            updatedAt: this.updatedAt,
+            error: this.error,
+            videoUrl: this.videoUrl,
+            options: this.options,  // This contains the potentially large image data
+        };
+    }
+
+    // Static method to recreate from database
+    static fromDatabase(data) {
+        const record = new VideoRecord();
+        record.taskId = data.id; // Convert DB id to taskId
+        record.status = data.status;
+        record.createdAt = data.createdAt;
+        record.updatedAt = data.updatedAt;
+        record.error = data.error;
+        record.videoUrl = data.videoUrl;
+        record.options = data.options;
+        return record;
     }
 }
 
