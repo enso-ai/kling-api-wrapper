@@ -5,16 +5,18 @@ import VideoPlayer from './VideoPlayer';
 import { useVideoContext } from '../context/VideoContext';
 
 export default function VideoGrid() {
-  const { videoRecords } = useVideoContext();
+  const { videoRecords, isLoaded } = useVideoContext();
 
   return (
     <div className="grid-container">
       <h1>Results</h1>
       <div className="video-grid">
-        {videoRecords.length > 0 ? (
+        {!isLoaded ? (
+          <div className="loading">Loading video history...</div>
+        ) : videoRecords.length > 0 ? (
           videoRecords.map((result) => (
             <VideoPlayer
-              key={result.taskId}
+              key={result.taskId || result.createdAt}
               payload={result.toPayload ? result.toPayload() : result}
             />
           ))
