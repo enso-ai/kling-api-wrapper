@@ -9,8 +9,8 @@ export default function VideoGrid({ results }) {
       {results.length > 0 ? (
         results.map((result) => (
           <VideoPlayer 
-            key={result.taskId}
-            payload={result}
+            key={result.taskId || result.createdAt.getTime()}
+            payload={result.toPayload ? result.toPayload() : result}
           />
         ))
       ) : (

@@ -7,8 +7,11 @@ import PromptInput from './PromptInput';
 import DurationSelector from './DurationSelector';
 import GenerateButton from './GenerateButton';
 import { convertImageToBase64 } from '../utils/image';
+import { useVideoContext } from '../context/VideoContext';
 
-export default function LeftPanel({ onGenerate, loading }) {
+export default function LeftPanel() {
+  const { createVideo } = useVideoContext();
+  const [loading, setLoading] = useState(false);
   const [model, setModel] = useState('kling-v1-6');
   const [firstImage, setFirstImage] = useState(null);
   const [lastImage, setLastImage] = useState(null);
@@ -16,7 +19,12 @@ export default function LeftPanel({ onGenerate, loading }) {
   const [negativePrompt, setNegativePrompt] = useState('');
   const [duration, setDuration] = useState('5');
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    if (loading) {
+      console.warn('Already generating a video. Please wait.');
+      return;
+    }
+
     // Create a formatted payload based on our individual state variables
     const formattedPayload = {
       modelName: model,
@@ -39,8 +47,15 @@ export default function LeftPanel({ onGenerate, loading }) {
         delete formattedPayload[key]
     );
 
-    // Pass the formatted payload to the parent component's handler
-    onGenerate(formattedPayload);
+    try {
+      setLoading(true);
+      // Use the createVideo method from VideoContext
+      await createVideo(formattedPayload);
+    } catch (error) {
+      console.error('Error generating video:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
