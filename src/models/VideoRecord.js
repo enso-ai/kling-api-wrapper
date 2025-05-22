@@ -22,6 +22,7 @@ class VideoRecord {
         // Initialize with pending status
         this.taskId = null;
         this.status = "pending";
+        this.task_msg = "";
         this.createdAt = new Date().toLocaleString();
         this.updatedAt = new Date().toLocaleString();
         this.error = null;
@@ -41,6 +42,10 @@ class VideoRecord {
             taskData.data.task_result?.videos?.length > 0
         ) {
             this.videoUrl = taskData.data.task_result.videos[0].url;
+        }
+
+        if (taskData.data.task_status === "failed") {
+            this.error = taskData.data.task_status_msg || "Unknown error";
         }
 
         this.updatedAt = new Date().toLocaleString();

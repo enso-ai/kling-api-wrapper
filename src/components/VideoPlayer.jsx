@@ -7,13 +7,11 @@ export default function VideoPlayer({ payload }) {
   const { taskId, status, createdAt, updatedAt, videoUrl: initialVideoUrl } = payload;
   const [videoUrl, setVideoUrl] = useState(initialVideoUrl);
   const videoRef = useRef(null);
-  const { updateVideoRecord, removeVideoRecord } = useVideoContext();
+  const { updateVideoRecord } = useVideoContext();
 
   useEffect(() => {
     let intervalId;
-    if (status == 'failed') {
-      removeVideoRecord(taskId)
-    } else if (taskId && status !== 'succeed') {
+    if (taskId && status !== 'succeed' && status !== 'failed') {
       // Set up polling interval
       intervalId = setInterval(() => {
         updateVideoRecord(taskId)
@@ -41,7 +39,11 @@ export default function VideoPlayer({ payload }) {
     <div className="video-item">
       <div className="video-player">
         <div className="video-player-content">
-          {videoUrl ? (
+          {status === 'failed' ? (
+            <div className="error-mask">
+              <div className="error-text">{payload.error || 'An error occurred'}</div>
+            </div>
+          ) : videoUrl ? (
             <video 
               ref={videoRef}
               src={videoUrl} 
