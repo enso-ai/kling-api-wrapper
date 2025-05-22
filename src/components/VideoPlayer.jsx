@@ -1,5 +1,6 @@
 {/* app/components/VideoPlayer.jsx */}
 import { useEffect, useState, useRef } from 'react';
+import { FaTrashAlt } from "react-icons/fa";
 import './VideoPlayer.css';
 import { useVideoContext } from '../context/VideoContext';
 
@@ -7,7 +8,7 @@ export default function VideoPlayer({ payload }) {
   const { taskId, status, createdAt, updatedAt, videoUrl: initialVideoUrl } = payload;
   const [videoUrl, setVideoUrl] = useState(initialVideoUrl);
   const videoRef = useRef(null);
-  const { updateVideoRecord } = useVideoContext();
+  const { updateVideoRecord, removeVideoRecord } = useVideoContext();
 
   useEffect(() => {
     let intervalId;
@@ -35,9 +36,22 @@ export default function VideoPlayer({ payload }) {
     }
   }, [initialVideoUrl]);
 
+  const handleDelete = () => {
+    if (window.confirm('Are you sure you want to delete this video?')) {
+      removeVideoRecord(taskId);
+    }
+  };
+
   return (
     <div className="video-item">
       <div className="video-player">
+        <button 
+          className="delete-button" 
+          onClick={handleDelete}
+          aria-label="Delete video"
+        >
+          <FaTrashAlt />
+        </button>
         <div className="video-player-content">
           {status === 'failed' ? (
             <div className="error-mask">
