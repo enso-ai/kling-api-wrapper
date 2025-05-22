@@ -1,5 +1,5 @@
 {/* app/components/SidePanel.jsx */ }
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './SidePanel.css';
 import ModelSelector from './ModelSelector';
 import ImageUploader from './ImageUploader';
@@ -10,7 +10,7 @@ import { convertImageToBase64 } from '../utils/image';
 import { useVideoContext } from '../context/VideoContext';
 
 export default function SidePanel() {
-  const { createVideo } = useVideoContext();
+  const { createVideo, currentTemplate, clearTemplate } = useVideoContext();
   const [loading, setLoading] = useState(false);
   const [model, setModel] = useState('kling-v1-6');
   const [firstImage, setFirstImage] = useState(null);
@@ -18,6 +18,29 @@ export default function SidePanel() {
   const [prompt, setPrompt] = useState('');
   const [negativePrompt, setNegativePrompt] = useState('');
   const [duration, setDuration] = useState('5');
+
+  // Effect to update form when template changes
+  useEffect(() => {
+    if (currentTemplate) {
+      // Update form fields with template values
+      setModel(currentTemplate.modelName || 'kling-v1-6');
+      setPrompt(currentTemplate.prompt || '');
+      setNegativePrompt(currentTemplate.negativePrompt || '');
+      setDuration(currentTemplate.duration || '5');
+      
+      // For images, we need to convert from the stored format to data URLs
+      if (currentTemplate.image) {
+        // Create a data URL from the base64 image
+        const firstImageDataUrl = `data:image/png;base64,${currentTemplate.image}`;
+        setFirstImage(firstImageDataUrl);
+      }
+      
+      if (currentTemplate.imageTail) {
+        const lastImageDataUrl = `data:image/png;base64,${currentTemplate.imageTail}`;
+        setLastImage(lastImageDataUrl);
+      }
+    }
+  }, [currentTemplate]);
 
   const handleSubmit = async () => {
     if (loading) {
@@ -51,6 +74,8 @@ export default function SidePanel() {
       setLoading(true);
       // Use the createVideo method from VideoContext
       await createVideo(formattedPayload);
+      // Clear the template after successful submission
+      clearTemplate();
     } catch (error) {
       console.error('Error generating video:', error);
     } finally {

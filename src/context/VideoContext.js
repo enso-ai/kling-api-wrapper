@@ -11,6 +11,7 @@ const VideoContext = createContext();
 export function VideoProvider({ children }) {
     const [videoRecords, setVideoRecords] = useState([]);
     const [isLoaded, setIsLoaded] = useState(false);
+    const [currentTemplate, setCurrentTemplate] = useState(null);
 
     // Load records from database on initial mount
     useEffect(() => {
@@ -154,11 +155,38 @@ export function VideoProvider({ children }) {
         []
     );
 
+    // Method to use a video as a template for a new generation
+    const useVideoAsTemplate = useCallback((taskId) => {
+        const record = videoRecords.find(r => r.taskId === taskId);
+        if (record && record.options) {
+            // Store only the generation parameters from the options object
+            setCurrentTemplate({
+                modelName: record.options.modelName,
+                mode: record.options.mode,
+                duration: record.options.duration,
+                image: record.options.image,
+                imageTail: record.options.imageTail,
+                prompt: record.options.prompt,
+                negativePrompt: record.options.negativePrompt,
+                cfgScale: record.options.cfgScale,
+                // We don't include taskId, status, or other runtime properties
+            });
+        }
+    }, [videoRecords]);
+
+    // Method to clear the current template
+    const clearTemplate = useCallback(() => {
+        setCurrentTemplate(null);
+    }, []);
+
     const value = {
         videoRecords,
         createVideo,
         updateVideoRecord,
         removeVideoRecord,
+        useVideoAsTemplate,
+        clearTemplate,
+        currentTemplate,
         isLoaded,
     };
 

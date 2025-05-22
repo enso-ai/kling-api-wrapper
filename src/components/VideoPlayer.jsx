@@ -1,6 +1,6 @@
 {/* app/components/VideoPlayer.jsx */}
 import { useEffect, useState, useRef } from 'react';
-import { FaTrashAlt } from "react-icons/fa";
+import { FaTrashAlt, FaPencilAlt } from "react-icons/fa";
 import './VideoPlayer.css';
 import { useVideoContext } from '../context/VideoContext';
 
@@ -8,7 +8,7 @@ export default function VideoPlayer({ payload }) {
   const { taskId, status, createdAt, updatedAt, videoUrl: initialVideoUrl } = payload;
   const [videoUrl, setVideoUrl] = useState(initialVideoUrl);
   const videoRef = useRef(null);
-  const { updateVideoRecord, removeVideoRecord } = useVideoContext();
+  const { updateVideoRecord, removeVideoRecord, useVideoAsTemplate } = useVideoContext();
 
   useEffect(() => {
     let intervalId;
@@ -42,9 +42,22 @@ export default function VideoPlayer({ payload }) {
     }
   };
 
+  const handleUseAsTemplate = () => {
+    useVideoAsTemplate(taskId);
+    // Provide user feedback
+    alert("Video parameters loaded as template. You can now modify and generate a new video.");
+  };
+
   return (
     <div className="video-item">
       <div className="video-player">
+        <button 
+          className="edit-button" 
+          onClick={handleUseAsTemplate}
+          aria-label="Use as template"
+        >
+          <FaPencilAlt />
+        </button>
         <button 
           className="delete-button" 
           onClick={handleDelete}
