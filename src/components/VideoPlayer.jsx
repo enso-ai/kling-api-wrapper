@@ -11,8 +11,6 @@ export default function VideoPlayer({ payload }) {
 
   useEffect(() => {
     let intervalId;
-
-    console.log("VideoPlayer payload:", payload);
     if (taskId && status !== 'succeed' && status !== 'failed') {
       // Set up polling interval
       intervalId = setInterval(() => {
