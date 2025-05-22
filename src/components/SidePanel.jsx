@@ -1,6 +1,6 @@
-{/* app/components/LeftPanel.jsx */ }
-import React, { useState } from 'react';
-import './LeftPanel.css';
+{/* app/components/SidePanel.jsx */ }
+import { useState } from 'react';
+import './SidePanel.css';
 import ModelSelector from './ModelSelector';
 import ImageUploader from './ImageUploader';
 import PromptInput from './PromptInput';
@@ -9,7 +9,7 @@ import GenerateButton from './GenerateButton';
 import { convertImageToBase64 } from '../utils/image';
 import { useVideoContext } from '../context/VideoContext';
 
-export default function LeftPanel() {
+export default function SidePanel() {
   const { createVideo } = useVideoContext();
   const [loading, setLoading] = useState(false);
   const [model, setModel] = useState('kling-v1-6');
@@ -59,7 +59,7 @@ export default function LeftPanel() {
   };
 
   return (
-    <div className="left-panel">
+    <div className="side-panel">
       <h1>Video Generation</h1>
 
       <ModelSelector

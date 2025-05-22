@@ -22,8 +22,8 @@ class VideoRecord {
         // Initialize with pending status
         this.taskId = null;
         this.status = "pending";
-        this.createdAt = new Date();
-        this.timestamp = new Date().toLocaleString();
+        this.createdAt = new Date().toLocaleString();
+        this.updatedAt = new Date().toLocaleString();
         this.error = null;
         this.videoUrl = null;
     }
@@ -31,7 +31,7 @@ class VideoRecord {
     updateWithTaskInfo(apiResponse) {
         this.taskId = apiResponse.task_id;
         this.status = apiResponse.task_status;
-        this.timestamp = apiResponse.updated_at || this.timestamp;
+        this.updatedAt = new Date().toLocaleString();
     }
 
     updateWithTaskResult(taskData) {
@@ -43,7 +43,7 @@ class VideoRecord {
             this.videoUrl = taskData.data.task_result.videos[0].url;
         }
 
-        this.timestamp = new Date().toLocaleString();
+        this.updatedAt = new Date().toLocaleString();
     }
 
     setError(error) {
@@ -57,7 +57,7 @@ class VideoRecord {
             taskId: this.taskId,
             status: this.status,
             createdAt: this.createdAt,
-            timestamp: this.timestamp,
+            updatedAt: this.updatedAt,
             videoUrl: this.videoUrl,
             error: this.error,
         };

@@ -1,0 +1,18 @@
+.side-panel {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    width: 40%;
+    max-width: 500px;
+    min-width: 300px;
+    height: 100vh;
+    padding: 20px;
+    border-right: 1px solid #2a2a2a;
+    overflow-y: auto;
+}
+
+.side-panel h1 {
+    font-size: 24px;
+    margin-bottom: 20px;
+}

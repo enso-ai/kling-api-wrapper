@@ -4,7 +4,8 @@ import './VideoPlayer.css';
 import { useVideoContext } from '../context/VideoContext';
 
 export default function VideoPlayer({ payload }) {
-  const { taskId, status, timestamp, videoUrl: initialVideoUrl } = payload;
+  const { taskId, status, createdAt, updatedAt, videoUrl: initialVideoUrl } = payload;
+  console.log("VideoPlayer payload:", payload);
   const [videoUrl, setVideoUrl] = useState(initialVideoUrl);
   const videoRef = useRef(null);
   const { updateVideoRecord } = useVideoContext();
@@ -58,7 +59,7 @@ export default function VideoPlayer({ payload }) {
         </div>
       </div>
       <div className="video-info">
-        <p>Generated on {timestamp}</p>
+        <p>Last updated at {updatedAt?.split(', ')[1] || updatedAt}</p>
       </div>
     </div>
   );
