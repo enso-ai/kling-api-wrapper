@@ -36,7 +36,7 @@
 }
 
 .image-preview::after {
-  content: "Click to select image";
+  content: "Click or drag to upload";
   position: absolute;
   bottom: 10px;
   right: 10px;
@@ -53,6 +53,19 @@
   opacity: 1;
 }
 
+/* Drag and drop styles */
+.image-preview.drag-over {
+  background-color: #4a5568;
+  border: 2px dashed #68d391;
+  transform: scale(1.02);
+}
+
+.image-preview.drag-over::after {
+  content: "Drop image here";
+  opacity: 1;
+  background-color: rgba(104, 211, 145, 0.8);
+}
+
 .image-preview-content {
   position: absolute;
   top: 0;
@@ -65,6 +78,25 @@
   color: #777;
   font-size: 14px;
   text-align: center;
+}
+
+.upload-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.upload-hint {
+  font-size: 12px;
+  color: #555;
+  opacity: 0.8;
+}
+
+.image-preview.drag-over .upload-hint {
+  color: #68d391;
+  opacity: 1;
+  font-weight: 500;
 }
 
 .image-preview-content img {

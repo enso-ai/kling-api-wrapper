@@ -1,5 +1,5 @@
 {/* app/components/ImageUploader.jsx */ }
-import React from 'react';
+import React, { useState } from 'react';
 import { FaTimes } from 'react-icons/fa';
 import './ImageUploader.css';
 
@@ -10,11 +10,12 @@ export default function ImageUploader({
   label,
   isFirst
 }) {
-  const handleFileSelect = (event) => {
-    console.log("File selected:", event.target.files);
-    const file = event.target.files[0];
-    console.log("Selected file:", file);
-    if (file) {
+  const [isDragOver, setIsDragOver] = useState(false);
+
+  // Shared file processing logic
+  const processFile = (file) => {
+    if (file && file.type.startsWith('image/')) {
+      console.log("Processing file:", file);
       const reader = new FileReader();
       reader.onload = (e) => {
         console.log("File loaded:");
@@ -27,6 +28,45 @@ export default function ImageUploader({
       };
       reader.readAsDataURL(file);
       console.log("FileReader started");
+    } else {
+      console.warn("Invalid file type. Please select an image.");
+    }
+  };
+
+  const handleFileSelect = (event) => {
+    console.log("File selected:", event.target.files);
+    const file = event.target.files[0];
+    console.log("Selected file:", file);
+    processFile(file);
+  };
+
+  // Drag and drop handlers
+  const handleDragEnter = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+    
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      console.log("File dropped:", files[0]);
+      processFile(files[0]);
     }
   };
 
@@ -46,7 +86,14 @@ export default function ImageUploader({
         onChange={handleFileSelect}
         style={{ display: 'none' }}
       />
-      <label htmlFor={id} className="image-preview">
+      <label 
+        htmlFor={id} 
+        className={`image-preview ${isDragOver ? 'drag-over' : ''}`}
+        onDragEnter={handleDragEnter}
+        onDragLeave={handleDragLeave}
+        onDragOver={handleDragOver}
+        onDrop={handleDrop}
+      >
         <div className="image-preview-content">
           {image ? (
             <>
@@ -60,7 +107,10 @@ export default function ImageUploader({
               </button>
             </>
           ) : (
-            label
+            <div className="upload-placeholder">
+              <div>{label}</div>
+              <div className="upload-hint">Click to select or drag and drop image</div>
+            </div>
           )}
         </div>
       </label>
