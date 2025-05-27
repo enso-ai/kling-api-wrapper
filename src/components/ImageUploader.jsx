@@ -72,6 +72,7 @@ export default function ImageUploader({
 
   // Clear image handler
   const clearImage = (e) => {
+    e.preventDefault(); // Prevent default label behavior
     e.stopPropagation(); // Prevent triggering the file input
     onImageChange(null);
   };
