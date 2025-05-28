@@ -45,17 +45,14 @@ export async function POST(request, { params }) {
     }
 }
 
-export async function GET(request, { params }) {
+export async function GET(request) {
     /**
      * Video Extension API Endpoints
-     * 
-     * 
+     *
+     *
      * GET /api/videos/extension/[videoId]?taskId={taskId}
      * Gets specific extension task status
-     * 
-     * GET /api/videos/extension/[videoId]?pageNum={pageNum}&pageSize={pageSize}
-     * Lists extension tasks with pagination (default: pageNum=1, pageSize=30)
-     * 
+     *
      * Notes:
      * - Each extension adds 4-5 seconds to the video
      * - Total video duration cannot exceed 3 minutes
@@ -63,29 +60,16 @@ export async function GET(request, { params }) {
      * - Videos are cleared 30 days after generation
      */
     try {
-        const resolvedParams = await params;
         const { searchParams } = new URL(request.url);
         const taskId = searchParams.get('taskId');
-        const pageNum = parseInt(searchParams.get('pageNum') || '1', 10);
-        const pageSize = parseInt(searchParams.get('pageSize') || '30', 10);
 
-        let data;
-
-        if (taskId) {
-            // Get specific extension task status
-            data = await klingClient.getExtensionTaskByIdFromKlingAPI(taskId);
-        } else {
-            // List extension tasks with pagination
-            data = await klingClient.listExtensionTasksFromKlingAPI(pageNum, pageSize);
-        }
+        // Get specific extension task status
+        const data = await klingClient.getExtensionTaskByIdFromKlingAPI(taskId);
 
         return NextResponse.json(data);
     } catch (error) {
         console.error('Error getting extension tasks:', error);
-        return NextResponse.json(
-            { error: error.message },
-            { status: 500 }
-        );
+        return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
 
