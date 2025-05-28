@@ -28,15 +28,32 @@
   border-radius: 4px;
   position: relative;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: all 0.2s ease;
+  outline: none; /* Remove default focus outline */
+  border: 2px solid transparent;
 }
 
 .image-preview:hover {
   background-color: #3a3a3a;
 }
 
+/* Enhanced hover state for paste readiness */
+.image-preview.hovered {
+  background-color: #3a3a3a;
+  border-color: #4299e1;
+  box-shadow: 0 0 0 1px #4299e1;
+  transform: scale(1.01);
+}
+
+/* Focus state for keyboard accessibility and paste functionality */
+.image-preview:focus,
+.image-preview.focused {
+  background-color: #3a3a3a;
+  box-shadow: 0 0 0 2px #4299e1;
+}
+
 .image-preview::after {
-  content: "Click or drag to upload";
+  content: "Click, drag, or paste to upload";
   position: absolute;
   bottom: 10px;
   right: 10px;
@@ -47,10 +64,22 @@
   font-size: 12px;
   opacity: 0;
   transition: opacity 0.2s ease;
+  pointer-events: none;
 }
 
-.image-preview:hover::after {
+.image-preview:hover::after,
+.image-preview:focus::after,
+.image-preview.focused::after,
+.image-preview.hovered::after {
   opacity: 1;
+}
+
+/* Special styling when hovered and ready for paste */
+.image-preview.hovered::after {
+  content: "Ready for paste! Press Ctrl+V";
+  background-color: rgba(66, 153, 225, 0.9);
+  color: white;
+  font-weight: 500;
 }
 
 /* Drag and drop styles */
@@ -91,12 +120,30 @@
   font-size: 12px;
   color: #555;
   opacity: 0.8;
+  transition: all 0.2s ease;
 }
 
 .image-preview.drag-over .upload-hint {
   color: #68d391;
   opacity: 1;
   font-weight: 500;
+}
+
+/* Enhanced visual feedback for hover and paste ready state */
+.image-preview.hovered .upload-hint {
+  color: #4299e1;
+  opacity: 1;
+  font-weight: 500;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
 }
 
 .image-preview-content img {
@@ -129,4 +176,29 @@
   background-color: rgba(0, 0, 0, 0.7);
 }
 
-/* We're removing the select button styles as we're merging it with the preview */
+/* Enhanced accessibility and visual feedback */
+.image-preview:focus .upload-hint,
+.image-preview.focused .upload-hint {
+  color: #4299e1;
+  opacity: 1;
+  font-weight: 500;
+}
+
+/* Subtle animation for paste-ready state */
+.image-preview.hovered {
+  animation: paste-ready 0.3s ease-out;
+}
+
+@keyframes paste-ready {
+  0% {
+    transform: scale(1);
+    border-color: transparent;
+  }
+  50% {
+    transform: scale(1.02);
+  }
+  100% {
+    transform: scale(1.01);
+    border-color: #4299e1;
+  }
+}

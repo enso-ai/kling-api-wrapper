@@ -1,5 +1,5 @@
 {/* app/components/ImageUploader.jsx */ }
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { FaTimes } from 'react-icons/fa';
 import './ImageUploader.css';
 
@@ -11,6 +11,9 @@ export default function ImageUploader({
   isFirst
 }) {
   const [isDragOver, setIsDragOver] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const uploadAreaRef = useRef(null);
 
   // Shared file processing logic
   const processFile = (file) => {
@@ -77,6 +80,100 @@ export default function ImageUploader({
     onImageChange(null);
   };
 
+  // Paste event handler - no browser permission prompts
+  const handlePaste = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log("Paste event detected");
+
+    // Get clipboard items from the event
+    const items = e.clipboardData?.items;
+    if (!items) {
+      console.log("No clipboard items found in paste event");
+      return;
+    }
+
+    // Look for image data in clipboard
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      console.log("Clipboard item type:", item.type);
+      
+      // Check if the item is an image
+      if (item.type.startsWith('image/')) {
+        const file = item.getAsFile();
+        if (file) {
+          console.log("Image pasted from clipboard event:", file);
+          processFile(file);
+          return;
+        }
+      }
+    }
+    console.log("No image found in clipboard items");
+  };
+
+  // Mouse enter/leave handlers for better hover detection
+  const handleMouseEnter = () => {
+    setIsHovered(true);
+    // Auto-focus when hovering to enable paste events
+    if (uploadAreaRef.current && !isFocused) {
+      uploadAreaRef.current.focus();
+    }
+  };
+
+  const handleMouseLeave = () => {
+    setIsHovered(false);
+    // Don't blur immediately to allow paste to work
+  };
+
+  // Global keyboard event handler - simplified without modern Clipboard API
+  useEffect(() => {
+    const handleGlobalKeyDown = (e) => {
+      // Only handle paste when hovering over this upload area
+      if (isHovered && (e.ctrlKey || e.metaKey) && e.key === 'v') {
+        console.log("Global paste shortcut detected while hovering");
+        
+        // Ensure the element is focused to receive paste event
+        if (uploadAreaRef.current) {
+          uploadAreaRef.current.focus();
+        }
+        
+        // The paste event will be triggered automatically and handled by handlePaste
+      }
+    };
+
+    const handleGlobalPaste = (e) => {
+      // Only handle global paste when hovering over this upload area
+      if (isHovered) {
+        console.log("Global paste event detected while hovering");
+        handlePaste(e);
+      }
+    };
+
+    document.addEventListener('keydown', handleGlobalKeyDown);
+    document.addEventListener('paste', handleGlobalPaste);
+
+    return () => {
+      document.removeEventListener('keydown', handleGlobalKeyDown);
+      document.removeEventListener('paste', handleGlobalPaste);
+    };
+  }, [isHovered]);
+
+  // Focus handlers
+  const handleFocus = () => {
+    setIsFocused(true);
+    console.log("Upload area focused");
+  };
+
+  const handleBlur = () => {
+    // Delay blur to allow paste events to complete
+    setTimeout(() => {
+      if (!isHovered) {
+        setIsFocused(false);
+        console.log("Upload area blurred");
+      }
+    }, 100);
+  };
+
   return (
     <div className="image-upload">
       <input
@@ -89,11 +186,18 @@ export default function ImageUploader({
       />
       <label 
         htmlFor={id} 
-        className={`image-preview ${isDragOver ? 'drag-over' : ''}`}
+        ref={uploadAreaRef}
+        tabIndex={0}
+        className={`image-preview ${isDragOver ? 'drag-over' : ''} ${isFocused ? 'focused' : ''} ${isHovered ? 'hovered' : ''}`}
         onDragEnter={handleDragEnter}
         onDragLeave={handleDragLeave}
         onDragOver={handleDragOver}
         onDrop={handleDrop}
+        onPaste={handlePaste}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
       >
         <div className="image-preview-content">
           {image ? (
@@ -110,7 +214,9 @@ export default function ImageUploader({
           ) : (
             <div className="upload-placeholder">
               <div>{label}</div>
-              <div className="upload-hint">Click to select or drag and drop image</div>
+              <div className="upload-hint">
+                {isHovered ? "Ready to paste! Press Ctrl+V" : "Click, drag, or hover and paste image"}
+              </div>
             </div>
           )}
         </div>
