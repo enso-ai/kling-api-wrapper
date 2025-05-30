@@ -21,6 +21,7 @@ class VideoRecord {
 
         // Initialize with pending status
         this.taskId = null;
+        this.videoId = null; // Video ID from API response for extensions
         this.status = "pending";
         this.task_msg = "";
         this.createdAt = new Date().toLocaleString();
@@ -42,6 +43,7 @@ class VideoRecord {
             taskData.data.task_result?.videos?.length > 0
         ) {
             this.videoUrl = taskData.data.task_result.videos[0].url;
+            this.videoId = taskData.data.task_result.videos[0].id; // Extract video ID for extensions
         }
 
         if (taskData.data.task_status === "failed") {
@@ -60,6 +62,7 @@ class VideoRecord {
     toPayload() {
         return {
             taskId: this.taskId,
+            videoId: this.videoId,
             status: this.status,
             createdAt: this.createdAt,
             updatedAt: this.updatedAt,
@@ -71,7 +74,9 @@ class VideoRecord {
     // Serialize for database storage
     toDatabase() {
         return {
-            id: this.taskId, // Use taskId as primary key
+            id: this.taskId, // Primary key (backward compatibility)
+            taskId: this.taskId, // Explicit task ID field
+            videoId: this.videoId, // Video ID for extensions
             status: this.status,
             createdAt: this.createdAt,
             updatedAt: this.updatedAt,
@@ -84,7 +89,9 @@ class VideoRecord {
     // Static method to recreate from database
     static fromDatabase(data) {
         const record = new VideoRecord();
-        record.taskId = data.id; // Convert DB id to taskId
+        // Handle backward compatibility for old records
+        record.taskId = data.taskId || data.id; // Use explicit taskId if available, fallback to id
+        record.videoId = data.videoId || null; // Video ID for extensions (new field)
         record.status = data.status;
         record.createdAt = data.createdAt;
         record.updatedAt = data.updatedAt;
