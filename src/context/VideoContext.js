@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { apiClient } from "../service/backend";
 import VideoRecord from "../models/VideoRecord";
 import VideoOptions from "../models/VideoOptions";
+import ExtensionRecord from "../models/ExtensionRecord";
 import { db } from "../service/database";
 
 const MAX_RECORDS = 50; // Maximum number of records to keep with full data
@@ -24,8 +25,14 @@ export function VideoProvider({ children }) {
                     .limit(MAX_RECORDS)
                     .toArray();
                 
-                // Convert DB objects back to VideoRecord instances
-                const records = savedRecords.map(VideoRecord.fromDatabase);
+                // Convert DB objects back to appropriate record instances
+                const records = savedRecords.map(data => {
+                    if (data.isExtension) {
+                        return ExtensionRecord.fromDatabase(data);
+                    } else {
+                        return VideoRecord.fromDatabase(data);
+                    }
+                });
                 setVideoRecords(records);
             } catch (error) {
                 console.error("Failed to load records from database:", error);
@@ -119,7 +126,21 @@ export function VideoProvider({ children }) {
     const updateVideoRecord = useCallback(
         async (taskId) => {
         try {
-            const taskData = await apiClient.getTaskById(taskId);
+            // Find the record to determine the correct API to call
+            const record = videoRecords.find((r) => r.taskId === taskId);
+            if (!record) {
+                console.warn(`Record with taskId ${taskId} not found`);
+                return null;
+            }
+
+            let taskData;
+            if (record.isExtension) {
+                // For extension records, use the extension API
+                taskData = await apiClient.getExtensionTaskById(taskId, record.originalVideoId);
+            } else {
+                // For regular video records, use the standard API
+                taskData = await apiClient.getTaskById(taskId);
+            }
 
             setVideoRecords((prev) =>
             prev.map((record) => {
@@ -134,7 +155,7 @@ export function VideoProvider({ children }) {
             );
 
             // Return the updated record for the component that requested the update
-            return videoRecords.find((record) => record.taskId === taskId);
+            return record;
         } catch (error) {
             console.error("Error updating video record:", error);
             return null;
@@ -179,6 +200,52 @@ export function VideoProvider({ children }) {
         setCurrentTemplate(null);
     }, []);
 
+    // Method to create a video extension
+    const addExtensionRecord = useCallback(async (videoId, extensionOptions) => {
+        let extensionRecord = null;
+        
+        // Make the API request first
+        try {
+            const response = await apiClient.extendVideo(videoId, extensionOptions);
+            
+            // Create the ExtensionRecord with the taskId
+            extensionRecord = new ExtensionRecord(videoId, extensionOptions);
+            extensionRecord.updateWithTaskInfo(response.data);
+            
+            // Add to state (treat as a video record in the list)
+            setVideoRecords((prev) => [extensionRecord, ...prev]);
+            
+            // Save to database (now that we have a taskId)
+            await saveRecordToDB(extensionRecord);
+        } catch (error) {
+            console.error("Error creating video extension:", error);
+            throw error; // Re-throw to let the component handle it
+        }
+
+        // Prune old records if we exceed our limit
+        if (videoRecords.length > MAX_RECORDS) {
+            // Keep state limited to MAX_RECORDS
+            setVideoRecords((prev) => prev.slice(0, MAX_RECORDS));
+            
+            // Clean up database to match (only keep MAX_RECORDS)
+            try {
+                const allIds = await db.videoRecords
+                    .orderBy('createdAt')
+                    .reverse()
+                    .offset(MAX_RECORDS)
+                    .primaryKeys();
+                
+                if (allIds.length > 0) {
+                    await db.videoRecords.bulkDelete(allIds);
+                }
+            } catch (error) {
+                console.error("Error pruning database:", error);
+            }
+        }
+
+        return extensionRecord;
+    }, [videoRecords, saveRecordToDB]);
+
     const value = {
         videoRecords,
         createVideo,
@@ -186,6 +253,7 @@ export function VideoProvider({ children }) {
         removeVideoRecord,
         useVideoAsTemplate,
         clearTemplate,
+        addExtensionRecord,
         currentTemplate,
         isLoaded,
     };

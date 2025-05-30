@@ -122,12 +122,86 @@ async function getTaskByIdFromKlingAPI(taskId) {
     return data;
 }
 
+// Server-side utility to extend a video
+async function extendVideoOnKlingAPI(videoId, extensionOptions = {}) {
+    const headers = {
+        'Authorization': `Bearer ${await generateToken()}`,
+        'Content-Type': 'application/json'
+    };
+    
+    const payload = {
+        video_id: videoId,
+        ...extensionOptions
+    };
+    
+    const response = await fetch(`${API_DOMAIN}/v1/videos/video-extend`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(payload)
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+        throw new Error(`Kling API error: ${data.message || 'Unknown error'}`);
+    }
+    
+    return data;
+}
+
+// Server-side utility to get extension task information
+async function getExtensionTaskByIdFromKlingAPI(taskId) {
+    const headers = {
+        'Authorization': `Bearer ${await generateToken()}`,
+        'Content-Type': 'application/json'
+    };
+    
+    const response = await fetch(`${API_DOMAIN}/v1/videos/video-extend/${taskId}`, {
+        headers
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+        throw new Error(`Kling API error (${response.status}): ${data.message || 'Unknown error'}`);
+    }
+    
+    return data;
+}
+
+// Server-side utility to list extension tasks
+async function listExtensionTasksFromKlingAPI(pageNum = 1, pageSize = 30) {
+    const params = new URLSearchParams();
+    params.append('pageNum', pageNum.toString());
+    params.append('pageSize', pageSize.toString());
+    
+    const headers = {
+        'Authorization': `Bearer ${await generateToken()}`,
+        'Content-Type': 'application/json'
+    };
+    
+    const response = await fetch(`${API_DOMAIN}/v1/videos/video-extend?${params.toString()}`, {
+        headers
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+        throw new Error(`Kling API error: ${data.message || 'Unknown error'}`);
+    }
+    
+    return data;
+}
+
 // Export server-side utilities
 export const klingClient = {
     generateToken,
     createVideoOnKlingAPI,
     getAccountInfoFromKlingAPI,
     getTaskByIdFromKlingAPI,
+    extendVideoOnKlingAPI,
+    getExtensionTaskByIdFromKlingAPI,
+    listExtensionTasksFromKlingAPI,
     ACCESS_KEY,
     SECRET_KEY,
     API_DOMAIN,

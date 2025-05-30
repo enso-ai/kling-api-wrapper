@@ -10,6 +10,14 @@ export class VideoDB extends Dexie {
       // id will be the taskId
       // We index status and createdAt for faster queries
     });
+
+    // Version 2: Add taskId and videoId fields for better ID management
+    this.version(2).stores({
+      videoRecords: 'id, status, createdAt, taskId, videoId'
+      // id: Primary key (backward compatibility with task ID)
+      // taskId: Explicit task ID field
+      // videoId: Actual video ID from API response for extensions
+    });
   }
 }
 

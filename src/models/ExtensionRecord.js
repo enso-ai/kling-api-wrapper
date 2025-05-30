@@ -1,33 +1,18 @@
-import VideoOptions from "./VideoOptions";
-
-class VideoRecord {
-    constructor(formData = {}) {
-        // Store the input parameters
-        this.options = new VideoOptions(
-            formData.modelName,
-            formData.mode,
-            formData.duration,
-            formData.image,
-            formData.imageTail,
-            formData.prompt,
-            formData.negativePrompt,
-            formData.cfgScale,
-            formData.staticMask,
-            formData.dynamicMasks,
-            formData.cameraControl,
-            formData.callbackUrl,
-            formData.externalTaskId
-        );
+class ExtensionRecord {
+    constructor(videoId, extensionOptions = {}) {
+        // Store the original video ID and extension parameters
+        this.originalVideoId = videoId;
+        this.extensionOptions = extensionOptions;
 
         // Initialize with pending status
         this.taskId = null;
-        this.videoId = null; // Video ID from API response for extensions
+        this.videoId = null; // Video ID from API response (for future extensions)
         this.status = "pending";
-        this.task_msg = "";
         this.createdAt = new Date().toLocaleString();
         this.updatedAt = new Date().toLocaleString();
         this.error = null;
         this.videoUrl = null;
+        this.isExtension = true; // Flag to identify this as an extension task
     }
 
     updateWithTaskInfo(apiResponse) {
@@ -43,7 +28,7 @@ class VideoRecord {
             taskData.data.task_result?.videos?.length > 0
         ) {
             this.videoUrl = taskData.data.task_result.videos[0].url;
-            this.videoId = taskData.data.task_result.videos[0].id; // Extract video ID for extensions
+            this.videoId = taskData.data.task_result.videos[0].id; // Extract video ID for future extensions
         }
 
         if (taskData.data.task_status === "failed") {
@@ -56,6 +41,7 @@ class VideoRecord {
     setError(error) {
         this.status = "failed";
         this.error = error.message || "Unknown error";
+        this.updatedAt = new Date().toLocaleString();
     }
 
     // Convert to the format expected by components
@@ -68,6 +54,8 @@ class VideoRecord {
             updatedAt: this.updatedAt,
             videoUrl: this.videoUrl,
             error: this.error,
+            isExtension: this.isExtension,
+            originalVideoId: this.originalVideoId,
         };
     }
 
@@ -76,30 +64,31 @@ class VideoRecord {
         return {
             id: this.taskId, // Primary key (backward compatibility)
             taskId: this.taskId, // Explicit task ID field
-            videoId: this.videoId, // Video ID for extensions
+            videoId: this.videoId, // Video ID from extension result
             status: this.status,
             createdAt: this.createdAt,
             updatedAt: this.updatedAt,
             error: this.error,
             videoUrl: this.videoUrl,
-            options: this.options,  // This contains the potentially large image data
+            isExtension: this.isExtension,
+            originalVideoId: this.originalVideoId,
+            extensionOptions: this.extensionOptions,
         };
     }
 
     // Static method to recreate from database
     static fromDatabase(data) {
-        const record = new VideoRecord();
-        // Handle backward compatibility for old records
+        const record = new ExtensionRecord(data.originalVideoId, data.extensionOptions);
         record.taskId = data.taskId || data.id; // Use explicit taskId if available, fallback to id
-        record.videoId = data.videoId || null; // Video ID for extensions (new field)
+        record.videoId = data.videoId || null; // Video ID for future extensions
         record.status = data.status;
         record.createdAt = data.createdAt;
         record.updatedAt = data.updatedAt;
         record.error = data.error;
         record.videoUrl = data.videoUrl;
-        record.options = data.options;
+        record.isExtension = data.isExtension;
         return record;
     }
 }
 
-export default VideoRecord;
+export default ExtensionRecord;
