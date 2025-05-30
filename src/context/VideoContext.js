@@ -126,7 +126,21 @@ export function VideoProvider({ children }) {
     const updateVideoRecord = useCallback(
         async (taskId) => {
         try {
-            const taskData = await apiClient.getTaskById(taskId);
+            // Find the record to determine the correct API to call
+            const record = videoRecords.find((r) => r.taskId === taskId);
+            if (!record) {
+                console.warn(`Record with taskId ${taskId} not found`);
+                return null;
+            }
+
+            let taskData;
+            if (record.isExtension) {
+                // For extension records, use the extension API
+                taskData = await apiClient.getExtensionTaskById(taskId, record.originalVideoId);
+            } else {
+                // For regular video records, use the standard API
+                taskData = await apiClient.getTaskById(taskId);
+            }
 
             setVideoRecords((prev) =>
             prev.map((record) => {
@@ -141,7 +155,7 @@ export function VideoProvider({ children }) {
             );
 
             // Return the updated record for the component that requested the update
-            return videoRecords.find((record) => record.taskId === taskId);
+            return record;
         } catch (error) {
             console.error("Error updating video record:", error);
             return null;
