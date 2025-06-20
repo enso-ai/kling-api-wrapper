@@ -24,15 +24,19 @@ export function VideoProvider({ children }) {
                     .reverse()
                     .limit(MAX_RECORDS)
                     .toArray();
-                
+
                 // Convert DB objects back to appropriate record instances
-                const records = savedRecords.map(data => {
+                const records = savedRecords.map((data) => {
                     if (data.isExtension) {
                         return ExtensionRecord.fromDatabase(data);
                     } else {
                         return VideoRecord.fromDatabase(data);
                     }
                 });
+
+                // sort records by createdAt in descending order
+                records.sort((a, b) => b.createdAt - a.createdAt);
+
                 setVideoRecords(records);
             } catch (error) {
                 console.error("Failed to load records from database:", error);
