@@ -12,7 +12,9 @@ export default function ModelSelector({ value, onChange }) {
         onChange={(e) => onChange(e.target.value)}
       >
         <option value="kling-v1-6">Kling 1.6</option>
-        <option value="kling-v2-master">Kling 2.0</option>
+        <option value="kling-v2-master">Kling 2.0 (master)</option>
+        <option value="kling-v2-1">Kling 2.1</option>
+        <option value="kling-v2-1-master">Kling 2.1 (master)</option>
       </select>
     </div>
   );
