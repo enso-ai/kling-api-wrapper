@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import './SidePanel.css';
 import ModelSelector from './ModelSelector';
+import ModeSelector from './ModeSelector';
 import ImageUploader from './ImageUploader';
 import PromptInput from './PromptInput';
 import DurationSelector from './DurationSelector';
@@ -13,6 +14,7 @@ export default function SidePanel() {
   const { createVideo, currentTemplate, clearTemplate } = useVideoContext();
   const [loading, setLoading] = useState(false);
   const [model, setModel] = useState('kling-v1-6');
+  const [mode, setMode] = useState('std');
   const [firstImage, setFirstImage] = useState(null);
   const [lastImage, setLastImage] = useState(null);
   const [prompt, setPrompt] = useState('');
@@ -24,6 +26,7 @@ export default function SidePanel() {
     if (currentTemplate) {
       // Update form fields with template values
       setModel(currentTemplate.modelName || 'kling-v1-6');
+      setMode(currentTemplate.mode || 'std');
       setPrompt(currentTemplate.prompt || '');
       setNegativePrompt(currentTemplate.negativePrompt || '');
       setDuration(currentTemplate.duration || '5');
@@ -51,7 +54,7 @@ export default function SidePanel() {
     // Create a formatted payload based on our individual state variables
     const formattedPayload = {
       modelName: model,
-      mode: "std", // Default to standard mode
+      mode: mode,
       duration: duration,
 
       // Convert images from data URLs to Base64 format required by the API
@@ -90,6 +93,11 @@ export default function SidePanel() {
       <ModelSelector
         value={model}
         onChange={setModel}
+      />
+
+      <ModeSelector
+        value={mode}
+        onChange={setMode}
       />
 
       <div className="form-group">
