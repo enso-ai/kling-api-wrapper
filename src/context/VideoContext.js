@@ -3,9 +3,9 @@ import { apiClient } from '../service/backend';
 import VideoRecord from '../models/VideoRecord';
 import VideoOptions from '../models/VideoOptions';
 import ExtensionRecord from '../models/ExtensionRecord';
-import { db } from '../service/database';
+import { db, loadVideoRecordsPage, getTotalVideoRecordsCount } from '../service/database';
 
-const MAX_RECORDS = 50; // Maximum number of records to keep with full data
+const MAX_RECORDS = 20; // Maximum number of records to load per page
 
 const VideoContext = createContext();
 
@@ -14,6 +14,12 @@ export function VideoProvider({ children }) {
     const [isLoaded, setIsLoaded] = useState(false);
     const [currentTemplate, setCurrentTemplate] = useState(null);
     const [accountInfo, setAccountInfo] = useState(null);
+
+    // Lazy loading state
+    const [currentPage, setCurrentPage] = useState(1);
+    const [hasMoreVideos, setHasMoreVideos] = useState(true);
+    const [isLoadingMore, setIsLoadingMore] = useState(false);
+    const [totalVideos, setTotalVideos] = useState(0);
 
     // Method to fetch account information
     const getAccountInfo = useCallback(async () => {
@@ -45,16 +51,16 @@ export function VideoProvider({ children }) {
         getAccountInfo();
     }, [getAccountInfo]);
 
-    // Load records from database on initial mount
+    // Load records from database on initial mount with pagination
     useEffect(() => {
-        const loadRecordsFromDB = async () => {
+        const loadInitialRecords = async () => {
             try {
-                // Get the most recent records, ordered by creation date descending
-                const savedRecords = await db.videoRecords
-                    .orderBy('createdAt')
-                    .reverse()
-                    .limit(MAX_RECORDS)
-                    .toArray();
+                // Get total count first
+                const total = await getTotalVideoRecordsCount();
+                setTotalVideos(total);
+
+                // Load first page
+                const savedRecords = await loadVideoRecordsPage(1, MAX_RECORDS);
 
                 // Convert DB objects back to appropriate record instances
                 const records = savedRecords.map((data) => {
@@ -69,6 +75,8 @@ export function VideoProvider({ children }) {
                 records.sort((a, b) => b.timestamp - a.timestamp);
 
                 setVideoRecords(records);
+                setCurrentPage(1);
+                setHasMoreVideos(total > MAX_RECORDS);
             } catch (error) {
                 console.error('Failed to load records from database:', error);
             } finally {
@@ -76,7 +84,7 @@ export function VideoProvider({ children }) {
             }
         };
 
-        loadRecordsFromDB();
+        loadInitialRecords();
     }, []);
 
     // Save a record to the database (only if it has a taskId)
@@ -138,26 +146,8 @@ export function VideoProvider({ children }) {
                 // We don't create a record for failed requests
             }
 
-            // Prune old records if we exceed our limit
-            if (videoRecords.length > MAX_RECORDS) {
-                // Keep state limited to MAX_RECORDS
-                setVideoRecords((prev) => prev.slice(0, MAX_RECORDS));
-
-                // Clean up database to match (only keep MAX_RECORDS)
-                try {
-                    const allIds = await db.videoRecords
-                        .orderBy('createdAt')
-                        .reverse()
-                        .offset(MAX_RECORDS)
-                        .primaryKeys();
-
-                    if (allIds.length > 0) {
-                        await db.videoRecords.bulkDelete(allIds);
-                    }
-                } catch (error) {
-                    console.error('Error pruning database:', error);
-                }
-            }
+            // Update total count after adding new video
+            setTotalVideos((prev) => prev + 1);
 
             return videoRecord;
         },
@@ -269,31 +259,53 @@ export function VideoProvider({ children }) {
                 throw error; // Re-throw to let the component handle it
             }
 
-            // Prune old records if we exceed our limit
-            if (videoRecords.length > MAX_RECORDS) {
-                // Keep state limited to MAX_RECORDS
-                setVideoRecords((prev) => prev.slice(0, MAX_RECORDS));
-
-                // Clean up database to match (only keep MAX_RECORDS)
-                try {
-                    const allIds = await db.videoRecords
-                        .orderBy('createdAt')
-                        .reverse()
-                        .offset(MAX_RECORDS)
-                        .primaryKeys();
-
-                    if (allIds.length > 0) {
-                        await db.videoRecords.bulkDelete(allIds);
-                    }
-                } catch (error) {
-                    console.error('Error pruning database:', error);
-                }
-            }
+            // Update total count after adding new extension
+            setTotalVideos((prev) => prev + 1);
 
             return extensionRecord;
         },
         [saveRecordToDB, videoRecords, getAccountInfo]
     );
+
+    // Method to load more videos (lazy loading)
+    const loadMoreVideos = useCallback(async () => {
+        if (isLoadingMore || !hasMoreVideos) return;
+
+        setIsLoadingMore(true);
+        try {
+            const nextPage = currentPage + 1;
+            const moreRecords = await loadVideoRecordsPage(nextPage, MAX_RECORDS);
+
+            if (moreRecords.length === 0) {
+                setHasMoreVideos(false);
+                return;
+            }
+
+            // Convert DB objects back to appropriate record instances
+            const records = moreRecords.map((data) => {
+                if (data.isExtension) {
+                    return ExtensionRecord.fromDatabase(data);
+                } else {
+                    return VideoRecord.fromDatabase(data);
+                }
+            });
+
+            // Sort records by createdAt in descending order
+            records.sort((a, b) => b.timestamp - a.timestamp);
+
+            // Append to existing records
+            setVideoRecords((prev) => [...prev, ...records]);
+            setCurrentPage(nextPage);
+
+            // Check if we have more videos to load
+            const totalLoaded = currentPage * MAX_RECORDS + records.length;
+            setHasMoreVideos(totalLoaded < totalVideos);
+        } catch (error) {
+            console.error('Failed to load more videos:', error);
+        } finally {
+            setIsLoadingMore(false);
+        }
+    }, [currentPage, hasMoreVideos, isLoadingMore, totalVideos]);
 
     const value = {
         videoRecords,
@@ -306,6 +318,11 @@ export function VideoProvider({ children }) {
         currentTemplate,
         isLoaded,
         accountInfo,
+        // Lazy loading
+        loadMoreVideos,
+        hasMoreVideos,
+        isLoadingMore,
+        totalVideos,
     };
 
     return <VideoContext.Provider value={value}>{children}</VideoContext.Provider>;
