@@ -24,7 +24,9 @@ class VideoRecord {
         this.videoId = null; // Video ID from API response for extensions
         this.status = "pending";
         this.task_msg = "";
+        this.timestamp = Date.now();
         this.createdAt = new Date().toLocaleString();
+        this.updatedTimestamp = Date.now();
         this.updatedAt = new Date().toLocaleString();
         this.error = null;
         this.videoUrl = null;
@@ -33,6 +35,7 @@ class VideoRecord {
     updateWithTaskInfo(apiResponse) {
         this.taskId = apiResponse.task_id;
         this.status = apiResponse.task_status;
+        this.updatedTimestamp = Date.now();
         this.updatedAt = new Date().toLocaleString();
     }
 
@@ -50,6 +53,7 @@ class VideoRecord {
             this.error = taskData.data.task_status_msg || "Unknown error";
         }
 
+        this.updatedTimestamp = Date.now();
         this.updatedAt = new Date().toLocaleString();
     }
 
@@ -80,9 +84,11 @@ class VideoRecord {
             status: this.status,
             createdAt: this.createdAt,
             updatedAt: this.updatedAt,
+            timestamp: this.timestamp,
+            updatedTimestamp: this.updatedTimestamp,
             error: this.error,
             videoUrl: this.videoUrl,
-            options: this.options,  // This contains the potentially large image data
+            options: this.options, // This contains the potentially large image data
         };
     }
 
@@ -95,6 +101,8 @@ class VideoRecord {
         record.status = data.status;
         record.createdAt = data.createdAt;
         record.updatedAt = data.updatedAt;
+        record.timestamp = data.timestamp || new Date(data.createdAt);
+        record.updatedTimestamp = data.updatedTimestamp;
         record.error = data.error;
         record.videoUrl = data.videoUrl;
         record.options = data.options;

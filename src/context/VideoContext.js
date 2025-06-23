@@ -35,7 +35,10 @@ export function VideoProvider({ children }) {
                 });
 
                 // sort records by createdAt in descending order
-                records.sort((a, b) => b.createdAt - a.createdAt);
+                records.sort((a, b) => b.timestamp - a.timestamp);
+                records.forEach((element, idx) => {
+                    console.log('show record ts:', idx, element.timestamp);
+                });
 
                 setVideoRecords(records);
             } catch (error) {

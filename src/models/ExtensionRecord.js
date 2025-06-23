@@ -8,7 +8,9 @@ class ExtensionRecord {
         this.taskId = null;
         this.videoId = null; // Video ID from API response (for future extensions)
         this.status = "pending";
+        this.timestamp = Date.now();
         this.createdAt = new Date().toLocaleString();
+        this.updatedTimestamp = Date.now();
         this.updatedAt = new Date().toLocaleString();
         this.error = null;
         this.videoUrl = null;
@@ -18,6 +20,7 @@ class ExtensionRecord {
     updateWithTaskInfo(apiResponse) {
         this.taskId = apiResponse.task_id;
         this.status = apiResponse.task_status;
+        this.updatedTimestamp = Date.now();
         this.updatedAt = new Date().toLocaleString();
     }
 
@@ -35,6 +38,7 @@ class ExtensionRecord {
             this.error = taskData.data.task_status_msg || "Unknown error";
         }
 
+        this.updatedTimestamp = Date.now();
         this.updatedAt = new Date().toLocaleString();
     }
 
@@ -68,6 +72,8 @@ class ExtensionRecord {
             status: this.status,
             createdAt: this.createdAt,
             updatedAt: this.updatedAt,
+            timestamp: this.timestamp,
+            updatedTimestamp: this.updatedTimestamp,
             error: this.error,
             videoUrl: this.videoUrl,
             isExtension: this.isExtension,
@@ -84,6 +90,8 @@ class ExtensionRecord {
         record.status = data.status;
         record.createdAt = data.createdAt;
         record.updatedAt = data.updatedAt;
+        record.timestamp = data.timestamp || new Date(data.createdAt);
+        record.updatedTimestamp = data.updatedTimestamp;
         record.error = data.error;
         record.videoUrl = data.videoUrl;
         record.isExtension = data.isExtension;
