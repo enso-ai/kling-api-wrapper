@@ -5,11 +5,18 @@ import VideoPlayer from './VideoPlayer';
 import { useVideoContext } from '../context/VideoContext';
 
 export default function VideoGrid() {
-    const { videoRecords, isLoaded } = useVideoContext();
+    const { videoRecords, isLoaded, accountInfo } = useVideoContext();
 
     return (
         <div className="grid-container">
-            <h1>Results</h1>
+            <div className="grid-header">
+                <div className="grid-header-title">Results</div>
+                {accountInfo && (
+                    <div className="account-info-indicator">
+                        Remaining Credits: {accountInfo.remaining_quantity}/{accountInfo.total_quantity}
+                    </div>
+                )}
+            </div>
             <div className="video-grid">
                 {!isLoaded ? (
                     <div className="loading">Loading video history...</div>

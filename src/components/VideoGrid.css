@@ -2,6 +2,7 @@
   width: 100%;
   padding: 20px;
   overflow-y: auto;
+  position: relative; /* Add relative positioning */
 }
 
 .grid-container h1 {
@@ -67,6 +68,25 @@
 .loading::after {
   content: "...";
   animation: dots 1.5s steps(4, end) infinite;
+}
+
+.grid-header-title {
+    font-size: 24px;
+    color: white;
+    margin-left: 10px;
+}
+
+.grid-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.account-info-indicator {
+    font-size: 14px;
+    color: #777;
+    margin-left: 10px;
 }
 
 @keyframes dots {
