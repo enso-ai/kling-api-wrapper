@@ -6,7 +6,7 @@ const API_DOMAIN = "https://api.klingai.com";
 const TOKEN_EXPIRATION = parseInt(process.env.KLING_TOKEN_EXPIRATION || "1800", 10);
 
 if (!ACCESS_KEY || !SECRET_KEY) {
-  console.warn("Kling AI API keys are not set in environment variables.");
+    console.warn("Kling AI API keys are not set in environment variables.");
 }
 
 // Token generation for Kling API authentication
