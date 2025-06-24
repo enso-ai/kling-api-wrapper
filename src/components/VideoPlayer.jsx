@@ -6,7 +6,7 @@ import { useVideoContext } from '../context/VideoContext';
 import VideoExtensionModal from './VideoExtensionModal';
 
 export default function VideoPlayer({ payload }) {
-    const { taskId, videoId, status, createdAt, updatedAt, videoUrl: initialVideoUrl, isExtension, originalVideoId } = payload;
+    const { id, videoId, status, updatedAt, videoUrl: initialVideoUrl, isExtension, originalVideoId, modelName } = payload;
     const [videoUrl, setVideoUrl] = useState(initialVideoUrl);
     const [showExtensionModal, setShowExtensionModal] = useState(false);
     const [extensionStatus, setExtensionStatus] = useState(null);
@@ -16,13 +16,20 @@ export default function VideoPlayer({ payload }) {
 
     useEffect(() => {
         let intervalId;
-        if (taskId && status !== 'succeed' && status !== 'failed') {
+        if (id && status !== 'succeed' && status !== 'failed' && updateVideoRecord) {
+            console.log("video status is not terminal, starting polling for updates:", status);
             // Set up polling interval
             intervalId = setInterval(() => {
-                updateVideoRecord(taskId)
+                let res = updateVideoRecord(id)
                     .catch((error) => {
                         console.error("Error updating video record:", error);
                     });
+                
+                if (res && res.status === 'succeed' || res.status === 'failed') {
+                    console.log('Video status meet terminal state:', res.status);
+                    // terminal states, stop polling
+                    clearInterval(intervalId);
+                }
             }, 5000);
         }
 
@@ -31,7 +38,7 @@ export default function VideoPlayer({ payload }) {
                 clearInterval(intervalId);
             }
         };
-    }, [taskId, status, updateVideoRecord]);
+    }, [id, status, updateVideoRecord]);
 
     // Update local state when payload changes
     useEffect(() => {
@@ -42,12 +49,12 @@ export default function VideoPlayer({ payload }) {
 
     const handleDelete = () => {
         if (window.confirm('Are you sure you want to delete this video?')) {
-            removeVideoRecord(taskId);
+            removeVideoRecord(id);
         }
     };
 
     const handleUseAsTemplate = () => {
-        useVideoAsTemplate(taskId);
+        useVideoAsTemplate(id);
         // Provide user feedback
         alert("Video parameters loaded as template. You can now modify and generate a new video.");
     };
@@ -83,7 +90,7 @@ export default function VideoPlayer({ payload }) {
         }
     };
 
-    const canExtendVideo = status === 'succeed' && videoUrl && videoId;
+    const canExtendVideo = status === 'succeed' && videoUrl && videoId && modelName == 'kling-v1-6';
 
     return (
         <div className="video-item">

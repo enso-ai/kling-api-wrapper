@@ -5,6 +5,7 @@ class ExtensionRecord {
         this.extensionOptions = extensionOptions;
 
         // Initialize with pending status
+        this.id = crypto.randomUUID(); // Generate a unique ID for the extension record
         this.taskId = null;
         this.videoId = null; // Video ID from API response (for future extensions)
         this.status = "pending";
@@ -51,6 +52,7 @@ class ExtensionRecord {
     // Convert to the format expected by components
     toPayload() {
         return {
+            id: this.id, // Unique ID for the extension record
             taskId: this.taskId,
             videoId: this.videoId,
             status: this.status,
@@ -66,7 +68,7 @@ class ExtensionRecord {
     // Serialize for database storage
     toDatabase() {
         return {
-            id: this.taskId, // Primary key (backward compatibility)
+            id: this.id,
             taskId: this.taskId, // Explicit task ID field
             videoId: this.videoId, // Video ID from extension result
             status: this.status,
@@ -85,7 +87,8 @@ class ExtensionRecord {
     // Static method to recreate from database
     static fromDatabase(data) {
         const record = new ExtensionRecord(data.originalVideoId, data.extensionOptions);
-        record.taskId = data.taskId || data.id; // Use explicit taskId if available, fallback to id
+        record.id = data.id; // Primary key
+        record.taskId = data.taskId || null; // Use explicit taskId if available, fallback to id
         record.videoId = data.videoId || null; // Video ID for future extensions
         record.status = data.status;
         record.createdAt = data.createdAt;

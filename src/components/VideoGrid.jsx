@@ -82,10 +82,10 @@ export default function VideoGrid() {
                     <div className="loading">Loading video history...</div>
                 ) : videoRecords.length > 0 ? (
                     <>
-                        {videoRecords.map((result) => (
+                        {videoRecords.map((videoRecord) => (
                             <VideoPlayer
-                                key={result.taskId || result.createdAt}
-                                payload={result.toPayload ? result.toPayload() : result}
+                                key={videoRecord.id}
+                                payload={videoRecord.toPayload()}
                             />
                         ))}
                         

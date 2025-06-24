@@ -20,7 +20,8 @@ class VideoRecord {
         );
 
         // Initialize with pending status
-        this.taskId = null;
+        this.id = crypto.randomUUID(); // Generate a unique task ID
+        this.taskId = null; // By default, taskId is null until set by API response
         this.videoId = null; // Video ID from API response for extensions
         this.status = "pending";
         this.task_msg = "";
@@ -65,6 +66,7 @@ class VideoRecord {
     // Convert to the format expected by components
     toPayload() {
         return {
+            id: this.id, // Unique ID for the video record
             taskId: this.taskId,
             videoId: this.videoId,
             status: this.status,
@@ -78,7 +80,7 @@ class VideoRecord {
     // Serialize for database storage
     toDatabase() {
         return {
-            id: this.taskId, // Primary key (backward compatibility)
+            id: this.id, // Primary key
             taskId: this.taskId, // Explicit task ID field
             videoId: this.videoId, // Video ID for extensions
             status: this.status,
@@ -96,7 +98,8 @@ class VideoRecord {
     static fromDatabase(data) {
         const record = new VideoRecord();
         // Handle backward compatibility for old records
-        record.taskId = data.taskId || data.id; // Use explicit taskId if available, fallback to id
+        record.id = data.id;
+        record.taskId = data.taskId || null; // allow it to be null
         record.videoId = data.videoId || null; // Video ID for extensions (new field)
         record.status = data.status;
         record.createdAt = data.createdAt;

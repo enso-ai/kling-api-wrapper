@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { apiClient } from '../service/backend';
+import { apiClient, KlingThrottleError } from '../service/backend';
 import VideoRecord from '../models/VideoRecord';
 import VideoOptions from '../models/VideoOptions';
 import ExtensionRecord from '../models/ExtensionRecord';
@@ -87,10 +87,9 @@ export function VideoProvider({ children }) {
         loadInitialRecords();
     }, []);
 
-    // Save a record to the database (only if it has a taskId)
+    // Save a record to the database
     const saveRecordToDB = useCallback(async (record) => {
-        // Only save records that have a taskId
-        if (!record.taskId) return;
+        if (!record.id) return;
 
         try {
             // Store in Dexie
@@ -124,12 +123,23 @@ export function VideoProvider({ children }) {
 
             // Make the API request first
             try {
-                console.log('options from video context', options);
-                const response = await apiClient.createVideo(options);
-
-                // Only now create the VideoRecord with the taskId
+                // Only now create the VideoRecord with existing info
+                // init VideoRecord with formData
                 videoRecord = new VideoRecord(formData);
-                videoRecord.updateWithTaskInfo(response.data);
+
+                // console.log('options from video context', options);
+                try {
+                    const response = await apiClient.createVideo(options);
+                    // Update the record with the Kling returned info
+                    videoRecord.updateWithTaskInfo(response.data);
+                } catch (error) {
+                    // Handle KlingThrottleError specifically
+                    if (error instanceof KlingThrottleError) {
+                        console.warn('Kling API throttling error:', error);
+                    } else {
+                        throw error; // Re-throw for handling below
+                    }
+                }
 
                 // Add to state
                 setVideoRecords((prev) => [videoRecord, ...prev]);
@@ -156,34 +166,60 @@ export function VideoProvider({ children }) {
 
     // Method to update a video record (enhanced with DB persistence)
     const updateVideoRecord = useCallback(
-        async (taskId) => {
+        async (id) => {
             try {
                 // Find the record to determine the correct API to call
-                const record = videoRecords.find((r) => r.taskId === taskId);
+                let record = videoRecords.find((r) => r.id === id);
                 if (!record) {
-                    console.warn(`Record with taskId ${taskId} not found`);
-                    return null;
+                    // temporarily use taskId to find the record as a fallback
+                    record = videoRecords.find((r) => r.taskId === id);
+                    if (!record) {
+                        console.warn(`Record with taskId ${taskId} not found`);
+                        return null;
+                    }
                 }
 
                 let taskData;
-                if (record.isExtension) {
-                    // For extension records, use the extension API
-                    taskData = await apiClient.getExtensionTaskById(taskId, record.originalVideoId);
+                if (!record.taskId) {
+                    // record hasn't get a taskId yet, need to send a request to the API
+                    try {
+                        
+                        if (record.isExtension) {
+                            taskData = await apiClient.extendVideo(record.videoId, record.extensionOptions);
+                        } else {
+                            taskData = await apiClient.createVideo(record.options);
+                        }
+                        // Update the record with the Kling returned info
+                        record.updateWithTaskInfo(taskData.data);
+                    } catch (error) {
+                        // Handle KlingThrottleError specifically
+                        if (error instanceof KlingThrottleError) {
+                            console.warn('Kling API throttling error:', error);
+                            // ignore this update
+                            return null;
+                        } else {
+                            throw error; // Re-throw for handling below
+                        }
+                    }
                 } else {
-                    // For regular video records, use the standard API
-                    taskData = await apiClient.getTaskById(taskId);
+                    // task id exists, no need to request a new task
+                    if (record.isExtension) {
+                        // For extension records, use the extension API
+                        taskData = await apiClient.getExtensionTaskById(record.taskId, record.originalVideoId);
+                    } else {
+                        // For regular video records, use the standard API
+                        taskData = await apiClient.getTaskById(record.taskId);
+                    }
+                    record.updateWithTaskResult(taskData);
                 }
 
-                setVideoRecords((prev) =>
-                    prev.map((record) => {
-                        if (record.taskId === taskId) {
-                            record.updateWithTaskResult(taskData);
+                await saveRecordToDB(record).catch(console.error);
 
-                            // Update in DB (async)
-                            saveRecordToDB(record).catch(console.error);
-                        }
-                        return record;
-                    })
+                // swap it out in the state
+                setVideoRecords((prev) =>
+                    prev.map((curRecord) => 
+                        curRecord.taskId === record.taskId ? record : curRecord
+                    )
                 );
 
                 // Return the updated record for the component that requested the update
@@ -196,19 +232,20 @@ export function VideoProvider({ children }) {
         [videoRecords, saveRecordToDB]
     );
 
-    const removeVideoRecord = useCallback(async (taskId) => {
-        setVideoRecords((prev) => prev.filter((record) => record.taskId !== taskId));
+    const removeVideoRecord = useCallback(async (id) => {
         try {
-            await db.videoRecords.delete(taskId);
+            await db.videoRecords.delete(id);
         } catch (error) {
             console.error('Error deleting video record:', error);
+            alert('Failed to delete video record. Please try again later.');
         }
+        setVideoRecords((prev) => prev.filter((record) => record.id !== id));
     }, []);
 
     // Method to use a video as a template for a new generation
     const useVideoAsTemplate = useCallback(
-        (taskId) => {
-            const record = videoRecords.find((r) => r.taskId === taskId);
+        (id) => {
+            let record = videoRecords.find((r) => r.id === id);
             if (record && record.options) {
                 // Store only the generation parameters from the options object
                 setCurrentTemplate({
@@ -235,20 +272,12 @@ export function VideoProvider({ children }) {
     // Method to create a video extension
     const addExtensionRecord = useCallback(
         async (videoId, extensionOptions) => {
-            let extensionRecord = null;
-
+            // Create the ExtensionRecord with the taskId
+            let extensionRecord = new ExtensionRecord(videoId, extensionOptions);
             try {
                 const response = await apiClient.extendVideo(videoId, extensionOptions);
 
-                // Create the ExtensionRecord with the taskId
-                extensionRecord = new ExtensionRecord(videoId, extensionOptions);
                 extensionRecord.updateWithTaskInfo(response.data);
-
-                // Add to state (treat as a video record in the list)
-                setVideoRecords((prev) => [extensionRecord, ...prev]);
-
-                // Save to database (now that we have a taskId)
-                await saveRecordToDB(extensionRecord);
 
                 // Trigger account info update after successful video extension
                 setTimeout(() => {
@@ -259,6 +288,11 @@ export function VideoProvider({ children }) {
                 throw error; // Re-throw to let the component handle it
             }
 
+            // Save to database
+            await saveRecordToDB(extensionRecord);
+
+            // Add to state (treat as a video record in the list)
+            setVideoRecords((prev) => [extensionRecord, ...prev]);
             // Update total count after adding new extension
             setTotalVideos((prev) => prev + 1);
 
