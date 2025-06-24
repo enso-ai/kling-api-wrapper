@@ -118,6 +118,14 @@ export default function VideoPlayer({ payload }) {
             <div className="error-mask">
               <div className="error-text">{payload.error || 'An error occurred'}</div>
             </div>
+          ) : status === 'queued' ? (
+            <div className="generating-mask">
+              <div className="generating-text">Queued...</div>
+            </div>
+          ) : status === 'processing' ? (
+            <div className="generating-mask">
+              <div className="generating-text">Processing...</div>
+            </div>
           ) : videoUrl ? (
             <video 
               ref={videoRef}
