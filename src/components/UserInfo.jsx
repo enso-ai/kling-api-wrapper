@@ -10,7 +10,7 @@ const UserInfo = () => {
     const [authInfo, setAuthInfo] = useState(null);
 
     useEffect(() => {
-        apiClient.getIAPAuthInfo((res) => {
+        apiClient.getIAPAuthInfo().then((res) => {
             if (res) {
                 console.log('User info:', res);
                 setAuthInfo(res);
@@ -22,7 +22,7 @@ const UserInfo = () => {
         <div className='container'>
             {accountInfo && (
                 <div className="credit-info">
-                    Remaing Credits: 1111/30000
+                    Remaing Credits: {accountInfo.remaining_quantity}/{accountInfo.total_quantity}
                 </div>
             )}
             {authInfo && (
@@ -33,6 +33,5 @@ const UserInfo = () => {
         </div>
     )
 }
-                    // Remaing Credits: {accountInfo.remaining_quantity}/{accountInfo.total_quantity}
 
 export default UserInfo;

@@ -259,11 +259,10 @@ const createKlingApiClient = () => {
                 throw new Error(`API error: ${response.statusText}`);
             }
 
-            const data = await response.json();
-            return data;
+            return await response.json();
         } catch (error) {
             console.error('Error getting IAP auth info:', error);
-            throw null;
+            return null;
         }
     }
 
