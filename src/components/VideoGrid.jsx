@@ -2,13 +2,13 @@
 import React, { useEffect, useRef, useCallback } from 'react';
 import './VideoGrid.css';
 import VideoPlayer from './VideoPlayer';
+import UserInfo from './UserInfo';
 import { useVideoContext } from '../context/VideoContext';
 
 export default function VideoGrid() {
     const { 
         videoRecords, 
         isLoaded, 
-        accountInfo, 
         loadMoreVideos, 
         hasMoreVideos, 
         isLoadingMore,
@@ -71,11 +71,7 @@ export default function VideoGrid() {
         <div className="grid-container">
             <div className="grid-header">
                 <div className="grid-header-title">Results</div>
-                {accountInfo && (
-                    <div className="account-info-indicator">
-                        Remaining Credits: {accountInfo.remaining_quantity}/{accountInfo.total_quantity}
-                    </div>
-                )}
+                <UserInfo />
             </div>
             <div className="video-grid" ref={gridRef}>
                 {!isLoaded ? (
