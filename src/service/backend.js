@@ -246,12 +246,34 @@ const createKlingApiClient = () => {
         });
     };
 
+    const getIAPAuthInfo = async () => {
+        try {
+            const response = await fetch('/api/me', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error(`API error: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error('Error getting IAP auth info:', error);
+            throw null;
+        }
+    }
+
     // Return the client object with all methods
     return {
         createVideo,
         getTaskById,
         pollTaskUntilComplete,
         getAccountInfo,
+        getIAPAuthInfo,
         extendVideo,
         getExtensionTaskById,
         pollExtensionTaskUntilComplete,

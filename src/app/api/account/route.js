@@ -1,6 +1,7 @@
 import { klingClient } from '../../../service/kling';
 import { NextResponse } from 'next/server';
 
+// Kling acount information API route
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
 
