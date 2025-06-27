@@ -138,8 +138,6 @@ export default function VideoPlayer({ payload }) {
                             ref={videoRef}
                             src={videoUrl}
                             controls
-                            autoPlay
-                            loop
                             muted={false}
                             className="video-element"
                         />
