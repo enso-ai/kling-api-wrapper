@@ -5,11 +5,7 @@ import PromptTab from './tabs/PromptTab';
 import InpaintingTab from './tabs/InpaintingTab';
 import styles from './ImageGenModal.module.css';
 
-const ImageGenModal = ({
-    isOpen,
-    onClose,
-    onImageGenerated
-}) => {
+const ImageGenModal = ({ isOpen, onClose }) => {
     const [activeTab, setActiveTab] = useState('prompt');
 
     useEffect(() => {
@@ -45,19 +41,9 @@ const ImageGenModal = ({
     const renderTabContent = () => {
         switch (activeTab) {
             case 'prompt':
-                return (
-                    <PromptTab 
-                        onImageGenerated={onImageGenerated}
-                        onClose={onClose}
-                    />
-                );
+                return <PromptTab onClose={onClose} />;
             case 'inpainting':
-                return (
-                    <InpaintingTab 
-                        onImageGenerated={onImageGenerated}
-                        onClose={onClose}
-                    />
-                );
+                return <InpaintingTab onClose={onClose} />;
             default:
                 return null;
         }
@@ -77,22 +63,24 @@ const ImageGenModal = ({
                 <>
                     <div className={styles.tabNavigation}>
                         <button
-                            className={`${styles.tabButton} ${activeTab === 'prompt' ? styles.active : ''}`}
+                            className={`${styles.tabButton} ${
+                                activeTab === 'prompt' ? styles.active : ''
+                            }`}
                             onClick={() => handleTabClick('prompt')}
                         >
                             Prompt
                         </button>
                         <button
-                            className={`${styles.tabButton} ${activeTab === 'inpainting' ? styles.active : ''}`}
+                            className={`${styles.tabButton} ${
+                                activeTab === 'inpainting' ? styles.active : ''
+                            }`}
                             onClick={() => handleTabClick('inpainting')}
                         >
                             Inpainting
                         </button>
                     </div>
 
-                    <div className={styles.content}>
-                        {renderTabContent()}
-                    </div>
+                    <div className={styles.content}>{renderTabContent()}</div>
                 </>
             </div>
         </div>

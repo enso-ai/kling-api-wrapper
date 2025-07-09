@@ -5,16 +5,9 @@ import { useImageContext } from '@/context/ImageContext';
 import Dropdown from '@/components/common/Dropdown';
 import styles from './PromptTab.module.css';
 
-const PromptTab = ({ 
-    onImageGenerated, 
-    onClose,
-}) => {
-    const { 
-        imageRecords, 
-        startElementImageGeneration, 
-        pendingGenerations 
-    } = useImageContext();
-    
+const PromptTab = ({ onClose }) => {
+    const { imageRecords, startImageGeneration } = useImageContext();
+
     // State management
     const [selectedImages, setSelectedImages] = useState([]);
     const [prompt, setPrompt] = useState('');
@@ -33,18 +26,17 @@ const PromptTab = ({
         { value: 7, label: '7 images' },
         { value: 8, label: '8 images' },
         { value: 9, label: '9 images' },
-        { value: 10, label: '10 images' }
+        { value: 10, label: '10 images' },
     ];
-
 
     // Handle element image selection
     const handleImageSelection = useCallback((elementImage) => {
-        setSelectedImages(prev => {
-            const isSelected = prev.some(img => img.id === elementImage.id);
-            
+        setSelectedImages((prev) => {
+            const isSelected = prev.some((img) => img.id === elementImage.id);
+
             if (isSelected) {
                 // Remove from selection
-                return prev.filter(img => img.id !== elementImage.id);
+                return prev.filter((img) => img.id !== elementImage.id);
             } else {
                 // Add to selection (max 10)
                 if (prev.length >= 10) {
@@ -68,36 +60,39 @@ const PromptTab = ({
 
         setIsGenerating(true);
         setGenerationError(null);
-        
+
         try {
             // Convert selected images to URLs for the ImageContext API
-            const selectedImageUrls = selectedImages.map(img => img.imageUrl);
-            
-            await startElementImageGeneration({
+            const selectedImageUrls = selectedImages.map((img) => img.imageUrl);
+
+            await startImageGeneration({
                 prompt: prompt.trim(),
                 selectedImages: selectedImageUrls,
-                numberOfImages
+                numberOfImages,
             });
 
             // Close modal on successful generation start
             onClose();
-
         } catch (error) {
             console.error('Generation failed:', error);
             if (error.message === 'CONTENT_MODERATION_BLOCKED') {
-                setGenerationError('Content was blocked by moderation filters. Please try a different prompt.');
+                setGenerationError(
+                    'Content was blocked by moderation filters. Please try a different prompt.'
+                );
             } else {
                 setGenerationError(error.message || 'Failed to generate images. Please try again.');
             }
             setIsGenerating(false);
         }
-    }, [prompt, selectedImages, numberOfImages, startElementImageGeneration, onClose]);
-
+    }, [prompt, selectedImages, numberOfImages, startImageGeneration, onClose]);
 
     // Check if an element image is selected
-    const isElementImageSelected = useCallback((elementImage) => {
-        return selectedImages.some(img => img.id === elementImage.id);
-    }, [selectedImages]);
+    const isElementImageSelected = useCallback(
+        (elementImage) => {
+            return selectedImages.some((img) => img.id === elementImage.id);
+        },
+        [selectedImages]
+    );
 
     return (
         <div className={styles.tabContent}>
@@ -118,7 +113,9 @@ const PromptTab = ({
                                             <div
                                                 key={record.id}
                                                 className={`${styles.elementImageItem} ${
-                                                    isElementImageSelected(record) ? styles.selected : ''
+                                                    isElementImageSelected(record)
+                                                        ? styles.selected
+                                                        : ''
                                                 }`}
                                                 onClick={() => handleImageSelection(record)}
                                             >
@@ -131,7 +128,7 @@ const PromptTab = ({
                                         );
                                     })}
                                 </div>
-                                
+
                                 <div className={styles.selectionCounter}>
                                     <span>Selected: {selectedImages.length}/10</span>
                                     {selectedImages.length > 0 && (
@@ -147,7 +144,8 @@ const PromptTab = ({
                             </>
                         ) : (
                             <div className={styles.noImagesMessage}>
-                                No images available. Generate some images first to use as references.
+                                No images available. Generate some images first to use as
+                                references.
                             </div>
                         )}
                     </div>
@@ -158,14 +156,14 @@ const PromptTab = ({
                     <div className={styles.promptInputPanel}>
                         {/* Prompt Input Section */}
                         <div className={styles.promptSection}>
-                            <label htmlFor="prompt" className={styles.sectionLabel}>
+                            <label htmlFor='prompt' className={styles.sectionLabel}>
                                 Text Prompt *
                             </label>
                             <textarea
-                                id="prompt"
+                                id='prompt'
                                 value={prompt}
                                 onChange={(e) => setPrompt(e.target.value)}
-                                placeholder="Describe the element you want to generate..."
+                                placeholder='Describe the element you want to generate...'
                                 className={styles.promptTextarea}
                                 rows={6}
                                 disabled={isGenerating}
@@ -198,9 +196,7 @@ const PromptTab = ({
 
                         {/* Error Message */}
                         {generationError && (
-                            <div className={styles.errorMessage}>
-                                {generationError}
-                            </div>
+                            <div className={styles.errorMessage}>{generationError}</div>
                         )}
                     </div>
                 </div>
