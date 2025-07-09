@@ -1,7 +1,7 @@
 // contain utils functions for image generation through OpenAI API
-import { openaiClient } from '/service/oai.js';
-import { uploadBase64ToGCS } from 'utils/gcsUpload.js';
-import { ASSET_TYPE_IMAGES } from 'constants/gcs.js';
+import { openaiClient } from '@/service/oai.js';
+import { uploadBase64ToGCS } from '@/utils/gcsUpload.js';
+import { ASSET_TYPE_IMAGES } from '@/constants/gcs.js';
 import { toFile } from 'openai';
 
 /**

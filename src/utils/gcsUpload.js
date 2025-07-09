@@ -1,6 +1,6 @@
 import { Storage } from "@google-cloud/storage";
 import { randomUUID } from "crypto";
-import { GCS_CONFIG } from 'constants/gcs.js';
+import { GCS_CONFIG } from '@/constants/gcs.js';
 
 // Initialize Google Cloud Storage client
 const storage = new Storage();
