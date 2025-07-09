@@ -1,20 +1,19 @@
 // contain utils functions for image generation through OpenAI API
 import { openaiClient } from '/service/oai.js';
 import { uploadBase64ToGCS } from 'utils/gcsUpload.js';
+import { ASSET_TYPE_IMAGES } from 'constants/gcs.js';
 import { toFile } from 'openai';
 
 /**
  * Generate images solely based on a text prompt
  * @param {string} prompt - Description of the extension
  * @param {number} n - Number of variations to generate (default: 1)
- * @param {string} projectId - Project Id, used in gcs project folder path
- * @param {string} assetType - type (element, scene and etc) of the asset, used in gcs project folder path
  * @returns {Promise<Object>} Response data from OpenAI
  */
-export const generateImage = async (prompt, n = 1, projectId, assetType) => {
+export const generateImage = async (prompt, n = 1) => {
     // Call the OpenAI service to generate images
     const response = await openaiClient.generateImageWithOpenAI(prompt, { n });
-    
+
     // Handle both success and error cases
     if (response.success) {
         // Upload images to GCS and replace base64 with URLs
@@ -23,20 +22,16 @@ export const generateImage = async (prompt, n = 1, projectId, assetType) => {
 
         // Upload image results from OpenAI to GCS
         for (const imgData of images) {
-            const uploadResult = await uploadBase64ToGCS(
-                imgData.imageBase64,
-                projectId,
-                assetType
-            );
+            const uploadResult = await uploadBase64ToGCS(imgData.imageBase64, ASSET_TYPE_IMAGES);
 
             if (uploadResult.success) {
                 ret.push({
                     imageUrl: uploadResult.gcsUrl,
-                    revisedPrompt: imgData.revisedPrompt
+                    revisedPrompt: imgData.revisedPrompt,
                 });
             } else {
                 // do not break the loop if one image upload is failed
-                console.error("failed to oai result to gcs", ret.error)
+                console.error('failed to oai result to gcs', ret.error);
             }
         }
         return ret;
@@ -47,27 +42,26 @@ export const generateImage = async (prompt, n = 1, projectId, assetType) => {
             throw new Error('CONTENT_MODERATION_BLOCKED');
         }
     }
-}
+};
 
 /**
  * Extends images without using a mask (outpainting/extending image boundaries)
  * @param {string[]} imageURLs - Array of image URLs
  * @param {string} prompt - Description of the extension
  * @param {number} n - Number of variations to generate (default: 1)
- * @param {string} projectId - Project Id, used in gcs project folder path
- * @param {string} assetType - type (element, scene and etc) of the asset, used in gcs project folder path
  * @returns {Promise<Object>} Response data from OpenAI
  */
-export const extendImage = async (imageURLs, prompt, n = 1, projectId, assetType) => {
+export const extendImage = async (imageURLs, prompt, n = 1) => {
     try {
         // Convert URL array to File objects with sequential naming
         const imageFiles = await Promise.all(
-            imageURLs.map((url, index) => 
+            imageURLs.map((url, index) =>
                 toFile(fetch(url), `image_${index + 1}.png`, {
-                type: "image/png",
-            }))
+                    type: 'image/png',
+                })
+            )
         );
-        
+
         const response = await openaiClient.editImagesWithOpenAI(imageFiles, null, prompt, { n });
         if (response.success) {
             // Upload images to GCS and replace base64 with URLs
@@ -78,19 +72,17 @@ export const extendImage = async (imageURLs, prompt, n = 1, projectId, assetType
             for (const imgData of images) {
                 const uploadResult = await uploadBase64ToGCS(
                     imgData.imageBase64,
-                    projectId,
-                    assetType
+                    ASSET_TYPE_IMAGES
                 );
-
 
                 if (uploadResult.success) {
                     ret.push({
                         imageUrl: uploadResult.gcsUrl,
-                        revisedPrompt: imgData.revisedPrompt
+                        revisedPrompt: imgData.revisedPrompt,
                     });
                 } else {
                     // do not break the loop if one image upload is failed
-                    console.error("failed to oai result to gcs", ret.error)
+                    console.error('failed to oai result to gcs', ret.error);
                 }
             }
 
@@ -109,7 +101,7 @@ export const extendImage = async (imageURLs, prompt, n = 1, projectId, assetType
         }
         throw new Error(`Image extension failed: ${error.message}`);
     }
-}
+};
 
 /**
  * Performs image inpainting using a mask to fill/modify specific areas
@@ -117,11 +109,9 @@ export const extendImage = async (imageURLs, prompt, n = 1, projectId, assetType
  * @param {string} mask - Base64 PNG string (data URL format with prefix)
  * @param {string} prompt - Description of the inpainting
  * @param {number} n - Number of variations to generate (default: 1)
- * @param {string} projectId - Project Id, used in gcs project folder path
- * @param {string} assetType - type (element, scene and etc) of the asset, used in gcs project folder path
  * @returns {Promise<Object>} Response data from OpenAI
  */
-export const inpaintingImage = async (image_gcs_url, mask, prompt, n = 1, projectId, assetType) => {
+export const inpaintingImage = async (image_gcs_url, mask, prompt, n = 1) => {
     try {
         // Convert URL to File object
         const imageFile = await toFile(fetch(image_gcs_url), 'image_1.png', { type: 'image/png' });
@@ -144,8 +134,7 @@ export const inpaintingImage = async (image_gcs_url, mask, prompt, n = 1, projec
                 for (const imgData of images) {
                     const uploadResult = await uploadBase64ToGCS(
                         imgData.imageBase64,
-                        projectId,
-                        assetType
+                        ASSET_TYPE_IMAGES
                     );
 
                     if (uploadResult.success) {
@@ -174,4 +163,4 @@ export const inpaintingImage = async (image_gcs_url, mask, prompt, n = 1, projec
         }
         throw new Error(`Image inpainting failed: ${error.message}`);
     }
-}
+};

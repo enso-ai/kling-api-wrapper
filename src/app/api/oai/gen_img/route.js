@@ -1,37 +1,20 @@
 import { NextResponse } from 'next/server';
-import { generateImage } from 'workflow/text2image.js';
-import { GCS_CONFIG } from 'constants/gcs.js';
+import { generateImage } from 'utils/image_gen.js';
 
 export async function POST(request) {
     try {
         const body = await request.json();
 
         // Extract camelCase parameters from HTTP payload
-        const { prompt, n = 1, project_id, asset_type } = body;
+        const { prompt, n = 1, asset_type } = body;
 
         // Validate required parameters
         if (!prompt) {
             return NextResponse.json({ error: 'prompt is required' }, { status: 400 });
         }
 
-        if (!project_id) {
-            return NextResponse.json({ error: 'project_id is required' }, { status: 400 });
-        }
-
         if (!asset_type) {
             return NextResponse.json({ error: 'asset_type is required' }, { status: 400 });
-        }
-
-        // Validate asset_type
-        if (!GCS_CONFIG.FOLDERS[asset_type]) {
-            return NextResponse.json(
-                {
-                    error: `Invalid asset_type: ${asset_type}. Valid types: ${Object.keys(
-                        GCS_CONFIG.FOLDERS
-                    ).join(', ')}`,
-                },
-                { status: 400 }
-            );
         }
 
         // Validate n parameter
@@ -43,16 +26,17 @@ export async function POST(request) {
         }
 
         // Call the generation function
-        const result = await generateImage(prompt, n, project_id, asset_type);
+        const images = await generateImage(prompt, n, asset_type);
 
         // Return response with GCS URLs instead of base64 (clean format)
-        const responseResult = {
-            images: result,
-            format: 'png',
-            created: new Date().toISOString(),
-        };
-
-        return NextResponse.json({ success: true, result: responseResult });
+        return NextResponse.json({
+            success: true,
+            result: {
+                images,
+                format: 'png',
+                created: new Date().toISOString(),
+            },
+        });
     } catch (error) {
         if (error.message === 'CONTENT_MODERATION_BLOCKED') {
             return NextResponse.json({ error: 'CONTENT_MODERATION_BLOCKED' }, { status: 403 });

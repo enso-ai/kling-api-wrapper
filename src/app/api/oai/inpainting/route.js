@@ -1,13 +1,12 @@
 import { NextResponse } from 'next/server';
-import { inpaintingImage } from 'workflow/image2image.js';
-import { GCS_CONFIG } from 'constants/gcs.js';
+import { inpaintingImage } from 'utils/image_gen.js';
 
 export async function POST(request) {
     try {
         const body = await request.json();
 
         // Extract camelCase parameters from HTTP payload
-        const { image_gcs_url, mask, prompt, n = 1, project_id, asset_type } = body;
+        const { image_gcs_url, mask, prompt, n = 1, asset_type } = body;
 
         // Validate required parameter - image
         if (!image_gcs_url) {
@@ -24,25 +23,8 @@ export async function POST(request) {
             return NextResponse.json({ error: 'prompt is required' }, { status: 400 });
         }
 
-        // Validate required parameters
-        if (!project_id) {
-            return NextResponse.json({ error: 'project_id is required' }, { status: 400 });
-        }
-
         if (!asset_type) {
             return NextResponse.json({ error: 'asset_type is required' }, { status: 400 });
-        }
-
-        // Validate asset_type
-        if (!GCS_CONFIG.FOLDERS[asset_type]) {
-            return NextResponse.json(
-                {
-                    error: `Invalid asset_type: ${asset_type}. Valid types: ${Object.keys(
-                        GCS_CONFIG.FOLDERS
-                    ).join(', ')}`,
-                },
-                { status: 400 }
-            );
         }
 
         // Validate n parameter
@@ -54,17 +36,14 @@ export async function POST(request) {
         }
 
         // Call the inpainting function
-        const images = await inpaintingImage(
-            image_gcs_url,
-            mask,
-            prompt,
-            n,
-            project_id,
-            asset_type
-        );
+        const images = await inpaintingImage(image_gcs_url, mask, prompt, n, asset_type);
         return NextResponse.json({
             success: true,
-            result: { images, format: 'png', created: new Date.now() },
+            result: {
+                images,
+                format: 'png',
+                created: new Date().toISOString(),
+            },
         });
     } catch (error) {
         if (error.message === 'CONTENT_MODERATION_BLOCKED') {

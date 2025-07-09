@@ -1,13 +1,12 @@
 import { NextResponse } from 'next/server';
 import { extendImage } from 'utils/image_gen.js';
-import { GCS_CONFIG } from 'constants/gcs.js';
 
 export async function POST(request) {
     try {
         const body = await request.json();
 
         // Extract camelCase parameters from HTTP payload
-        const { image_urls, prompt, n = 1, project_id, asset_type } = body;
+        const { image_urls, prompt, n = 1 } = body;
 
         // Validate required parameter - image_urls array
         if (!image_urls || !Array.isArray(image_urls) || image_urls.length === 0) {
@@ -30,27 +29,6 @@ export async function POST(request) {
             return NextResponse.json({ error: 'prompt is required' }, { status: 400 });
         }
 
-        // Validate required parameters
-        if (!project_id) {
-            return NextResponse.json({ error: 'project_id is required' }, { status: 400 });
-        }
-
-        if (!asset_type) {
-            return NextResponse.json({ error: 'asset_type is required' }, { status: 400 });
-        }
-
-        // Validate asset_type
-        if (!GCS_CONFIG.FOLDERS[asset_type]) {
-            return NextResponse.json(
-                {
-                    error: `Invalid asset_type: ${asset_type}. Valid types: ${Object.keys(
-                        GCS_CONFIG.FOLDERS
-                    ).join(', ')}`,
-                },
-                { status: 400 }
-            );
-        }
-
         // Validate n parameter
         if (n && (typeof n !== 'number' || n < 1 || n > 10)) {
             return NextResponse.json(
@@ -60,15 +38,14 @@ export async function POST(request) {
         }
 
         // Call the extend function (send request to openAI)
-        const images = await extendImage(image_urls, prompt, n, project_id, asset_type);
+        const images = await extendImage(image_urls, prompt, n);
 
         return NextResponse.json({
             success: true,
             result: {
                 images,
                 format: 'png',
-                // created in ts format, eg 1713833628
-                created: new Date.now(),
+                created: new Date().toISOString(),
             },
         });
     } catch (error) {

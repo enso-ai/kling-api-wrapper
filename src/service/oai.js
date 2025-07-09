@@ -3,11 +3,6 @@
 import OpenAI from "openai";
 import dotenv from "dotenv";
 
-export const REASONING_MODELS = {
-    O4_MINI: "o4-mini",
-    O3: "o3",
-};
-
 // Load environment variables if not already loaded
 if (typeof process !== "undefined" && !process.env.OPENAI_API_KEY) {
     dotenv.config();
@@ -31,7 +26,6 @@ function getOpenAIClient() {
 }
 
 // Default settings based on requirements
-const DEFAULT_ANALYSIS_MODEL = REASONING_MODELS.O3;
 const DEFAULT_GENERATION_MODEL = "gpt-image-1";
 const DEFAULT_GENERATION_SIZE = "1024x1536"; // Portrait
 const DEFAULT_QUALITY = "high";
@@ -143,59 +137,6 @@ export class MessagePayload {
     }
 }
 
-async function analyzeImageWithOpenAI(
-    model = DEFAULT_ANALYSIS_MODEL,
-    instructions,
-    userInput,
-    options = {}
-) {
-    /**
-    Analyzes an image using OpenAI reasoning models
-    @param {string} model - The OpenAI model to use (default: "o4-mini")
-    @param {string} instructions - Optional instructions for the model
-    @param {MessagePayload} userInput - User input text to provide context
-    @param {Object} options - Additional options
-    @param {string} options.responseFormat - Optional response format
-    
-    @returns {Promise<Object>} - a promise of an object with success status and message
-  **/
-    try {
-        // assert message payload is an instance of MessagePayload
-        if (!(userInput instanceof MessagePayload)) {
-            throw new Error("userInput must be an instance of MessagePayload");
-        }
-
-        const openaiClient = getOpenAIClient();
-
-        // Build payload with optional instructions
-        const payload = {
-            model,
-            instructions,
-            input: userInput.output(),
-        };
-
-        // Add optional parameters
-        if (options.responseFormat) {
-            payload.response_format = options.responseFormat;
-        }
-
-        const response = await openaiClient.responses.create(payload);
-
-        // Simplified response format
-        return {
-            success: true,
-            message: response.output?.[1]?.content?.[0]?.text, // [0] is for reasoning
-        };
-    } catch (error) {
-        const transformedError = transformError(error);
-        return {
-            success: false,
-            error: transformedError.error,
-            message: transformedError.message,
-        };
-    }
-}
-
 // Server-side utility to generate images using OpenAI GPT-Image-1
 async function generateImageWithOpenAI(prompt, options = {}) {
     try {
@@ -301,7 +242,6 @@ async function editImagesWithOpenAI(images, mask, prompt, options = {}) {
 // Export server-side utilities
 export const openaiClient = {
     // Core functions
-    analyzeImageWithOpenAI,
     generateImageWithOpenAI,
     editImagesWithOpenAI,
 

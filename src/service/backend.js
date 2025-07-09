@@ -270,19 +270,19 @@ const createKlingApiClient = () => {
      * Generates images from text prompts using OpenAI
      * @param {Object} options - Image generation options (required)
      * @param {string} options.prompt - Text description of the image to generate (required)
-     * @param {string} options.project_id - Project identifier for organizing assets (required)
      * @param {string} options.asset_type - Asset type for GCS organization (required)
      * @param {number} [options.n=1] - Number of images to generate (1-10, default: 1)
      * @returns {Promise<Object>} Generation response with image URLs and metadata
      */
     const generateImage = async (options) => {
         try {
+            const { project_id, ...apiOptions } = options;
             const response = await fetch('/api/oai/gen_img', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(options),
+                body: JSON.stringify(apiOptions),
             });
 
             const data = await response.json();
@@ -310,19 +310,18 @@ const createKlingApiClient = () => {
      * @param {Object} options - Image extension options (required)
      * @param {string[]} options.image_urls - Array of image URLs to extend (max 10 images, required)
      * @param {string} options.prompt - Description of how to extend the images (required)
-     * @param {string} options.project_id - Project identifier for organizing assets (required)
-     * @param {string} options.asset_type - Asset type for GCS organization (required)
      * @param {number} [options.n=1] - Number of extended images to generate (1-10, default: 1)
      * @returns {Promise<Object>} Extension response with image URLs and metadata
      */
     const extendImage = async (options) => {
         try {
+            const { project_id, asset_type, ...apiOptions } = options;
             const response = await fetch('/api/oai/extend', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(options),
+                body: JSON.stringify(apiOptions),
             });
 
             const data = await response.json();
@@ -351,19 +350,19 @@ const createKlingApiClient = () => {
      * @param {string} options.image_gcs_url - GCS URL of the image to modify (required)
      * @param {string} options.mask - Mask defining areas to modify (required)
      * @param {string} options.prompt - Description of the desired changes (required)
-     * @param {string} options.project_id - Project identifier for organizing assets (required)
      * @param {string} options.asset_type - Asset type for GCS organization (required)
      * @param {number} [options.n=1] - Number of inpainted images to generate (1-10, default: 1)
      * @returns {Promise<Object>} Inpainting response with image URLs and metadata
      */
     const inpaintImage = async (options) => {
         try {
+            const { project_id, ...apiOptions } = options;
             const response = await fetch('/api/oai/inpainting', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(options),
+                body: JSON.stringify(apiOptions),
             });
 
             const data = await response.json();
