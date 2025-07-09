@@ -39,7 +39,9 @@ export function VideoProvider({ children }) {
                     total_quantity: info.total_quantity,
                 });
             } else {
-                console.error('Invalid account info format:', data);
+                // it's a known issue that kling won't return correct package data
+                // so we reduce the severity of the log to info for now.
+                console.info('Invalid account info format:', data);
             }
         } catch (error) {
             console.error('Error fetching account info:', error);
