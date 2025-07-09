@@ -87,8 +87,6 @@ export default function SidePanel() {
 
   return (
     <div className={styles.sidePanel}>
-      <h1>Video Generation</h1>
-
       <ModelSelector
         value={model}
         onChange={setModel}
