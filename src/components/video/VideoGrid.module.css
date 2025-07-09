@@ -1,16 +1,16 @@
-.grid-container {
+.gridContainer {
   width: 100%;
   padding: 20px;
   overflow-y: auto;
   position: relative; /* Add relative positioning */
 }
 
-.grid-container h1 {
+.gridContainer h1 {
   font-size: 24px;
   margin-bottom: 20px;
 }
 
-.video-grid {
+.videoGrid {
   width: 100%;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -23,30 +23,30 @@
 }
 
 /* Hide scrollbar for Chrome, Safari and Opera */
-.video-grid::-webkit-scrollbar {
+.videoGrid::-webkit-scrollbar {
   display: none;
 }
 
 /* Responsive adjustments */
 @media (max-width: 2000px) {
-  .video-grid {
+  .videoGrid {
     grid-template-columns: repeat(3, 1fr);
   }
 }
 
 @media (max-width: 1500px) {
-  .video-grid {
+  .videoGrid {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
 @media (max-width: 800px) {
-  .video-grid {
+  .videoGrid {
     grid-template-columns: repeat(1, 1fr);
   }
 }
 
-.no-results {
+.noResults {
   grid-column: 1 / -1;
   text-align: center;
   padding: 40px;
@@ -70,13 +70,13 @@
   animation: dots 1.5s steps(4, end) infinite;
 }
 
-.grid-header-title {
+.gridHeaderTitle {
     font-size: 24px;
     color: white;
     margin-left: 10px;
 }
 
-.grid-header {
+.gridHeader {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -96,7 +96,7 @@
 }
 
 /* Lazy loading styles */
-.load-more-container {
+.loadMoreContainer {
   grid-column: 1 / -1;
   display: flex;
   justify-content: center;
@@ -105,7 +105,7 @@
   margin: 20px 0;
 }
 
-.load-more-button {
+.loadMoreButton {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   border: none;
@@ -118,18 +118,18 @@
   box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
 }
 
-.load-more-button:hover:not(:disabled) {
+.loadMoreButton:hover:not(:disabled) {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
 }
 
-.load-more-button:disabled {
+.loadMoreButton:disabled {
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;
 }
 
-.end-of-list {
+.endOfList {
   grid-column: 1 / -1;
   text-align: center;
   padding: 20px;
@@ -141,7 +141,7 @@
 }
 
 /* Loading animation for lazy loading */
-.load-more-container .loading {
+.loadMoreContainer .loading {
   padding: 20px;
   font-size: 14px;
 }

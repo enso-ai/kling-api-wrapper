@@ -1,4 +1,4 @@
-.side-panel {
+.sidePanel {
     position: relative;
     display: flex;
     flex-direction: column;
@@ -12,7 +12,7 @@
     overflow-y: auto;
 }
 
-.side-panel h1 {
+.sidePanel h1 {
     font-size: 24px;
     margin-bottom: 20px;
 }

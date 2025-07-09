@@ -1,4 +1,4 @@
-.generate-btn {
+.generateBtn {
   margin: auto 5px 20px 5px;
   background-color: #00a67e;
   color: white;
@@ -14,16 +14,16 @@
   align-items: center;
 }
 
-.generate-btn:hover {
+.generateBtn:hover {
   background-color: #008f6c;
 }
 
-.generate-btn:disabled {
+.generateBtn:disabled {
   background-color: #7fcfbb;
   cursor: not-allowed;
 }
 
-.generate-btn:disabled:hover {
+.generateBtn:disabled:hover {
   background-color: #7fcfbb;
 }
 

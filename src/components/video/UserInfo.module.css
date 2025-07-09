@@ -5,15 +5,14 @@
     width: 250px;
 }
 
-.auth-info {
+.authInfo {
     font-size: 18px;
     color: #777;
     margin-left: 10px;
 }
 
-.credit-info {
+.creditInfo {
     font-size: 18px;
     color: #777;
     margin-left: 10px;
 }
-

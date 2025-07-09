@@ -1,13 +1,13 @@
-.form-group {
+.formGroup {
   margin-bottom: 20px;
 }
 
-.form-group label {
+.formGroup label {
   display: block;
   margin-bottom: 8px;
 }
 
-.form-group textarea {
+.formGroup textarea {
   width: 100%;
   padding: 10px;
   border-radius: 4px;
