@@ -1,0 +1,333 @@
+.tabContent {
+  max-height: calc(90vh - 240px);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Two Column Layout */
+.twoColumnLayout {
+  position: relative;
+  display: grid;
+  grid-template-columns: 365px 1fr;
+  gap: 24px;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Left Column - Element Images */
+.leftColumn {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+.elementImagesColumn {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.verticalImageList {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 240px;
+  
+  gap: 8px;
+  overflow-y: scroll;
+  padding: 12px 0;
+  scrollbar-color: #ccc transparent;
+  flex: 1;
+  min-height: 0;
+
+    /* Hide scrollbar for Firefox */
+  scrollbar-width: none;
+  
+  /* Hide scrollbar for webkit browsers (Chrome, Safari, Edge) */
+  -ms-overflow-style: none;
+}
+
+.verticalImageList::-webkit-scrollbar {
+  display: none;;
+}
+
+.verticalImageList::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.verticalImageList::-webkit-scrollbar-thumb {
+  display: none;
+  background: #ccc;
+  border-radius: 3px;
+}
+
+/* Right Column - Prompt Input Panel */
+.rightColumn {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.promptInputPanel {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-height: 0;
+  padding: 0 0;
+}
+
+.sectionLabel {
+  display: block;
+  margin-bottom: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.elementImageItem {
+  position: relative;
+  width: 180px;
+  height: 240px;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  border: 3px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.elementImageItem.selected {
+  border-color: #007bff;
+  box-shadow: 0 0 0 1px #007bff;
+  transform: scale(1.02);
+}
+
+.elementImageItem:hover {
+  transform: scale(1.02);
+  border-color: #007bff;
+}
+
+.elementImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.selectionCounter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+  font-size: 14px;
+  color: #666;
+  padding: 0 4px;
+}
+
+.clearAllButton {
+  padding: 6px 12px;
+  background: #f8f9fa;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.clearAllButton:hover:not(:disabled) {
+  background: #e9ecef;
+  border-color: #ccc;
+  color: #333;
+}
+
+.clearAllButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.noImagesMessage {
+  padding: 24px;
+  text-align: center;
+  color: #666;
+  font-size: 14px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+}
+
+/* Prompt Section - Taller and Narrower */
+.promptSection {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.promptTextarea {
+  width: 100%;
+  padding: 16px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 180px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  flex: 1;
+  line-height: 1.5;
+}
+
+.promptTextarea:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.promptTextarea:disabled {
+  background-color: #f8f9fa;
+  color: #6c757d;
+  cursor: not-allowed;
+}
+
+/* Options Section */
+.optionsSection {
+  flex-shrink: 0;
+}
+
+/* Generate Section */
+.generateSection {
+  flex-shrink: 0;
+  text-align: center;
+  margin-top: auto;
+  padding-top: 16px;
+}
+
+.generateButton {
+  padding: 14px 32px;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  min-width: 140px;
+  box-shadow: 0 2px 4px rgba(0, 123, 255, 0.2);
+}
+
+.generateButton:hover:not(:disabled) {
+  background: #0056b3;
+  box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+.generateButton:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  opacity: 0.6;
+  box-shadow: none;
+  transform: none;
+}
+
+
+/* Image Variant Indicator */
+.imageVariantIndicator {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 500;
+}
+
+/* Error Message */
+.errorMessage {
+  padding: 12px 16px;
+  background: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 6px;
+  color: #721c24;
+  font-size: 14px;
+  line-height: 1.4;
+  margin-top: 8px;
+}
+
+/* Mobile responsiveness for PromptTab */
+@media (max-width: 768px) {
+  .twoColumnLayout {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    height: auto;
+    max-height: none;
+  }
+  
+  .leftColumn {
+    width: 100%;
+    min-width: auto;
+    max-height: 200px;
+  }
+  
+  .verticalImageList {
+    flex-direction: row;
+    overflow-x: scroll;
+    overflow-y: hidden;
+    gap: 8px;
+    padding: 8px 0;
+  }
+  
+  .elementImageItem {
+    width: 80px;
+    height: 120px;
+    min-width: 80px;
+  }
+  
+  .rightColumn {
+    width: 100%;
+    min-width: auto;
+    order: 1;
+  }
+  
+  .promptInputPanel {
+    gap: 16px;
+    padding: 0;
+  }
+  
+  .sectionLabel {
+    font-size: 13px;
+    margin-bottom: 8px;
+  }
+  
+  .promptTextarea {
+    padding: 12px;
+    font-size: 13px;
+    min-height: 120px;
+  }
+  
+  .generateButton {
+    padding: 12px 24px;
+    font-size: 14px;
+    width: 100%;
+  }
+  
+  .selectionCounter {
+    font-size: 12px;
+    margin-top: 8px;
+  }
+  
+  .clearAllButton {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+  
+  .noImagesMessage {
+    padding: 16px;
+    font-size: 13px;
+  }
+}
