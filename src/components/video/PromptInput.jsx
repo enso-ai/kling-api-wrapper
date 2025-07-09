@@ -1,4 +1,3 @@
-{/* app/components/PromptInput.jsx */}
 import React from 'react';
 import './PromptInput.css';
 

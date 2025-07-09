@@ -1,8 +1,7 @@
-{/* app/components/VideoPlayer.jsx */ }
 import { useEffect, useState, useRef } from 'react';
 import { FaTrashAlt, FaPencilAlt, FaPlus } from "react-icons/fa";
 import './VideoPlayer.css';
-import { useVideoContext } from '../context/VideoContext';
+import { useVideoContext } from '@/context/VideoContext';
 import VideoExtensionModal from './VideoExtensionModal';
 
 export default function VideoPlayer({ payload }) {

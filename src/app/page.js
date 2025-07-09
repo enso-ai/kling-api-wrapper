@@ -1,16 +1,33 @@
-'use client'
+'use client';
 
-import SidePanel from '../components/SidePanel';
-import VideoGrid from '../components/VideoGrid';
-import '../styles/kling-ui.css';
-import { VideoProvider } from '../context/VideoContext';
+import { useState } from 'react';
+import ImageTool from './tabs/ImageTool';
+import VideoTool from './tabs/videoTool';
+import './page.css';
+import { VideoProvider } from '@/context/VideoContext';
 
 export default function Home() {
+    const [activeTab, setActiveTab] = useState('image');
+
     return (
         <VideoProvider>
-            <div className='kling-container'>
-                <SidePanel />
-                <VideoGrid />
+            <div className='container'>
+                <div className='tabs'>
+                    <button
+                        className={`tab-button ${activeTab === 'image' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('image')}
+                    >
+                        Image
+                    </button>
+                    <button
+                        className={`tab-button ${activeTab === 'video' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('video')}
+                    >
+                        Video
+                    </button>
+                </div>
+                {activeTab === 'image' && <ImageTool />}
+                {activeTab === 'video' && <VideoTool />}
             </div>
         </VideoProvider>
     );

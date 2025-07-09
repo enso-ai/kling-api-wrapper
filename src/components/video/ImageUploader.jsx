@@ -1,4 +1,3 @@
-{/* app/components/ImageUploader.jsx */ }
 import React, { useState, useRef, useEffect } from 'react';
 import { FaTimes } from 'react-icons/fa';
 import './ImageUploader.css';

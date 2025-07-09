@@ -1,4 +1,3 @@
-{/* src/components/VideoExtensionModal.jsx */}
 import { useState } from 'react';
 import './VideoExtensionModal.css';
 

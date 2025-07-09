@@ -1,4 +1,3 @@
-{/* app/components/ModelSelector.jsx */}
 import React from 'react';
 import './ModelSelector.css';
 

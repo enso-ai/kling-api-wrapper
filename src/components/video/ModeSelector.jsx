@@ -1,4 +1,3 @@
-{/* app/components/ModeSelector.jsx */}
 import React from 'react';
 import './ModeSelector.css';
 

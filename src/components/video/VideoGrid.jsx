@@ -1,9 +1,8 @@
-{/* app/components/VideoGrid.jsx */ }
 import React, { useEffect, useRef, useCallback } from 'react';
 import './VideoGrid.css';
 import VideoPlayer from './VideoPlayer';
 import UserInfo from './UserInfo';
-import { useVideoContext } from '../context/VideoContext';
+import { useVideoContext } from '@/context/VideoContext';
 
 export default function VideoGrid() {
     const { 

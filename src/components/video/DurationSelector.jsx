@@ -1,4 +1,3 @@
-{/* app/components/DurationSelector.jsx */}
 import React from 'react';
 import './DurationSelector.css';
 

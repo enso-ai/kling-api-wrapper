@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 
 import './UserInfo.css';
 
-import { apiClient } from '../service/backend';
-import { useVideoContext } from '../context/VideoContext';
+import { apiClient } from '@/service/backend';
+import { useVideoContext } from '@/context/VideoContext';
 
 const UserInfo = () => {
     const { accountInfo } = useVideoContext();

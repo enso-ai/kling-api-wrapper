@@ -1,4 +1,3 @@
-{/* app/components/SidePanel.jsx */ }
 import { useState, useEffect } from 'react';
 import './SidePanel.css';
 import ModelSelector from './ModelSelector';
@@ -7,8 +6,8 @@ import ImageUploader from './ImageUploader';
 import PromptInput from './PromptInput';
 import DurationSelector from './DurationSelector';
 import GenerateButton from './GenerateButton';
-import { convertImageToBase64 } from '../utils/image';
-import { useVideoContext } from '../context/VideoContext';
+import { convertImageToBase64 } from '@/utils/image';
+import { useVideoContext } from '@/context/VideoContext';
 
 export default function SidePanel() {
   const { createVideo, currentTemplate, clearTemplate } = useVideoContext();

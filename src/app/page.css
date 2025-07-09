@@ -1,0 +1,25 @@
+.container {
+  display: flex;
+  height: 100vh;
+}
+
+.tabs {
+    display: flex;
+    border-bottom: 1px solid #444;
+    margin-bottom: 20px;
+}
+
+.tab-button {
+    padding: 10px 20px;
+    cursor: pointer;
+    background-color: transparent;
+    border: none;
+    color: #f5f5f5;
+    font-size: 16px;
+    outline: none;
+}
+
+.tab-button.active {
+    border-bottom: 2px solid #00a67e;
+    color: #00a67e;
+}
