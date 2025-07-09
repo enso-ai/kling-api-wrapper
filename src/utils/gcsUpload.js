@@ -50,7 +50,7 @@ export async function uploadBase64ToGCS(base64Data, assetType) {
     const assetConfig = GCS_CONFIG.ASSET_CONFIG[assetType];
     // Determine content type and file extension based on asset type
 
-    const filePath = generateGCSPath(assetConfig.FOLDER, fileId, assetConfig.FILE_EXTENSION);
+    const filePath = generateGCSPath(assetConfig.FOLDER, fileId, assetConfig.EXTENSION);
     const file = bucket.file(filePath);
 
     // Convert base64 to buffer
@@ -113,7 +113,7 @@ export async function downloadAndUploadToGCS(url, assetType) {
     const fileId = randomUUID();
     const assetConfig = GCS_CONFIG.ASSET_CONFIG[assetType];
 
-    const filePath = generateGCSPath(assetConfig.FOLDER, fileId, assetConfig.FILE_EXTENSION);
+    const filePath = generateGCSPath(assetConfig.FOLDER, fileId, assetConfig.EXTENSION);
     const file = bucket.file(filePath);
 
     for (let attempt = 1; attempt <= GCS_CONFIG.RETRY_CONFIG.MAX_RETRIES; attempt++) {
