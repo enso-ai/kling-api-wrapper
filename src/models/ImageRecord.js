@@ -10,7 +10,7 @@ class ImageRecord {
         this.srcImageUrls = formData.srcImageUrls || []; // Array of source image URLs
         this.mask = formData.mask || null; // Base64 data
         this.prompt = formData.prompt || null;
-        this.imageUrl = formData.imageUrl || null; // Generated image URL
+        this.imageUrls = formData.imageUrls || []; // Array of generated image URLs
     }
 
     // Convert to the format expected by components
@@ -22,7 +22,7 @@ class ImageRecord {
             srcImageUrls: this.srcImageUrls,
             mask: this.mask,
             prompt: this.prompt,
-            imageUrl: this.imageUrl,
+            imageUrls: this.imageUrls,
         };
     }
 
@@ -36,7 +36,7 @@ class ImageRecord {
             srcImageUrls: this.srcImageUrls,
             mask: this.mask,
             prompt: this.prompt,
-            imageUrl: this.imageUrl,
+            imageUrls: this.imageUrls,
         };
     }
 
@@ -50,7 +50,7 @@ class ImageRecord {
         record.srcImageUrls = data.srcImageUrls || [];
         record.mask = data.mask;
         record.prompt = data.prompt;
-        record.imageUrl = data.imageUrl;
+        record.imageUrls = data.imageUrls || [];
         return record;
     }
 }

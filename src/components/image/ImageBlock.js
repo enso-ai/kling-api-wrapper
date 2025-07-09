@@ -4,7 +4,7 @@ import ImageDetailModal from './ImageDetailModal';
 import { useImageContext } from '../../context/ImageContext';
 
 export default function ImageBlock({ imageRecord }) {
-    const { removeImageRecord } = useImageContext();
+    const { removeImageRecord, updateSelectedImage } = useImageContext();
     const [showDetailModal, setShowDetailModal] = useState(false);
 
     const handleImageClick = () => {
@@ -44,15 +44,72 @@ export default function ImageBlock({ imageRecord }) {
         }
     };
 
+    const handlePrevImage = (e) => {
+        e.stopPropagation();
+        const currentIdx = imageRecord.selectedImageIdx || 0;
+        if (currentIdx > 0) {
+            updateSelectedImage(imageRecord.id, currentIdx - 1);
+        }
+    };
+
+    const handleNextImage = (e) => {
+        e.stopPropagation();
+        const currentIdx = imageRecord.selectedImageIdx || 0;
+        if (currentIdx < imageRecord.imageUrls.length - 1) {
+            updateSelectedImage(imageRecord.id, currentIdx + 1);
+        }
+    };
+
     const renderContent = () => {
-        if (imageRecord?.imageUrl) {
+        if (imageRecord?.imageUrls && imageRecord.imageUrls.length > 0) {
+            const currentIdx = imageRecord.selectedImageIdx || 0;
+            const currentImageUrl = imageRecord.imageUrls[currentIdx];
+            const hasMultipleImages = imageRecord.imageUrls.length > 1;
+
             return (
                 <div className={styles.imageWrapper}>
                     <img
-                        src={imageRecord.imageUrl}
+                        src={currentImageUrl}
                         alt={imageRecord.prompt || 'Generated image'}
                         className={styles.image}
                     />
+                    
+                    {/* Navigation arrows for multiple images */}
+                    {hasMultipleImages && (
+                        <>
+                            {currentIdx > 0 && (
+                                <button
+                                    className={`${styles.navButton} ${styles.prevButton}`}
+                                    onClick={handlePrevImage}
+                                    title="Previous image"
+                                >
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <polyline points="15,18 9,12 15,6"></polyline>
+                                    </svg>
+                                </button>
+                            )}
+                            
+                            {currentIdx < imageRecord.imageUrls.length - 1 && (
+                                <button
+                                    className={`${styles.navButton} ${styles.nextButton}`}
+                                    onClick={handleNextImage}
+                                    title="Next image"
+                                >
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <polyline points="9,18 15,12 9,6"></polyline>
+                                    </svg>
+                                </button>
+                            )}
+                        </>
+                    )}
+
+                    {/* Image counter */}
+                    {hasMultipleImages && (
+                        <div className={styles.imageCounter}>
+                            {currentIdx + 1}/{imageRecord.imageUrls.length}
+                        </div>
+                    )}
+
                     <div className={styles.controls}>
                         <button
                             className={styles.iconButton}

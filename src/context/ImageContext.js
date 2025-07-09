@@ -16,6 +16,7 @@ const IMAGE_ACTIONS = {
     REMOVE_RECORD: 'REMOVE_RECORD',
     SET_LOADING_STATE: 'SET_LOADING_STATE',
     SET_PAGINATION: 'SET_PAGINATION',
+    UPDATE_SELECTED_IMAGE: 'UPDATE_SELECTED_IMAGE',
 };
 
 // Initial state
@@ -85,6 +86,16 @@ function imageReducer(state, action) {
                 ...action.payload,
             };
 
+        case IMAGE_ACTIONS.UPDATE_SELECTED_IMAGE:
+            return {
+                ...state,
+                imageRecords: state.imageRecords.map(record => 
+                    record.id === action.payload.recordId 
+                        ? { ...record, selectedImageIdx: action.payload.selectedImageIdx }
+                        : record
+                ),
+            };
+
         default:
             return state;
     }
@@ -118,7 +129,12 @@ export const ImageContextProvider = ({ children }) => {
                 const savedRecords = await loadImageRecordsPage(1, MAX_RECORDS);
 
                 // Convert DB objects back to ImageRecord instances
-                const records = savedRecords.map((data) => ImageRecord.fromDatabase(data));
+                const records = savedRecords.map((data) => {
+                    const record = ImageRecord.fromDatabase(data);
+                    // Add selectedImageIdx in memory (default to first image)
+                    record.selectedImageIdx = 0;
+                    return record;
+                });
 
                 // Sort records by createdAt in descending order
                 records.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -160,17 +176,20 @@ export const ImageContextProvider = ({ children }) => {
         }
     }, []);
 
-    // Add element image - handles both state and persistence
-    const addElementImage = useCallback(async (imageUrl, generationSources) => {
+    // Add images - handles both state and persistence
+    const addImages = useCallback(async (imageUrls, generationSources) => {
         try {
-            // Create ImageRecord instance
+            // Create ImageRecord instance with array of URLs
             const imageRecord = new ImageRecord({
                 modelName: 'openai-dall-e-3', // Default model for now
                 srcImageUrls: generationSources.referenceImages || [],
                 mask: generationSources.mask || null,
                 prompt: generationSources.prompt,
-                imageUrl: imageUrl,
+                imageUrls: imageUrls,
             });
+
+            // Add selectedImageIdx in memory (default to first image)
+            imageRecord.selectedImageIdx = 0;
 
             // Save to database
             await saveRecordToDB(imageRecord);
@@ -188,15 +207,23 @@ export const ImageContextProvider = ({ children }) => {
         }
     }, [saveRecordToDB]);
 
+    // Update selected image index for a record
+    const updateSelectedImage = useCallback((recordId, newIndex) => {
+        dispatch({
+            type: IMAGE_ACTIONS.UPDATE_SELECTED_IMAGE,
+            payload: { recordId, selectedImageIdx: newIndex }
+        });
+    }, []);
+
     // Remove image record
     const removeImageRecord = useCallback(async (id) => {
         try {
-            // Find the image record to get the imageUrl
+            // Find the image record to get the imageUrls
             const imageRecord = state.imageRecords.find(record => record.id === id);
             
-            // Delete from GCS first (if imageUrl exists)
-            if (imageRecord?.imageUrl) {
-                await apiClient.deleteImage([imageRecord.imageUrl]);
+            // Delete from GCS first (if imageUrls exists)
+            if (imageRecord?.imageUrls && imageRecord.imageUrls.length > 0) {
+                await apiClient.deleteImage(imageRecord.imageUrls);
             }
             
             // Delete from local database
@@ -235,7 +262,12 @@ export const ImageContextProvider = ({ children }) => {
             }
 
             // Convert DB objects back to ImageRecord instances
-            const records = moreRecords.map((data) => ImageRecord.fromDatabase(data));
+            const records = moreRecords.map((data) => {
+                const record = ImageRecord.fromDatabase(data);
+                // Add selectedImageIdx in memory (default to first image)
+                record.selectedImageIdx = 0;
+                return record;
+            });
 
             // Sort records by createdAt in descending order
             records.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -299,22 +331,21 @@ export const ImageContextProvider = ({ children }) => {
                 }
                 console.log('response payload:', result);
 
-                // Process each generated image
-                for (const imageData of result.data?.images) {
-                    const generationSources = {
-                        type: isTextOnly ? 'text-to-image' : 'image-extension',
-                        prompt: prompt.trim(),
-                        referenceImages: isTextOnly
-                            ? null
-                            : selectedImages.map((img) => {
-                                  return img.gcsUrls?.[img.selectedImageIdx] || img.gcsUrls?.[0];
-                              }),
-                        revisedPrompt: imageData.revisedPrompt,
-                    };
+                // Collect all generated image URLs
+                const allImageUrls = result.data?.images.map(img => img.imageUrl);
+                const generationSources = {
+                    type: isTextOnly ? 'text-to-image' : 'image-extension',
+                    prompt: prompt.trim(),
+                    referenceImages: isTextOnly
+                        ? null
+                        : selectedImages.map((img) => {
+                              return img.gcsUrls?.[img.selectedImageIdx] || img.gcsUrls?.[0];
+                          }),
+                    revisedPrompt: result.data?.images[0]?.revisedPrompt, // Use first image's revised prompt
+                };
 
-                    // Add to both state and database
-                    await addElementImage(imageData.imageUrl, generationSources);
-                }
+                // Add all images as one record to both state and database
+                await addImages(allImageUrls, generationSources);
 
                 // Remove from pending state
                 dispatch({
@@ -331,7 +362,7 @@ export const ImageContextProvider = ({ children }) => {
                 });
             }
         },
-        [addElementImage]
+        [addImages]
     );
 
     const startImageGeneration = useCallback(
@@ -399,19 +430,18 @@ export const ImageContextProvider = ({ children }) => {
                     return;
                 }
 
-                // Process each generated image
-                for (const imageData of result.data?.images) {
-                    const generationSources = {
-                        type: 'inpainting',
-                        prompt: prompt.trim(),
-                        referenceImages: [inputImageUrl],
-                        mask: maskImage,
-                        revisedPrompt: imageData.revisedPrompt,
-                    };
+                // Collect all generated image URLs
+                const allImageUrls = result.data?.images.map(img => img.imageUrl);
+                const generationSources = {
+                    type: 'inpainting',
+                    prompt: prompt.trim(),
+                    referenceImages: [inputImageUrl],
+                    mask: maskImage,
+                    revisedPrompt: result.data?.images[0]?.revisedPrompt, // Use first image's revised prompt
+                };
 
-                    // Add to both state and database
-                    await addElementImage(imageData.imageUrl, generationSources);
-                }
+                // Add all images as one record to both state and database
+                await addImages(allImageUrls, generationSources);
 
                 // Remove from pending state
                 dispatch({
@@ -428,7 +458,7 @@ export const ImageContextProvider = ({ children }) => {
                 });
             }
         },
-        [addElementImage]
+        [addImages]
     );
 
     const startInpaintingGeneration = useCallback(
@@ -484,6 +514,7 @@ export const ImageContextProvider = ({ children }) => {
 
         // Record management
         removeImageRecord,
+        updateSelectedImage,
     };
 
     return <ImageContext.Provider value={contextValue}>{children}</ImageContext.Provider>;
