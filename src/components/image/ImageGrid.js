@@ -77,10 +77,6 @@ export default function ImageGrid({ onOpenModal }) {
 
     return (
         <div className={styles.gridContainer}>
-            <div className={styles.gridHeader}>
-                <div className={styles.gridHeaderTitle}>Images</div>
-            </div>
-            
             <div className={styles.imageGrid} ref={gridRef}>
                 {!isLoaded ? (
                     <div className={styles.loading}>Loading image history...</div>
