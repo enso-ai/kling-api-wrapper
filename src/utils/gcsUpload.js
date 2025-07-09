@@ -32,6 +32,25 @@ export function getPublicGCSUrl(filePath) {
 }
 
 /**
+ * Extract GCS file path from public URL
+ * @param {string} publicUrl - Public GCS URL
+ * @returns {string|null} GCS file path or null if invalid URL
+ */
+export function extractGCSPath(publicUrl) {
+    try {
+        const baseUrl = `${GCS_CONFIG.BASE_URL}/${GCS_CONFIG.BUCKET_NAME}/`;
+        if (!publicUrl.startsWith(baseUrl)) {
+            return null;
+        }
+        return publicUrl.substring(baseUrl.length);
+    } catch (error) {
+        console.error('Error extracting GCS path:', error);
+        return null;
+    }
+}
+
+
+/**
  * Upload base64 data to GCS with retry logic
  * @param {string} base64Data - Base64 encoded data (without data URL prefix)
  * @param {string} assetType - Asset type key from GCS_CONFIG.FOLDERS
@@ -162,5 +181,140 @@ export async function downloadAndUploadToGCS(url, assetType) {
             // Wait before retry
             await sleep(GCS_CONFIG.RETRY_CONFIG.RETRY_DELAY * attempt);
         }
+    }
+}
+
+/**
+ * Create a Signed URL from GCS bucket
+ * @param {string} assetType - Asset type (ELEMENT_IMAGES, GENERATED_IMAGES, CLIPS)
+ * @returns {Promise<{success: boolean, signed_url?: string, public_url?: string, image_id?: string, error?: string}>}
+ */
+export async function createSignedURL(assetType) {
+    try {
+        if (!assetType) {
+            return {
+                success: false,
+                error: 'Missing asset_type parameter'
+            };
+        }
+
+        // Validate asset type and get folder name
+        let folderName;
+        try {
+            folderName = getAssetFolder(assetType);
+        } catch (error) {
+            return {
+                success: false,
+                error: error.message
+            };
+        }
+
+        // Generate unique image ID
+        const imageId = randomUUID();
+
+        // Create GCS file path following the pattern: {folder}/{image_id}.png
+        const fileName = generateGCSPath(folderName, imageId, GCS_CONFIG.FILE_EXTENSIONS.IMAGE);
+        
+        // Generate signed URL for PUT operation (15 minutes expiration)
+        const file = bucket.file(fileName);
+        const [signedUrl] = await file.getSignedUrl({
+            version: 'v4',
+            action: 'write',
+            expires: Date.now() + 15 * 60 * 1000, // 15 minutes
+            contentType: GCS_CONFIG.CONTENT_TYPES.IMAGE,
+        });
+        
+        // Generate public URL
+        const publicUrl = getPublicGCSUrl(fileName);
+        
+        console.log(`Generated signed URL for ${fileName}`);
+        
+        return {
+            success: true,
+            signed_url: signedUrl,
+            public_url: publicUrl,
+            image_id: imageId
+        };
+        
+    } catch (error) {
+        console.error('Error generating signed URL:', error);
+        return {
+            success: false,
+            error: `Failed to generate signed URL: ${error.message}`
+        };
+    }
+}
+
+/**
+ * Delete multiple GCS assets in batch
+ * @param {string[]} gcsUrls - Array of GCS URLs to delete
+ * @returns {Promise<{success: boolean, message?: string, results?: Array, error?: string}>}
+ */
+export async function deleteGCSAssets(gcsUrls) {
+    try {
+        if (!Array.isArray(gcsUrls) || gcsUrls.length === 0) {
+            return {
+                success: false,
+                error: 'URLs must be provided as a non-empty array'
+            };
+        }
+
+        console.log(`Starting batch deletion of ${gcsUrls.length} GCS assets`);
+
+        const deletionResults = [];
+        const errors = [];
+
+        // Process each URL
+        for (const gcsUrl of gcsUrls) {
+            const filePath = extractGCSPath(gcsUrl);
+            
+            if (!filePath) {
+                console.warn(`Invalid GCS URL format: ${gcsUrl}`);
+                continue;
+            }
+
+            try {
+                const file = bucket.file(filePath);
+                await file.delete();
+                
+                console.log(`Successfully deleted GCS asset: ${gcsUrl}`);
+                deletionResults.push({ url: gcsUrl, success: true });
+                
+            } catch (error) {
+                // 404 means already deleted - treat as success
+                if (error.code === 404 || error.message.includes('No such object')) {
+                    console.log(`GCS asset already deleted: ${gcsUrl}`);
+                    deletionResults.push({ url: gcsUrl, success: true, note: 'already_deleted' });
+                } else {
+                    const errorMsg = `Failed to delete ${gcsUrl}: ${error.message}`;
+                    console.error(errorMsg);
+                    errors.push(errorMsg);
+                    deletionResults.push({ url: gcsUrl, success: false, error: error.message });
+                }
+            }
+        }
+
+        // If any real errors occurred, return error response
+        if (errors.length > 0) {
+            return {
+                success: false,
+                error: 'Failed to delete some GCS assets',
+                details: errors,
+                results: deletionResults
+            };
+        }
+
+        return {
+            success: true,
+            message: `Successfully deleted ${gcsUrls.length} GCS assets`,
+            results: deletionResults
+        };
+
+    } catch (error) {
+        console.error('Error in GCS batch deletion:', error);
+        return {
+            success: false,
+            error: `Internal error: ${error.message}`
+        };
     }
 }

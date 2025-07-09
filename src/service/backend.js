@@ -385,6 +385,31 @@ const createKlingApiClient = () => {
         }
     };
 
+    const deleteImage = async (gcsUrls) => {
+        try {
+            if (!Array.isArray(gcsUrls) || gcsUrls.length === 0) {
+                throw new Error('GCS URLs must be provided as a non-empty array');
+            }
+
+            const response = await fetch('/api/gcs/asset', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ urls: gcsUrls }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to delete GCS assets');
+            }
+
+            return data; // Returns { success: true, message, results }
+        } catch (error) {
+            console.error('Error deleting GCS assets:', error);
+            throw error;
+        }
+    };
+
     // Return the client object with all methods
     return {
         createVideo,
@@ -398,6 +423,7 @@ const createKlingApiClient = () => {
         generateImage,
         extendImage,
         inpaintImage,
+        deleteImage,
     };
 };
 
