@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useCallback } from 'react';
-import './VideoGrid.css';
+import styles from './VideoGrid.module.css';
 import VideoPlayer from './VideoPlayer';
 import UserInfo from './UserInfo';
 import { useVideoContext } from '@/context/VideoContext';
@@ -67,14 +67,14 @@ export default function VideoGrid() {
     }, [handleScroll]);
 
     return (
-        <div className="grid-container">
-            <div className="grid-header">
-                <div className="grid-header-title">Results</div>
+        <div className={styles.gridContainer}>
+            <div className={styles.gridHeader}>
+                <div className={styles.gridHeaderTitle}>Results</div>
                 <UserInfo />
             </div>
-            <div className="video-grid" ref={gridRef}>
+            <div className={styles.videoGrid} ref={gridRef}>
                 {!isLoaded ? (
-                    <div className="loading">Loading video history...</div>
+                    <div className={styles.loading}>Loading video history...</div>
                 ) : videoRecords.length > 0 ? (
                     <>
                         {videoRecords.map((videoRecord) => (
@@ -86,12 +86,12 @@ export default function VideoGrid() {
                         
                         {/* Loading indicator for lazy loading */}
                         {hasMoreVideos && (
-                            <div ref={loadingRef} className="load-more-container">
+                            <div ref={loadingRef} className={styles.loadMoreContainer}>
                                 {isLoadingMore ? (
-                                    <div className="loading">Loading more videos...</div>
+                                    <div className={styles.loading}>Loading more videos...</div>
                                 ) : (
                                     <button 
-                                        className="load-more-button" 
+                                        className={styles.loadMoreButton} 
                                         onClick={loadMoreVideos}
                                         disabled={isLoadingMore}
                                     >
@@ -103,13 +103,13 @@ export default function VideoGrid() {
                         
                         {/* End of list indicator */}
                         {!hasMoreVideos && videoRecords.length > 0 && (
-                            <div className="end-of-list">
+                            <div className={styles.endOfList}>
                                 All videos loaded ({videoRecords.length} total)
                             </div>
                         )}
                     </>
                 ) : (
-                    <div className="no-results">No videos generated yet</div>
+                    <div className={styles.noResults}>No videos generated yet</div>
                 )}
             </div>
         </div>

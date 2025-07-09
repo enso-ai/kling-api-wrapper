@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import ImageTool from './tabs/ImageTool';
 import VideoTool from './tabs/videoTool';
-import './page.css';
+import styles from './page.module.css';
 import { VideoProvider } from '@/context/VideoContext';
 
 export default function Home() {
@@ -11,16 +11,16 @@ export default function Home() {
 
     return (
         <VideoProvider>
-            <div className='container'>
-                <div className='tabs'>
+            <div className={styles.container}>
+                <div className={styles.tabs}>
                     <button
-                        className={`tab-button ${activeTab === 'image' ? 'active' : ''}`}
+                        className={`${styles.tabButton} ${activeTab === 'image' ? styles.active : ''}`}
                         onClick={() => setActiveTab('image')}
                     >
                         Image
                     </button>
                     <button
-                        className={`tab-button ${activeTab === 'video' ? 'active' : ''}`}
+                        className={`${styles.tabButton} ${activeTab === 'video' ? styles.active : ''}`}
                         onClick={() => setActiveTab('video')}
                     >
                         Video

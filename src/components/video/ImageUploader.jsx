@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { FaTimes } from 'react-icons/fa';
-import './ImageUploader.css';
+import styles from './ImageUploader.module.css';
 
 export default function ImageUploader({
   id,
@@ -174,12 +174,12 @@ export default function ImageUploader({
   };
 
   return (
-    <div className="image-upload">
+    <div className={styles.imageUpload}>
       <input
         type="file"
         accept="image/*"
         id={id}
-        className="file-input"
+        className={styles.fileInput}
         onChange={handleFileSelect}
         style={{ display: 'none' }}
       />
@@ -187,7 +187,7 @@ export default function ImageUploader({
         htmlFor={id} 
         ref={uploadAreaRef}
         tabIndex={0}
-        className={`image-preview ${isDragOver ? 'drag-over' : ''} ${isFocused ? 'focused' : ''} ${isHovered ? 'hovered' : ''}`}
+        className={`${styles.imagePreview} ${isDragOver ? styles.dragOver : ''} ${isFocused ? styles.focused : ''} ${isHovered ? styles.hovered : ''}`}
         onDragEnter={handleDragEnter}
         onDragLeave={handleDragLeave}
         onDragOver={handleDragOver}
@@ -198,12 +198,12 @@ export default function ImageUploader({
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
-        <div className="image-preview-content">
+        <div className={styles.imagePreviewContent}>
           {image ? (
             <>
               <img src={image} alt={label} />
               <button
-                className="clear-image-btn"
+                className={styles.clearImageBtn}
                 onClick={clearImage}
                 aria-label="Remove image"
               >
@@ -211,9 +211,9 @@ export default function ImageUploader({
               </button>
             </>
           ) : (
-            <div className="upload-placeholder">
+            <div className={styles.uploadPlaceholder}>
               <div>{label}</div>
-              <div className="upload-hint">
+              <div className={styles.uploadHint}>
                 {isHovered ? "Ready to paste! Press Ctrl+V" : "Click, drag, or hover and paste image"}
               </div>
             </div>

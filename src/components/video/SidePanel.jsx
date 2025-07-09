@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import './SidePanel.css';
+import styles from './SidePanel.module.css';
 import ModelSelector from './ModelSelector';
 import ModeSelector from './ModeSelector';
 import ImageUploader from './ImageUploader';
@@ -86,7 +86,7 @@ export default function SidePanel() {
   };
 
   return (
-    <div className="side-panel">
+    <div className={styles.sidePanel}>
       <h1>Video Generation</h1>
 
       <ModelSelector
@@ -99,9 +99,9 @@ export default function SidePanel() {
         onChange={setMode}
       />
 
-      <div className="form-group">
+      <div className={styles.formGroup}>
         <label>Images</label>
-        <div className="images-container">
+        <div className={styles.imagesContainer}>
           <ImageUploader
             id="first-image"
             image={firstImage}

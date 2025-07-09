@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-import './UserInfo.css';
+import styles from './UserInfo.module.css';
 
 import { apiClient } from '@/service/backend';
 import { useVideoContext } from '@/context/VideoContext';
@@ -19,14 +19,14 @@ const UserInfo = () => {
     }, []);
 
     return (
-        <div className='container'>
+        <div className={styles.container}>
             {accountInfo && (
-                <div className="credit-info">
+                <div className={styles.creditInfo}>
                     Remaing Credits: {accountInfo.remaining_quantity}/{accountInfo.total_quantity}
                 </div>
             )}
             {authInfo && (
-                <div className='auth-info'>
+                <div className={styles.authInfo}>
                     Welcome, {authInfo.name}!
                 </div>
             )}

@@ -1,9 +1,9 @@
 import React from 'react';
-import './ModeSelector.css';
+import styles from './ModeSelector.module.css';
 
 export default function ModeSelector({ value, onChange }) {
   return (
-    <div className="form-group">
+    <div className={styles.formGroup}>
       <label htmlFor="mode-type">Mode</label>
       <select 
         id="mode-type" 

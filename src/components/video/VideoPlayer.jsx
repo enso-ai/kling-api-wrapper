@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { FaTrashAlt, FaPencilAlt, FaPlus } from "react-icons/fa";
-import './VideoPlayer.css';
+import styles from './VideoPlayer.module.css';
 import { useVideoContext } from '@/context/VideoContext';
 import VideoExtensionModal from './VideoExtensionModal';
 
@@ -92,11 +92,11 @@ export default function VideoPlayer({ payload }) {
     const canExtendVideo = status === 'succeed' && videoUrl && videoId && modelName == 'kling-v1-6';
 
     return (
-        <div className="video-item">
-            <div className="video-player">
-                <div className="video-player-buttons">
+        <div className={styles.videoItem}>
+            <div className={styles.videoPlayer}>
+                <div className={styles.videoPlayerButtons}>
                     <button
-                        className="edit-button"
+                        className={styles.editButton}
                         onClick={handleUseAsTemplate}
                         aria-label="Use as template"
                     >
@@ -104,7 +104,7 @@ export default function VideoPlayer({ payload }) {
                     </button>
                     {canExtendVideo && (
                         <button
-                            className="extend-button"
+                            className={styles.extendButton}
                             onClick={handleExtendVideo}
                             aria-label="Extend video"
                         >
@@ -112,25 +112,25 @@ export default function VideoPlayer({ payload }) {
                         </button>
                     )}
                     <button
-                        className="delete-button"
+                        className={styles.deleteButton}
                         onClick={handleDelete}
                         aria-label="Delete video"
                     >
                         <FaTrashAlt />
                     </button>
                 </div>
-                <div className="video-player-content">
+                <div className={styles.videoPlayerContent}>
                     {status === 'failed' ? (
-                        <div className="error-mask">
-                            <div className="error-text">{payload.error || 'An error occurred'}</div>
+                        <div className={styles.errorMask}>
+                            <div className={styles.errorText}>{payload.error || 'An error occurred'}</div>
                         </div>
                     ) : status === 'pending' ? (
-                        <div className="generating-mask">
-                            <div className="generating-text">Pending...</div>
+                        <div className={styles.generatingMask}>
+                            <div className={styles.generatingText}>Pending...</div>
                         </div>
                     ) : status === 'processing' ? (
-                        <div className="generating-mask">
-                            <div className="generating-text">Processing...</div>
+                        <div className={styles.generatingMask}>
+                            <div className={styles.generatingText}>Processing...</div>
                         </div>
                     ) : videoUrl ? (
                         <video
@@ -140,18 +140,18 @@ export default function VideoPlayer({ payload }) {
                             autoPlay
                             loop
                             muted={false}
-                            className="video-element"
+                            className={styles.videoElement}
                         />
                     ) : (
-                        <div className="generating-mask">
-                            <div className="generating-text">Generating...</div>
+                        <div className={styles.generatingMask}>
+                            <div className={styles.generatingText}>Generating...</div>
                         </div>
                     )}
                 </div>
             </div>
-            <div className="video-info">
+            <div className={styles.videoInfo}>
                 {isExtension && (
-                    <p className="extension-badge">Extended from video {originalVideoId}</p>
+                    <p className={styles.extensionBadge}>Extended from video {originalVideoId}</p>
                 )}
                 <p>Last updated at {updatedAt?.split(', ')[1] || updatedAt}</p>
             </div>

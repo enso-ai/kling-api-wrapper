@@ -1,9 +1,9 @@
 import React from 'react';
-import './PromptInput.css';
+import styles from './PromptInput.module.css';
 
 export default function PromptInput({ value, onChange, label, id, placeholder }) {
   return (
-    <div className="form-group">
+    <div className={styles.formGroup}>
       <label htmlFor={id}>{label}</label>
       <textarea 
         id={id}

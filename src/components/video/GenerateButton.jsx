@@ -1,16 +1,16 @@
 import React from 'react';
 import { FaRedo } from "react-icons/fa";
-import './GenerateButton.css';
+import styles from './GenerateButton.module.css';
 
 export default function GenerateButton({ onClick, loading }) {
   return (
     <button 
-      className={`generate-btn ${loading ? 'disabled' : ''}`} 
+      className={`${styles.generateBtn} ${loading ? styles.disabled : ''}`} 
       onClick={onClick}
       disabled={loading}
     >
       {loading ? (
-        <FaRedo className="spin" size={18} />
+        <FaRedo className={styles.spin} size={18} />
       ) : (
         "Generate"
       )}

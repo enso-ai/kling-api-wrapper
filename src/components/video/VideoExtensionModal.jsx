@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import './VideoExtensionModal.css';
+import styles from './VideoExtensionModal.module.css';
 
 export default function VideoExtensionModal({ onSubmit, onCancel, isProcessing, error }) {
   const [prompt, setPrompt] = useState('');
@@ -19,20 +19,20 @@ export default function VideoExtensionModal({ onSubmit, onCancel, isProcessing, 
   };
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-content">
-        <div className="modal-header">
+    <div className={styles.modalOverlay}>
+      <div className={styles.modalContent}>
+        <div className={styles.modalHeader}>
           <h3>Extend Video</h3>
-          <button className="modal-close" onClick={onCancel} disabled={isProcessing}>
+          <button className={styles.modalClose} onClick={onCancel} disabled={isProcessing}>
             ×
           </button>
         </div>
         
-        <form onSubmit={handleSubmit} className="extension-form">
-          <div className="form-group">
+        <form onSubmit={handleSubmit} className={styles.extensionForm}>
+          <div className={styles.formGroup}>
             <label htmlFor="prompt">
               Prompt (Optional)
-              <span className="char-count">{prompt.length}/2500</span>
+              <span className={styles.charCount}>{prompt.length}/2500</span>
             </label>
             <textarea
               id="prompt"
@@ -45,10 +45,10 @@ export default function VideoExtensionModal({ onSubmit, onCancel, isProcessing, 
             />
           </div>
 
-          <div className="form-group">
+          <div className={styles.formGroup}>
             <label htmlFor="negativePrompt">
               Negative Prompt (Optional)
-              <span className="char-count">{negativePrompt.length}/2500</span>
+              <span className={styles.charCount}>{negativePrompt.length}/2500</span>
             </label>
             <textarea
               id="negativePrompt"
@@ -61,10 +61,10 @@ export default function VideoExtensionModal({ onSubmit, onCancel, isProcessing, 
             />
           </div>
 
-          <div className="form-group">
+          <div className={styles.formGroup}>
             <label htmlFor="cfgScale">
               CFG Scale: {cfgScale}
-              <span className="help-text">Controls how closely the AI follows the prompt (0-1)</span>
+              <span className={styles.helpText}>Controls how closely the AI follows the prompt (0-1)</span>
             </label>
             <input
               type="range"
@@ -79,31 +79,31 @@ export default function VideoExtensionModal({ onSubmit, onCancel, isProcessing, 
           </div>
 
           {error && (
-            <div className="error-message">
+            <div className={styles.errorMessage}>
               {error}
             </div>
           )}
 
-          <div className="modal-actions">
+          <div className={styles.modalActions}>
             <button
               type="button"
               onClick={onCancel}
               disabled={isProcessing}
-              className="btn-secondary"
+              className={styles.btnSecondary}
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isProcessing}
-              className="btn-primary"
+              className={styles.btnPrimary}
             >
               {isProcessing ? 'Processing...' : 'Extend Video'}
             </button>
           </div>
         </form>
 
-        <div className="extension-info">
+        <div className={styles.extensionInfo}>
           <p><strong>Extension Info:</strong></p>
           <ul>
             <li>Extensions add 4-5 seconds to your video</li>

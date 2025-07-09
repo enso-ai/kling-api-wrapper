@@ -1,9 +1,9 @@
 import React from 'react';
-import './ModelSelector.css';
+import styles from './ModelSelector.module.css';
 
 export default function ModelSelector({ value, onChange }) {
   return (
-    <div className="form-group">
+    <div className={styles.formGroup}>
       <label htmlFor="model-type">Model Type</label>
       <select 
         id="model-type" 

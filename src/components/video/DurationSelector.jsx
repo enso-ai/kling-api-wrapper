@@ -1,9 +1,9 @@
 import React from 'react';
-import './DurationSelector.css';
+import styles from './DurationSelector.module.css';
 
 export default function DurationSelector({ value, onChange }) {
   return (
-    <div className="form-group">
+    <div className={styles.formGroup}>
       <label htmlFor="duration">Duration</label>
       <select 
         id="duration" 
