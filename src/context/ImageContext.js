@@ -191,7 +191,18 @@ export const ImageContextProvider = ({ children }) => {
     // Remove image record
     const removeImageRecord = useCallback(async (id) => {
         try {
+            // Find the image record to get the imageUrl
+            const imageRecord = state.imageRecords.find(record => record.id === id);
+            
+            // Delete from GCS first (if imageUrl exists)
+            if (imageRecord?.imageUrl) {
+                await apiClient.deleteImage([imageRecord.imageUrl]);
+            }
+            
+            // Delete from local database
             await db.imageRecords.delete(id);
+            
+            // Update UI state
             dispatch({
                 type: IMAGE_ACTIONS.REMOVE_RECORD,
                 payload: id
@@ -200,7 +211,7 @@ export const ImageContextProvider = ({ children }) => {
             console.error('Error deleting image record:', error);
             throw error;
         }
-    }, []);
+    }, [state.imageRecords]);
 
     // Load more images (lazy loading)
     const loadMoreImages = useCallback(async () => {
@@ -254,67 +265,76 @@ export const ImageContextProvider = ({ children }) => {
         }
     }, [state.currentPage, state.hasMoreImages, state.isLoadingMore, state.totalImages, state.imageRecords]);
 
-    const executeElementGeneration = useCallback(async (
-        generationId,
-        isTextOnly,
-        prompt,
-        selectedImages,
-        numberOfImages
-    ) => {
-        try {
-            let result;
+    const executeImageGeneration = useCallback(
+        async (generationId, isTextOnly, prompt, selectedImages, numberOfImages) => {
+            try {
+                let result;
 
-            if (isTextOnly) {
-                // Text-to-image generation
-                result = await apiClient.generateImage({
-                    prompt: prompt.trim(),
-                    n: numberOfImages,
-                    asset_type: 'element_images'
+                if (isTextOnly) {
+                    // Text-to-image generation
+                    result = await apiClient.generateImage({
+                        prompt: prompt.trim(),
+                        n: numberOfImages,
+                        asset_type: 'element_images',
+                    });
+                } else {
+                    // Image extension
+                    const imageUrls = selectedImages.map(
+                        (img) => img.gcsUrls?.[img.selectedImageIdx] || img.gcsUrls?.[0]
+                    );
+                    result = await apiClient.extendImage({
+                        image_urls: imageUrls,
+                        prompt: prompt.trim(),
+                        n: numberOfImages,
+                    });
+                }
+
+                if (!result.success) {
+                    dispatch({
+                        type: IMAGE_ACTIONS.GENERATION_ERROR,
+                        payload: { id: generationId, error: result.error || 'Unknown error' },
+                    });
+                    console.error('Image generation failed:', result.error);
+                    return;
+                }
+                console.log('response payload:', result);
+
+                // Process each generated image
+                for (const imageData of result.data?.images) {
+                    const generationSources = {
+                        type: isTextOnly ? 'text-to-image' : 'image-extension',
+                        prompt: prompt.trim(),
+                        referenceImages: isTextOnly
+                            ? null
+                            : selectedImages.map((img) => {
+                                  return img.gcsUrls?.[img.selectedImageIdx] || img.gcsUrls?.[0];
+                              }),
+                        revisedPrompt: imageData.revisedPrompt,
+                    };
+
+                    // Add to both state and database
+                    await addElementImage(imageData.imageUrl, generationSources);
+                }
+
+                // Remove from pending state
+                dispatch({
+                    type: IMAGE_ACTIONS.GENERATION_SUCCESS,
+                    payload: { id: generationId },
                 });
-            } else {
-                // Image extension
-                const imageUrls = selectedImages.map((img) => {
-                    return img.gcsUrls?.[img.selectedImageIdx] || img.gcsUrls?.[0];
-                });
-                result = await apiClient.extendImage({
-                    image_urls: imageUrls,
-                    prompt: prompt.trim(),
-                    n: numberOfImages
+            } catch (error) {
+                console.error('Element image generation failed:', error);
+
+                // Update pending item with error state
+                dispatch({
+                    type: IMAGE_ACTIONS.GENERATION_ERROR,
+                    payload: { id: generationId, error: error.message },
                 });
             }
+        },
+        [addElementImage]
+    );
 
-            // Process each generated image
-            for (const imageData of result.images) {
-                const generationSources = {
-                    type: isTextOnly ? 'text-to-image' : 'image-extension',
-                    prompt: prompt.trim(),
-                    referenceImages: isTextOnly ? null : selectedImages.map((img) => {
-                        return img.gcsUrls?.[img.selectedImageIdx] || img.gcsUrls?.[0];
-                    }),
-                    revisedPrompt: imageData.revisedPrompt,
-                };
-
-                // Add to both state and database
-                await addElementImage(imageData.imageUrl, generationSources);
-            }
-
-            // Remove from pending state
-            dispatch({
-                type: IMAGE_ACTIONS.GENERATION_SUCCESS,
-                payload: { id: generationId },
-            });
-        } catch (error) {
-            console.error('Element image generation failed:', error);
-
-            // Update pending item with error state
-            dispatch({
-                type: IMAGE_ACTIONS.GENERATION_ERROR,
-                payload: { id: generationId, error: error.message },
-            });
-        }
-    }, [addElementImage]);
-
-    const startElementImageGeneration = useCallback(
+    const startImageGeneration = useCallback(
         ({ prompt, selectedImages = [], numberOfImages = 1 }) => {
             if (!prompt.trim()) {
                 throw new Error('Prompt is required');
@@ -328,9 +348,11 @@ export const ImageContextProvider = ({ children }) => {
                 id: generationId,
                 type: isTextOnly ? 'text-to-image' : 'image-extension',
                 prompt: prompt.trim(),
-                referenceImages: isTextOnly ? null : selectedImages.map((img) => {
-                    return img.gcsUrls?.[img.selectedImageIdx] || img.gcsUrls?.[0];
-                }),
+                referenceImages: isTextOnly
+                    ? null
+                    : selectedImages.map((img) => {
+                          return img.gcsUrls?.[img.selectedImageIdx] || img.gcsUrls?.[0];
+                      }),
                 numberOfImages,
                 status: 'generating',
                 startTime: Date.now(),
@@ -342,7 +364,7 @@ export const ImageContextProvider = ({ children }) => {
             });
 
             // Trigger async execution in background
-            executeElementGeneration(
+            executeImageGeneration(
                 generationId,
                 isTextOnly,
                 prompt,
@@ -353,55 +375,61 @@ export const ImageContextProvider = ({ children }) => {
             // Return immediately with generationId
             return { generationId };
         },
-        [executeElementGeneration]
+        [executeImageGeneration]
     );
 
-    const executeInpainting = useCallback(async (
-        generationId,
-        inputImageUrl,
-        maskImage,
-        prompt,
-        numberOfImages
-    ) => {
-        try {
-            // Call inpainting API
-            const result = await apiClient.inpaintImage({
-                image_gcs_url: inputImageUrl,
-                mask: maskImage,
-                prompt: prompt.trim(),
-                n: numberOfImages,
-                asset_type: 'element_images'
-            });
-
-            // Process each generated image
-            for (const imageData of result.images) {
-                const generationSources = {
-                    type: 'inpainting',
-                    prompt: prompt.trim(),
-                    referenceImages: [inputImageUrl],
+    const executeInpainting = useCallback(
+        async (generationId, inputImageUrl, maskImage, prompt, numberOfImages) => {
+            try {
+                // Call inpainting API
+                const result = await apiClient.inpaintImage({
+                    image_gcs_url: inputImageUrl,
                     mask: maskImage,
-                    revisedPrompt: imageData.revisedPrompt,
-                };
+                    prompt: prompt.trim(),
+                    n: numberOfImages,
+                    asset_type: 'element_images',
+                });
 
-                // Add to both state and database
-                await addElementImage(imageData.imageUrl, generationSources);
+                if (!result.success) {
+                    dispatch({
+                        type: IMAGE_ACTIONS.GENERATION_ERROR,
+                        payload: { id: generationId, error: result.error || 'Unknown error' },
+                    });
+                    console.error('Inpainting generation failed:', result.error);
+                    return;
+                }
+
+                // Process each generated image
+                for (const imageData of result.data?.images) {
+                    const generationSources = {
+                        type: 'inpainting',
+                        prompt: prompt.trim(),
+                        referenceImages: [inputImageUrl],
+                        mask: maskImage,
+                        revisedPrompt: imageData.revisedPrompt,
+                    };
+
+                    // Add to both state and database
+                    await addElementImage(imageData.imageUrl, generationSources);
+                }
+
+                // Remove from pending state
+                dispatch({
+                    type: IMAGE_ACTIONS.GENERATION_SUCCESS,
+                    payload: { id: generationId },
+                });
+            } catch (error) {
+                console.error('Inpainting generation failed:', error);
+
+                // Update pending item with error state
+                dispatch({
+                    type: IMAGE_ACTIONS.GENERATION_ERROR,
+                    payload: { id: generationId, error: error.message },
+                });
             }
-
-            // Remove from pending state
-            dispatch({
-                type: IMAGE_ACTIONS.GENERATION_SUCCESS,
-                payload: { id: generationId },
-            });
-        } catch (error) {
-            console.error('Inpainting generation failed:', error);
-
-            // Update pending item with error state
-            dispatch({
-                type: IMAGE_ACTIONS.GENERATION_ERROR,
-                payload: { id: generationId, error: error.message },
-            });
-        }
-    }, [addElementImage]);
+        },
+        [addElementImage]
+    );
 
     const startInpaintingGeneration = useCallback(
         (inputImageUrl, maskImage, prompt, numberOfImages = 3) => {
@@ -428,13 +456,7 @@ export const ImageContextProvider = ({ children }) => {
             });
 
             // Trigger async execution in background
-            executeInpainting(
-                generationId,
-                inputImageUrl,
-                maskImage,
-                prompt,
-                numberOfImages
-            );
+            executeInpainting(generationId, inputImageUrl, maskImage, prompt, numberOfImages);
 
             // Return immediately with generationId
             return { generationId };
@@ -446,20 +468,20 @@ export const ImageContextProvider = ({ children }) => {
         // Image records state
         imageRecords: state.imageRecords,
         isLoaded: state.isLoaded,
-        
+
         // Pagination
         loadMoreImages,
         hasMoreImages: state.hasMoreImages,
         isLoadingMore: state.isLoadingMore,
         totalImages: state.totalImages,
-        
+
         // Pending generations
         pendingGenerations: state.pendingGenerations,
-        
+
         // Generation methods
-        startElementImageGeneration,
+        startImageGeneration,
         startInpaintingGeneration,
-        
+
         // Record management
         removeImageRecord,
     };
