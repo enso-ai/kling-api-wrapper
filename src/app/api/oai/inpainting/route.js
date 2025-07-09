@@ -39,7 +39,7 @@ export async function POST(request) {
         const images = await inpaintingImage(image_gcs_url, mask, prompt, n, asset_type);
         return NextResponse.json({
             success: true,
-            result: {
+            data: {
                 images,
                 format: 'png',
                 created: new Date().toISOString(),

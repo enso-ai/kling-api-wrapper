@@ -42,7 +42,7 @@ export async function POST(request) {
 
         return NextResponse.json({
             success: true,
-            result: {
+            data: {
                 images,
                 format: 'png',
                 created: new Date().toISOString(),

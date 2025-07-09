@@ -31,7 +31,7 @@ export async function POST(request) {
         // Return response with GCS URLs instead of base64 (clean format)
         return NextResponse.json({
             success: true,
-            result: {
+            data: {
                 images,
                 format: 'png',
                 created: new Date().toISOString(),
