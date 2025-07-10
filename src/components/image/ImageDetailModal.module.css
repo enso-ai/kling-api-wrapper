@@ -122,6 +122,7 @@
   justify-content: center;
   min-height: 400px;
   max-height: 500px;
+  position: relative;
 }
 
 .mainImage {
@@ -130,6 +131,42 @@
   object-fit: contain;
   border-radius: 6px;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* Download button for main image */
+.downloadButton {
+  position: absolute;
+  bottom: 24px;
+  right: 24px;
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.95);
+  border: none;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 10;
+}
+
+.downloadButton:hover {
+  background: rgba(255, 255, 255, 1);
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+.downloadButton svg {
+  width: 18px;
+  height: 18px;
+  color: #374151;
+}
+
+.downloadButton:hover svg {
+  color: #111827;
 }
 
 /* Image Carousel */

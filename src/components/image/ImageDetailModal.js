@@ -1,7 +1,8 @@
 import React from 'react';
 import styles from './ImageDetailModal.module.css';
-import { FaTimes } from 'react-icons/fa';
+import { FaTimes, FaDownload } from 'react-icons/fa';
 import { useImageContext } from '../../context/ImageContext';
+import { downloadImage } from '../../utils/download';
 
 export default function ImageDetailModal({ imageRecord, onClose }) {
     const { updateSelectedImage } = useImageContext();
@@ -27,6 +28,12 @@ export default function ImageDetailModal({ imageRecord, onClose }) {
 
     const handleThumbnailClick = (index) => {
         updateSelectedImage(imageRecord.id, index);
+    };
+
+    const handleDownloadClick = async () => {
+        const currentImageIndex = imageRecord.selectedImageIdx || 0;
+        const currentImageUrl = imageRecord.imageUrls[currentImageIndex];
+        await downloadImage(currentImageUrl, currentImageIndex);
     };
 
     const formatCreatedAt = (createdAt) => {
@@ -67,6 +74,14 @@ export default function ImageDetailModal({ imageRecord, onClose }) {
                                     alt={imageRecord.prompt || 'Generated image'}
                                     className={styles.mainImage}
                                 />
+                                {/* Download button */}
+                                <button
+                                    className={styles.downloadButton}
+                                    onClick={handleDownloadClick}
+                                    title="Download image"
+                                >
+                                    <FaDownload />
+                                </button>
                             </div>
 
                             {/* Image Carousel */}

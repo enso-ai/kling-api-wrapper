@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import styles from './ImageBlock.module.css';
 import ImageDetailModal from './ImageDetailModal';
 import { useImageContext } from '../../context/ImageContext';
-import { FaChevronLeft, FaChevronRight, FaPencilAlt, FaPaintBrush, FaTrash } from 'react-icons/fa';
+import { FaChevronLeft, FaChevronRight, FaPencilAlt, FaPaintBrush, FaTrash, FaDownload } from 'react-icons/fa';
+import { downloadImage } from '../../utils/download';
 
 export default function ImageBlock({ imageRecord }) {
     const { removeImageRecord, updateSelectedImage } = useImageContext();
@@ -61,6 +62,13 @@ export default function ImageBlock({ imageRecord }) {
         }
     };
 
+    const handleDownloadClick = async (e) => {
+        e.stopPropagation();
+        const currentIdx = imageRecord.selectedImageIdx || 0;
+        const currentImageUrl = imageRecord.imageUrls[currentIdx];
+        await downloadImage(currentImageUrl, currentIdx);
+    };
+
     const renderContent = () => {
         if (imageRecord?.imageUrls && imageRecord.imageUrls.length > 0) {
             const currentIdx = imageRecord.selectedImageIdx || 0;
@@ -106,6 +114,15 @@ export default function ImageBlock({ imageRecord }) {
                             {currentIdx + 1}/{imageRecord.imageUrls.length}
                         </div>
                     )}
+
+                    {/* Download button */}
+                    <button
+                        className={styles.downloadButton}
+                        onClick={handleDownloadClick}
+                        title="Download image"
+                    >
+                        <FaDownload />
+                    </button>
 
                     <div className={styles.controls}>
                         <button
