@@ -5,30 +5,40 @@ export async function POST(request) {
     try {
         const body = await request.json();
 
-        // Extract camelCase parameters from HTTP payload
-        const { image_urls, prompt, n = 1 } = body;
+        // Extract parameters from HTTP payload - supporting new srcImages format
+        const { images, prompt, n = 1 } = body;
 
-        // Validate required parameter - image_urls array
-        if (!image_urls || !Array.isArray(image_urls) || image_urls.length === 0) {
+        // Validate required parameter - images array (srcImages format)
+        if (!images || !Array.isArray(images) || images.length === 0) {
             return NextResponse.json(
-                { error: 'image_urls array is required and cannot be empty' },
+                { error: 'images array is required and cannot be empty' },
                 { status: 400 }
             );
         }
 
-        // check if all image URLs are valid
-        for (const url of image_urls) {
-            try {
-                new URL(url); // This will throw if the URL is invalid
-            } catch (error) {
-                return NextResponse.json({ error: `Invalid image URL: ${url}` }, { status: 400 });
+        // Validate each image object has either url or base64 property
+        for (const image of images) {
+            if (!image.url && !image.base64) {
+                return NextResponse.json(
+                    { error: 'Each image must have either url or base64 property' },
+                    { status: 400 }
+                );
+            }
+            
+            // Validate URL format if present
+            if (image.url) {
+                try {
+                    new URL(image.url); // This will throw if the URL is invalid
+                } catch (error) {
+                    return NextResponse.json({ error: `Invalid image URL: ${image.url}` }, { status: 400 });
+                }
             }
         }
 
-        // Validate image_urls array length (OpenAI limit)
-        if (image_urls.length > 10) {
+        // Validate images array length (OpenAI limit)
+        if (images.length > 10) {
             return NextResponse.json(
-                { error: 'image_urls array cannot contain more than 10 images' },
+                { error: 'images array cannot contain more than 10 images' },
                 { status: 400 }
             );
         }
@@ -46,13 +56,13 @@ export async function POST(request) {
             );
         }
 
-        // Call the extend function (send request to openAI)
-        const images = await extendImage(image_urls, prompt, n);
+        // Call the extend function with srcImages format
+        const extendedImages = await extendImage(images, prompt, n);
 
         return NextResponse.json({
             success: true,
             data: {
-                images,
+                images: extendedImages,
                 format: 'png',
                 created: new Date().toISOString(),
             },

@@ -7,7 +7,9 @@ class ImageRecord {
         
         // Image-specific fields
         this.modelName = formData.modelName || null;
-        this.srcImageUrls = formData.srcImageUrls || []; // Array of source image URLs
+        // new srcImages field can contains two types of data (urls or base64)
+        // [{url: {{url}} }, {base64: {{base64string}} }]
+        this.srcImages = formData.srcImages || []
         this.mask = formData.mask || null; // Base64 data
         this.prompt = formData.prompt || null;
         this.imageUrls = formData.imageUrls || []; // Array of generated image URLs
@@ -19,7 +21,7 @@ class ImageRecord {
             id: this.id,
             createdAt: this.createdAt,
             modelName: this.modelName,
-            srcImageUrls: this.srcImageUrls,
+            srcImages: this.srcImages,
             mask: this.mask,
             prompt: this.prompt,
             imageUrls: this.imageUrls,
@@ -33,7 +35,7 @@ class ImageRecord {
             createdAt: this.createdAt,
             timestamp: this.timestamp,
             modelName: this.modelName,
-            srcImageUrls: this.srcImageUrls,
+            srcImages: this.srcImages,
             mask: this.mask,
             prompt: this.prompt,
             imageUrls: this.imageUrls,
@@ -47,7 +49,12 @@ class ImageRecord {
         record.createdAt = data.createdAt;
         record.timestamp = data.timestamp || new Date(data.createdAt).getTime();
         record.modelName = data.modelName;
-        record.srcImageUrls = data.srcImageUrls || [];
+        // deprecated
+        if (data.srcImageUrls) {
+            record.srcImages = data.srcImageUrls.map(url => ({url}));
+        } else {
+            record.srcImages = data.srcImages || [];
+        }
         record.mask = data.mask;
         record.prompt = data.prompt;
         record.imageUrls = data.imageUrls || [];

@@ -44,22 +44,40 @@ export const generateImage = async (prompt, n = 1) => {
     }
 };
 
+function base64ToBlob(base64, mimeType = 'image/png') {
+    const byteString = atob(base64.split(',')[1]); // Remove data URL prefix
+    const arrayBuffer = new Uint8Array(byteString.length);
+    for (let i = 0; i < byteString.length; i++) {
+        arrayBuffer[i] = byteString.charCodeAt(i);
+    }
+    return new Blob([arrayBuffer], { type: mimeType });
+}
+
 /**
  * Extends images without using a mask (outpainting/extending image boundaries)
- * @param {string[]} imageURLs - Array of image URLs
+ * @param {Array} srcImages - Array of source image objects with url or base64 properties
  * @param {string} prompt - Description of the extension
  * @param {number} n - Number of variations to generate (default: 1)
  * @returns {Promise<Object>} Response data from OpenAI
  */
-export const extendImage = async (imageURLs, prompt, n = 1) => {
+export const extendImage = async (srcImages, prompt, n = 1) => {
     try {
-        // Convert URL array to File objects with sequential naming
+        // Convert srcImages array to File objects with sequential naming
         const imageFiles = await Promise.all(
-            imageURLs.map((url, index) =>
-                toFile(fetch(url), `image_${index + 1}.png`, {
-                    type: 'image/png',
-                })
-            )
+            srcImages.map(async (srcImage, index) => {
+                if (srcImage.url) {
+                    // Handle URL: fetch and convert to File
+                    return toFile(fetch(srcImage.url), `image_${index + 1}.png`, {
+                        type: 'image/png',
+                    });
+                } else if (srcImage.base64) {
+                    // Handle base64: convert directly to File
+                    const blob = base64ToBlob(srcImage.base64)
+                    return new File([blob], 'image.png', { type: 'image/png' });
+                } else {
+                    throw new Error(`Invalid image format at index ${index}: must have either url or base64 property`);
+                }
+            })
         );
 
         const response = await openaiClient.editImagesWithOpenAI(imageFiles, null, prompt, { n });

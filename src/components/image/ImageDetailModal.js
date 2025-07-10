@@ -3,6 +3,7 @@ import styles from './ImageDetailModal.module.css';
 import { FaTimes, FaDownload } from 'react-icons/fa';
 import { useImageContext } from '../../context/ImageContext';
 import { downloadImage } from '../../utils/download';
+import { hasSrcImages, getSrcImageUrl, getFirstSrcImageUrl } from '../../utils/image';
 import InpaintingComposite from './InpaintingComposite';
 
 export default function ImageDetailModal({ imageRecordId, onClose }) {
@@ -62,7 +63,7 @@ export default function ImageDetailModal({ imageRecordId, onClose }) {
     const currentImageIndex = imageRecord.selectedImageIdx || 0;
     const currentImageUrl = hasImages ? imageRecord.imageUrls[currentImageIndex] : null;
     const hasMultipleImages = hasImages && imageRecord.imageUrls.length > 1;
-    const hasReferenceImages = imageRecord.srcImageUrls && imageRecord.srcImageUrls.length > 0;
+    const hasReferenceImages = hasSrcImages(imageRecord.srcImages);
     const isInpaintingImage = hasReferenceImages && imageRecord.mask;
 
     return (
@@ -187,7 +188,7 @@ export default function ImageDetailModal({ imageRecordId, onClose }) {
                                             <div className={styles.inpaintingSingleItem}>
                                                 <div className={styles.inpaintingImageContainer}>
                                                     <InpaintingComposite
-                                                        referenceImageUrl={imageRecord.srcImageUrls[0]}
+                                                        referenceImageUrl={getFirstSrcImageUrl(imageRecord.srcImages)}
                                                         maskBase64={imageRecord.mask}
                                                     />
                                                 </div>
@@ -197,13 +198,13 @@ export default function ImageDetailModal({ imageRecordId, onClose }) {
                                     ) : (
                                         // Show regular grid for non-inpainting reference images
                                         <div className={styles.referenceGrid}>
-                                            {imageRecord.srcImageUrls.map((imageUrl, index) => (
+                                            {imageRecord.srcImages.map((srcImage, index) => (
                                                 <div
                                                     key={index}
                                                     className={styles.referenceImageContainer}
                                                 >
                                                     <img
-                                                        src={imageUrl}
+                                                        src={getSrcImageUrl(srcImage)}
                                                         alt={`Reference ${index + 1}`}
                                                         className={styles.referenceImage}
                                                     />

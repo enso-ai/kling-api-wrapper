@@ -182,7 +182,7 @@ export const ImageContextProvider = ({ children }) => {
             // Create ImageRecord instance with array of URLs
             const imageRecord = new ImageRecord({
                 modelName: 'gpt-image-1', // Default model for now
-                srcImageUrls: generationSources.referenceImages || [],
+                srcImages: generationSources.referenceImages || [],
                 mask: generationSources.mask || null,
                 prompt: generationSources.prompt,
                 imageUrls: imageUrls,
@@ -312,7 +312,7 @@ export const ImageContextProvider = ({ children }) => {
                 } else {
                     // Image extension
                     result = await apiClient.extendImage({
-                        image_urls: selectedImages,
+                        images: selectedImages,
                         prompt: prompt.trim(),
                         n: numberOfImages,
                     });
@@ -423,7 +423,7 @@ export const ImageContextProvider = ({ children }) => {
                 const generationSources = {
                     type: 'inpainting',
                     prompt: prompt.trim(),
-                    referenceImages: [inputImageUrl],
+                    referenceImages: [{url:inputImageUrl}],
                     mask: maskImage,
                     revisedPrompt: result.data?.images[0]?.revisedPrompt, // Use first image's revised prompt
                 };

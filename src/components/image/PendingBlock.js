@@ -56,19 +56,22 @@ export default function PendingBlock({ pendingGeneration }) {
                         <div className={styles.referenceSection}>
                             {isInpainting ? (
                                 // Inpainting: Show just the reference image (mask not available during pending)
+                                // note, inpainting reference image is only passed in as a url
                                 <div className={styles.inpaintingPreview}>
                                     <InpaintingComposite
-                                        referenceImageUrl={pendingGeneration.referenceImages[0]}
+                                        referenceImageUrl={pendingGeneration.referenceImages[0]?.url}
                                         maskBase64={pendingGeneration.mask}
                                     />
                                 </div>
                             ) : (
                                 // Regular reference images: Show thumbnails
+                                // input image can be a generated image, which store on gcs and represented by a gcs url
+                                // or user drag and dropped image which is a base64 format
                                 <div className={styles.referenceImages}>
-                                    {displayImages.map((imageUrl, index) => (
+                                    {displayImages.map((imageObj, index) => (
                                         <div key={index} className={styles.referenceThumbnail}>
                                             <img
-                                                src={imageUrl}
+                                                src={imageObj?.url || imageObj?.base64 || undefined}
                                                 alt={`Reference ${index + 1}`}
                                                 className={styles.thumbnailImage}
                                             />
