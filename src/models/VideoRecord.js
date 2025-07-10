@@ -109,6 +109,14 @@ class VideoRecord {
         record.error = data.error;
         record.videoUrl = data.videoUrl;
         record.options = data.options;
+        // [tempororay patch] handle legacy modealName without exposing model name
+        // add this on July 10. these can be deleted after Aug 10 since
+        // all the cached video will be expired after 30 days
+        if (record.options.modelName.startsWith('k')) {
+            // legacy model name, swap to v2
+            record.options.modelName = 'v2'
+        }
+
         return record;
     }
 }
