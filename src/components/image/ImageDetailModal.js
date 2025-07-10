@@ -3,6 +3,7 @@ import styles from './ImageDetailModal.module.css';
 import { FaTimes, FaDownload } from 'react-icons/fa';
 import { useImageContext } from '../../context/ImageContext';
 import { downloadImage } from '../../utils/download';
+import InpaintingComposite from './InpaintingComposite';
 
 export default function ImageDetailModal({ imageRecordId, onClose }) {
     const { imageRecords, updateSelectedImage } = useImageContext();
@@ -58,6 +59,7 @@ export default function ImageDetailModal({ imageRecordId, onClose }) {
     const currentImageUrl = imageRecord.imageUrls[currentImageIndex];
     const hasMultipleImages = imageRecord.imageUrls.length > 1;
     const hasReferenceImages = imageRecord.srcImageUrls && imageRecord.srcImageUrls.length > 0;
+    const isInpaintingImage = hasReferenceImages && imageRecord.mask;
 
     return (
         <div className={styles.backdrop} onClick={handleBackdropClick}>
@@ -153,24 +155,36 @@ export default function ImageDetailModal({ imageRecordId, onClose }) {
                                 />
                             </div>
 
-                            {/* Reference Images */}
+                            {/* Reference Images / Inpainting Source */}
                             {hasReferenceImages && (
                                 <div className={styles.infoSection}>
-                                    <h3 className={styles.sectionTitle}>Reference Images</h3>
-                                    <div className={styles.referenceGrid}>
-                                        {imageRecord.srcImageUrls.map((imageUrl, index) => (
-                                            <div
-                                                key={index}
-                                                className={styles.referenceImageContainer}
-                                            >
-                                                <img
-                                                    src={imageUrl}
-                                                    alt={`Reference ${index + 1}`}
-                                                    className={styles.referenceImage}
-                                                />
-                                            </div>
-                                        ))}
-                                    </div>
+                                    <h3 className={styles.sectionTitle}>
+                                        {isInpaintingImage ? 'Inpainting Source' : 'Reference Images'}
+                                    </h3>
+                                    
+                                    {isInpaintingImage ? (
+                                        // Show inpainting composite for inpainting images
+                                        <InpaintingComposite
+                                            referenceImageUrl={imageRecord.srcImageUrls[0]}
+                                            maskBase64={imageRecord.mask}
+                                        />
+                                    ) : (
+                                        // Show regular grid for non-inpainting reference images
+                                        <div className={styles.referenceGrid}>
+                                            {imageRecord.srcImageUrls.map((imageUrl, index) => (
+                                                <div
+                                                    key={index}
+                                                    className={styles.referenceImageContainer}
+                                                >
+                                                    <img
+                                                        src={imageUrl}
+                                                        alt={`Reference ${index + 1}`}
+                                                        className={styles.referenceImage}
+                                                    />
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </div>
