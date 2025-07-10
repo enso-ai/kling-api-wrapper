@@ -44,6 +44,15 @@ export const generateImage = async (prompt, n = 1) => {
     }
 };
 
+function base64ToBlob(base64, mimeType = 'image/png') {
+    const byteString = atob(base64.split(',')[1]); // Remove data URL prefix
+    const arrayBuffer = new Uint8Array(byteString.length);
+    for (let i = 0; i < byteString.length; i++) {
+        arrayBuffer[i] = byteString.charCodeAt(i);
+    }
+    return new Blob([arrayBuffer], { type: mimeType });
+}
+
 /**
  * Extends images without using a mask (outpainting/extending image boundaries)
  * @param {Array} srcImages - Array of source image objects with url or base64 properties
@@ -63,10 +72,8 @@ export const extendImage = async (srcImages, prompt, n = 1) => {
                     });
                 } else if (srcImage.base64) {
                     // Handle base64: convert directly to File
-                    const buffer = Buffer.from(srcImage.base64, 'base64');
-                    return toFile(buffer, `image_${index + 1}.png`, {
-                        type: 'image/png',
-                    });
+                    const blob = base64ToBlob(srcImage.base64)
+                    return new File([blob], 'image.png', { type: 'image/png' });
                 } else {
                     throw new Error(`Invalid image format at index ${index}: must have either url or base64 property`);
                 }
