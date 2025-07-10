@@ -1,20 +1,16 @@
-import React, { useState } from 'react';
+import React from 'react';
 import styles from './ImageBlock.module.css';
-import ImageDetailModal from './ImageDetailModal';
 import { useImageContext } from '../../context/ImageContext';
 import { FaChevronLeft, FaChevronRight, FaPencilAlt, FaPaintBrush, FaTrash, FaDownload } from 'react-icons/fa';
 import { downloadImage } from '../../utils/download';
 
-export default function ImageBlock({ imageRecord }) {
+export default function ImageBlock({ imageRecord, onOpenModal }) {
     const { removeImageRecord, updateSelectedImage } = useImageContext();
-    const [showDetailModal, setShowDetailModal] = useState(false);
 
     const handleImageClick = () => {
-        setShowDetailModal(true);
-    };
-
-    const handleCloseModal = () => {
-        setShowDetailModal(false);
+        if (onOpenModal) {
+            onOpenModal(imageRecord);
+        }
     };
 
     const handleEditClick = (e) => {
@@ -169,16 +165,8 @@ export default function ImageBlock({ imageRecord }) {
     };
 
     return (
-        <>
-            <div className={styles.container} onClick={handleImageClick}>
-                {renderContent()}
-            </div>
-            {showDetailModal && (
-                <ImageDetailModal
-                    imageRecord={imageRecord}
-                    onClose={handleCloseModal}
-                />
-            )}
-        </>
+        <div className={styles.container} onClick={handleImageClick}>
+            {renderContent()}
+        </div>
     );
 }

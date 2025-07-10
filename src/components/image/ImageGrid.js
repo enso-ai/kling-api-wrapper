@@ -1,9 +1,10 @@
-import React, { useEffect, useRef, useCallback } from 'react';
+import React, { useEffect, useRef, useCallback, useState } from 'react';
 import styles from './ImageGrid.module.css';
 import { useImageContext } from '@/context/ImageContext';
 import AddImageBlock from './AddImageBlock';
 import ImageBlock from './ImageBlock';
 import PendingBlock from './PendingBlock';
+import ImageDetailModal from './ImageDetailModal';
 
 export default function ImageGrid({ onOpenModal }) {
     const { 
@@ -18,6 +19,9 @@ export default function ImageGrid({ onOpenModal }) {
     
     const gridRef = useRef(null);
     const loadingRef = useRef(null);
+    
+    // State for image detail modal
+    const [selectedImageRecordId, setSelectedImageRecordId] = useState(null);
 
     // Handle opening the image generation modal
     const handleOpenModal = useCallback(() => {
@@ -25,6 +29,16 @@ export default function ImageGrid({ onOpenModal }) {
             onOpenModal();
         }
     }, [onOpenModal]);
+
+    // Handle opening the image detail modal
+    const handleOpenImageDetail = useCallback((imageRecord) => {
+        setSelectedImageRecordId(imageRecord.id);
+    }, []);
+
+    // Handle closing the image detail modal
+    const handleCloseImageDetail = useCallback(() => {
+        setSelectedImageRecordId(null);
+    }, []);
 
     // Intersection Observer for lazy loading
     useEffect(() => {
@@ -97,7 +111,10 @@ export default function ImageGrid({ onOpenModal }) {
                         {/* 3. Existing Image Blocks */}
                         {imageRecords.map((imageRecord) => (
                             <div key={imageRecord.id} className={styles.gridItem}>
-                                <ImageBlock imageRecord={imageRecord} />
+                                <ImageBlock 
+                                    imageRecord={imageRecord} 
+                                    onOpenModal={handleOpenImageDetail}
+                                />
                             </div>
                         ))}
 
@@ -141,6 +158,13 @@ export default function ImageGrid({ onOpenModal }) {
                 )}
             </div>
 
+            {/* Image Detail Modal */}
+            {selectedImageRecordId && (
+                <ImageDetailModal
+                    imageRecordId={selectedImageRecordId}
+                    onClose={handleCloseImageDetail}
+                />
+            )}
         </div>
     );
 }

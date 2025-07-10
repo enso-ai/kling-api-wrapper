@@ -1,11 +1,16 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import styles from './ImageDetailModal.module.css';
 import { FaTimes, FaDownload } from 'react-icons/fa';
 import { useImageContext } from '../../context/ImageContext';
 import { downloadImage } from '../../utils/download';
 
-export default function ImageDetailModal({ imageRecord, onClose }) {
-    const { updateSelectedImage } = useImageContext();
+export default function ImageDetailModal({ imageRecordId, onClose }) {
+    const { imageRecords, updateSelectedImage } = useImageContext();
+
+    // Memoized lookup of the current imageRecord
+    const imageRecord = useMemo(() => {
+        return imageRecords.find(record => record.id === imageRecordId);
+    }, [imageRecords, imageRecordId]);
 
     const handleBackdropClick = (e) => {
         if (e.target === e.currentTarget) {
