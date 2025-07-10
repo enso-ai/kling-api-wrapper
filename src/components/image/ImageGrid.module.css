@@ -21,6 +21,12 @@
   border-radius: 8px;
   overflow: hidden;
   position: relative;
+  transition: transform 0.2s ease-in-out, z-index 0.2s ease-in-out;
+}
+
+.gridItem:hover {
+  transform: scale(1.02);
+  z-index: 10;
 }
 
 .loadingTrigger {
