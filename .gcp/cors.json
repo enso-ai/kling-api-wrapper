@@ -1,0 +1,8 @@
+[
+  {
+    "origin": ["https://kling.v01s.com", "https://playground.v01s.com","http://localhost:3000"],
+    "method": ["GET", "HEAD", "PUT", "OPTIONS"],
+    "responseHeader": ["Content-Type", "Authorization", "Content-Length", "Origin"],
+    "maxAgeSeconds": 3600
+  }
+]
