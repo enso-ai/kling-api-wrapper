@@ -1,0 +1,64 @@
+.addImageBlock {
+  width: 258px;
+  height: 384px;
+  border: 2px dashed #ccc;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background-color: #f9f9f9;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.addImageBlock:hover {
+  border-color: #007bff;
+  background-color: #f0f8ff;
+  transform: scale(1.02);
+}
+
+.iconContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  transition: all 0.2s ease;
+}
+
+.addImageBlock:hover .iconContainer {
+  transform: scale(1.1);
+}
+
+.icon {
+  font-size: 64px;
+  color: #ccc;
+  transition: color 0.2s ease;
+}
+
+.addImageBlock:hover .icon {
+  color: #007bff;
+}
+
+.text {
+  font-size: 16px;
+  color: #666;
+  font-weight: 500;
+  text-align: center;
+  transition: color 0.2s ease;
+}
+
+.addImageBlock:hover .text {
+  color: #007bff;
+}
+
+/* Responsive adjustments to match ImageGrid breakpoints */
+@media (max-width: 600px) {
+  .addImageBlock {
+    width: 100%;
+    max-width: 258px;
+    margin: 0 auto;
+  }
+}

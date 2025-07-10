@@ -1,0 +1,208 @@
+.formGroup {
+  margin-bottom: 20px;
+}
+
+.formGroup label {
+  display: block;
+  margin-bottom: 8px;
+}
+
+.imagesContainer {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 10px;
+}
+
+.imageUpload {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.fileInput {
+  display: none;
+}
+
+.imagePreview {
+  width: 100%;
+  height: 0;
+  padding-bottom: 150%; /* 2:3 aspect ratio */
+  background-color: #2a2a2a;
+  border-radius: 4px;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none; /* Remove default focus outline */
+  border: 2px solid transparent;
+}
+
+.imagePreview:hover {
+  background-color: #3a3a3a;
+}
+
+/* Enhanced hover state for paste readiness */
+.imagePreview.hovered {
+  background-color: #3a3a3a;
+  border-color: #4299e1;
+  box-shadow: 0 0 0 1px #4299e1;
+  transform: scale(1.01);
+}
+
+/* Focus state for keyboard accessibility and paste functionality */
+.imagePreview:focus,
+.imagePreview.focused {
+  background-color: #3a3a3a;
+  box-shadow: 0 0 0 2px #4299e1;
+}
+
+.imagePreview::after {
+  content: "Click, drag, or paste to upload";
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
+.imagePreview:hover::after,
+.imagePreview:focus::after,
+.imagePreview.focused::after,
+.imagePreview.hovered::after {
+  opacity: 1;
+}
+
+/* Special styling when hovered and ready for paste */
+.imagePreview.hovered::after {
+  content: "Ready for paste! Press Ctrl+V";
+  background-color: rgba(66, 153, 225, 0.9);
+  color: white;
+  font-weight: 500;
+}
+
+/* Drag and drop styles */
+.imagePreview.dragOver {
+  background-color: #4a5568;
+  border: 2px dashed #68d391;
+  transform: scale(1.02);
+}
+
+.imagePreview.dragOver::after {
+  content: "Drop image here";
+  opacity: 1;
+  background-color: rgba(104, 211, 145, 0.8);
+}
+
+.imagePreviewContent {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #777;
+  font-size: 14px;
+  text-align: center;
+}
+
+.uploadPlaceholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.uploadHint {
+  font-size: 12px;
+  color: #555;
+  opacity: 0.8;
+  transition: all 0.2s ease;
+}
+
+.imagePreview.dragOver .uploadHint {
+  color: #68d391;
+  opacity: 1;
+  font-weight: 500;
+}
+
+/* Enhanced visual feedback for hover and paste ready state */
+.imagePreview.hovered .uploadHint {
+  color: #4299e1;
+  opacity: 1;
+  font-weight: 500;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.imagePreviewContent img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+/* Clear image button styles */
+.clearImageBtn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  transition: background-color 0.2s ease;
+}
+
+.clearImageBtn:hover {
+  background-color: rgba(0, 0, 0, 0.7);
+}
+
+/* Enhanced accessibility and visual feedback */
+.imagePreview:focus .uploadHint,
+.imagePreview.focused .uploadHint {
+  color: #4299e1;
+  opacity: 1;
+  font-weight: 500;
+}
+
+/* Subtle animation for paste-ready state */
+.imagePreview.hovered {
+  animation: pasteReady 0.3s ease-out;
+}
+
+@keyframes pasteReady {
+  0% {
+    transform: scale(1);
+    border-color: transparent;
+  }
+  50% {
+    transform: scale(1.02);
+  }
+  100% {
+    transform: scale(1.01);
+    border-color: #4299e1;
+  }
+}

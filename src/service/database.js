@@ -18,6 +18,14 @@ export class VideoDB extends Dexie {
       // taskId: Explicit task ID field
       // videoId: Actual video ID from API response for extensions
     });
+
+    // Version 3: Add imageRecords table
+    this.version(3).stores({
+      videoRecords: 'id, status, createdAt, taskId, videoId',
+      imageRecords: 'id, createdAt'
+      // id: Primary key (unique identifier)
+      // createdAt: For sorting (newest first)
+    });
   }
 }
 
@@ -52,9 +60,43 @@ export const getTotalVideoRecordsCount = async () => {
   }
 };
 
+// Load image records with pagination
+export const loadImageRecordsPage = async (page = 1, pageSize = 10) => {
+  try {
+    const offset = (page - 1) * pageSize;
+    const records = await db.imageRecords
+      .orderBy('createdAt')
+      .reverse()
+      .offset(offset)
+      .limit(pageSize)
+      .toArray();
+    
+    return records;
+  } catch (error) {
+    console.error('Failed to load image records page:', error);
+    return [];
+  }
+};
+
+// Get total count of image records
+export const getTotalImageRecordsCount = async () => {
+  try {
+    return await db.imageRecords.count();
+  } catch (error) {
+    console.error('Failed to get total image records count:', error);
+    return 0;
+  }
+};
+
+// Clear image records from the database
+export const clearImageRecords = async () => {
+  return await db.imageRecords.clear();
+};
+
 // Clear all records from the database
 export const clearDatabase = async () => {
-  return await db.videoRecords.clear();
+  await db.videoRecords.clear();
+  await db.imageRecords.clear();
 };
 
 // Export all records to a JSON file

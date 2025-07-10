@@ -1,0 +1,112 @@
+.container {
+  width: 100%;
+  height: 100%;
+  border: 1px solid #ffc107;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: #fff8e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.loadingContent {
+  color: #f57c00;
+  text-align: center;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 100%;
+}
+
+.spinner {
+  font-size: 24px;
+  margin-bottom: 8px;
+  animation: spin 1s linear infinite;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loadingText {
+  font-size: 14px;
+  margin-bottom: 4px;
+  font-weight: 500;
+}
+
+.typeText {
+  font-size: 12px;
+  color: #f57c00;
+  opacity: 0.8;
+  margin-bottom: 8px;
+}
+
+/* Input Information Section */
+.inputInfo {
+  width: 100%;
+  max-width: 100%;
+  margin-top: 8px;
+}
+
+.promptText {
+  font-size: 11px;
+  color: #f57c00;
+  opacity: 0.9;
+  margin-bottom: 6px;
+  font-style: italic;
+  word-break: break-word;
+  line-height: 1.2;
+}
+
+.referenceSection {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Reference Images (non-inpainting) */
+.referenceImages {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.referenceThumbnail {
+  width: 30px;
+  height: 30px;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid #ffc107;
+  background-color: #fff;
+}
+
+.moreIndicator {
+  font-size: 10px;
+  color: #f57c00;
+  opacity: 0.8;
+  margin-left: 4px;
+  font-weight: 500;
+}
+
+/* Inpainting Preview */
+.inpaintingPreview {
+  margin-top: 10px;
+  height: 100px;
+  width: 100px;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

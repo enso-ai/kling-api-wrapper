@@ -1,0 +1,129 @@
+.gridContainer {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.imageGrid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+  padding: 20px;
+  overflow-y: auto;
+  flex: 1;
+  align-content: start;
+}
+
+.gridItem {
+  width: 258px;
+  height: 384px;
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+  transition: transform 0.2s ease-in-out, z-index 0.2s ease-in-out;
+}
+
+.gridItem:hover {
+  transform: scale(1.02);
+  z-index: 10;
+}
+
+.loadingTrigger {
+  grid-column: 1 / -1;
+  height: 1px;
+  visibility: hidden;
+}
+
+.loadMoreContainer {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.loadMoreButton {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.loadMoreButton:hover:not(:disabled) {
+  background: #0056b3;
+}
+
+.loadMoreButton:disabled {
+  background: #6c757d;
+  cursor: not-allowed;
+}
+
+.loading {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+  font-size: 16px;
+  color: #666;
+}
+
+.noResults {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 60px 20px;
+  font-size: 18px;
+  color: #999;
+  text-align: center;
+}
+
+.endOfList {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  font-size: 14px;
+  color: #666;
+  border-top: 1px solid #e0e0e0;
+  margin-top: 20px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1400px) {
+  .imageGrid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 1100px) {
+  .imageGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 800px) {
+  .imageGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .imageGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .gridItem {
+    width: 100%;
+    max-width: 258px;
+    margin: 0 auto;
+  }
+}
