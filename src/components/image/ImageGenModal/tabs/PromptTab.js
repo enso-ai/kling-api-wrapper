@@ -57,12 +57,14 @@ const PromptTab = ({ onClose }) => {
         setGenerationError(null);
 
         try {
-            // Convert selected images to URLs for the ImageContext API
-            const selectedImageUrls = selectedImages.map((img) => img.imageUrls?.[img.selectedImageIdx || 0]);
+            // Convert selected images to srcImages format for the ImageContext API
+            const srcImages = selectedImages.map((img) => ({
+                url: img.imageUrls?.[img.selectedImageIdx || 0]
+            }));
 
             await startImageGeneration({
                 prompt: prompt.trim(),
-                selectedImages: selectedImageUrls,
+                selectedImages: srcImages,
                 numberOfImages,
             });
 

@@ -58,17 +58,17 @@ export default function PendingBlock({ pendingGeneration }) {
                                 // Inpainting: Show just the reference image (mask not available during pending)
                                 <div className={styles.inpaintingPreview}>
                                     <InpaintingComposite
-                                        referenceImageUrl={pendingGeneration.referenceImages[0]}
+                                        referenceImageUrl={pendingGeneration.referenceImages[0]?.url || pendingGeneration.referenceImages[0]}
                                         maskBase64={pendingGeneration.mask}
                                     />
                                 </div>
                             ) : (
                                 // Regular reference images: Show thumbnails
                                 <div className={styles.referenceImages}>
-                                    {displayImages.map((imageUrl, index) => (
+                                    {displayImages.map((imageObj, index) => (
                                         <div key={index} className={styles.referenceThumbnail}>
                                             <img
-                                                src={imageUrl}
+                                                src={imageObj?.url || imageObj}
                                                 alt={`Reference ${index + 1}`}
                                                 className={styles.thumbnailImage}
                                             />
