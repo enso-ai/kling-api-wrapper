@@ -22,11 +22,6 @@ const PromptTab = ({ onClose }) => {
         { value: 3, label: '3 images' },
         { value: 4, label: '4 images' },
         { value: 5, label: '5 images' },
-        { value: 6, label: '6 images' },
-        { value: 7, label: '7 images' },
-        { value: 8, label: '8 images' },
-        { value: 9, label: '9 images' },
-        { value: 10, label: '10 images' },
     ];
 
     // Handle element image selection

@@ -181,7 +181,7 @@ export const ImageContextProvider = ({ children }) => {
         try {
             // Create ImageRecord instance with array of URLs
             const imageRecord = new ImageRecord({
-                modelName: 'openai-dall-e-3', // Default model for now
+                modelName: 'gpt-image-1', // Default model for now
                 srcImageUrls: generationSources.referenceImages || [],
                 mask: generationSources.mask || null,
                 prompt: generationSources.prompt,
