@@ -58,7 +58,7 @@ const PromptTab = ({ onClose }) => {
 
         try {
             // Convert selected images to URLs for the ImageContext API
-            const selectedImageUrls = selectedImages.map((img) => img.imageUrl);
+            const selectedImageUrls = selectedImages.map((img) => img.imageUrls?.[img.selectedImageIdx || 0]);
 
             await startImageGeneration({
                 prompt: prompt.trim(),
@@ -115,7 +115,7 @@ const PromptTab = ({ onClose }) => {
                                                 onClick={() => handleImageSelection(record)}
                                             >
                                                 <img
-                                                    src={record.imageUrl}
+                                                    src={record.imageUrls?.[record.selectedImageIdx || 0]}
                                                     alt={record.prompt || 'Generated image'}
                                                     className={styles.elementImage}
                                                 />

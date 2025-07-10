@@ -60,7 +60,7 @@ const InpaintingTab = ({ onImageGenerated, onClose }) => {
 
     // Load and display image on canvas
     const loadImageToCanvas = useCallback((record) => {
-        const imageUrl = record.imageUrl;
+        const imageUrl = record.imageUrls?.[record.selectedImageIdx || 0];
         if (!imageUrl) return;
 
         const img = new Image();
@@ -295,7 +295,7 @@ const InpaintingTab = ({ onImageGenerated, onClose }) => {
 
             // Call the inpainting generation function with ImageContext API
             await startInpaintingGeneration(
-                selectedImage.imageUrl,
+                selectedImage.imageUrls?.[selectedImage.selectedImageIdx || 0],
                 maskBase64,
                 prompt.trim(),
                 3 // for now we always generate 3 images
@@ -351,7 +351,7 @@ const InpaintingTab = ({ onImageGenerated, onClose }) => {
                                             onClick={() => handleImageSelection(record)}
                                         >
                                             <img
-                                                src={record.imageUrl}
+                                                src={record.imageUrls?.[record.selectedImageIdx || 0]}
                                                 alt={record.prompt || 'Generated image'}
                                                 className={styles.elementImage}
                                             />
