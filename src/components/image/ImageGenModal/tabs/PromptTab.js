@@ -9,7 +9,7 @@ const PromptTab = ({ onClose }) => {
     const { imageRecords, startImageGeneration } = useImageContext();
 
     // State management
-    const [selectedImages, setSelectedImages] = useState([]);
+    const [referenceImageStack, setReferenceImageStack] = useState([]);
     const [prompt, setPrompt] = useState('');
     const [numberOfImages, setNumberOfImages] = useState(1);
     const [isGenerating, setIsGenerating] = useState(false);
@@ -24,27 +24,26 @@ const PromptTab = ({ onClose }) => {
         { value: 5, label: '5 images' },
     ];
 
-    // Handle element image selection
-    const handleImageSelection = useCallback((elementImage) => {
-        setSelectedImages((prev) => {
-            const isSelected = prev.some((img) => img.id === elementImage.id);
+    // Handle adding image to reference stack
+    const handleAddToStack = useCallback((imageRecord) => {
+        if (referenceImageStack.length >= 10) return; // Respect 10-image limit
+        
+        const imageUrl = imageRecord.imageUrls?.[imageRecord.selectedImageIdx || 0];
+        setReferenceImageStack(prev => [...prev, { 
+            id: Date.now() + Math.random(),
+            url: imageUrl,
+            sourceRecord: imageRecord 
+        }]);
+    }, [referenceImageStack.length]);
 
-            if (isSelected) {
-                // Remove from selection
-                return prev.filter((img) => img.id !== elementImage.id);
-            } else {
-                // Add to selection (max 10)
-                if (prev.length >= 10) {
-                    return prev; // Don't add if already at max
-                }
-                return [...prev, elementImage];
-            }
-        });
+    // Handle removing image from reference stack
+    const handleRemoveFromStack = useCallback((stackEntryId) => {
+        setReferenceImageStack(prev => prev.filter(entry => entry.id !== stackEntryId));
     }, []);
 
-    // Clear all selected images
+    // Clear all reference images from stack
     const handleClearAll = useCallback(() => {
-        setSelectedImages([]);
+        setReferenceImageStack([]);
     }, []);
 
     // Handle generation
@@ -57,9 +56,9 @@ const PromptTab = ({ onClose }) => {
         setGenerationError(null);
 
         try {
-            // Convert selected images to srcImages format for the ImageContext API
-            const srcImages = selectedImages.map((img) => ({
-                url: img.imageUrls?.[img.selectedImageIdx || 0]
+            // Convert reference stack to srcImages format for the ImageContext API
+            const srcImages = referenceImageStack.map((stackEntry) => ({
+                url: stackEntry.url
             }));
 
             await startImageGeneration({
@@ -81,15 +80,8 @@ const PromptTab = ({ onClose }) => {
             }
             setIsGenerating(false);
         }
-    }, [prompt, selectedImages, numberOfImages, startImageGeneration, onClose]);
+    }, [prompt, referenceImageStack, numberOfImages, startImageGeneration, onClose]);
 
-    // Check if an element image is selected
-    const isElementImageSelected = useCallback(
-        (elementImage) => {
-            return selectedImages.some((img) => img.id === elementImage.id);
-        },
-        [selectedImages]
-    );
 
     return (
         <div className={styles.tabContent}>
@@ -106,15 +98,15 @@ const PromptTab = ({ onClose }) => {
                             <>
                                 <div className={styles.verticalImageList}>
                                     {imageRecords.map((record) => {
+                                        const isDisabled = referenceImageStack.length >= 10;
                                         return (
                                             <div
                                                 key={record.id}
                                                 className={`${styles.elementImageItem} ${
-                                                    isElementImageSelected(record)
-                                                        ? styles.selected
-                                                        : ''
+                                                    isDisabled ? styles.disabled : ''
                                                 }`}
-                                                onClick={() => handleImageSelection(record)}
+                                                onClick={() => !isDisabled && handleAddToStack(record)}
+                                                style={{ cursor: isDisabled ? 'not-allowed' : 'pointer' }}
                                             >
                                                 <img
                                                     src={record.imageUrls?.[record.selectedImageIdx || 0]}
@@ -127,8 +119,8 @@ const PromptTab = ({ onClose }) => {
                                 </div>
 
                                 <div className={styles.selectionCounter}>
-                                    <span>Selected: {selectedImages.length}/10</span>
-                                    {selectedImages.length > 0 && (
+                                    <span>Stack: {referenceImageStack.length}/10</span>
+                                    {referenceImageStack.length > 0 && (
                                         <button
                                             className={styles.clearAllButton}
                                             onClick={handleClearAll}
@@ -151,6 +143,31 @@ const PromptTab = ({ onClose }) => {
                 {/* Right Column - Prompt Input Area */}
                 <div className={styles.rightColumn}>
                     <div className={styles.promptInputPanel}>
+                        {/* Reference Image Stack Display */}
+                        {referenceImageStack.length > 0 && (
+                            <div className={styles.referenceStackSection}>
+                                <label className={styles.sectionLabel}>
+                                    Reference Images ({referenceImageStack.length}/10)
+                                </label>
+                                <div className={styles.referenceStack}>
+                                    {referenceImageStack.map((stackEntry) => (
+                                        <div
+                                            key={stackEntry.id}
+                                            className={styles.stackImageItem}
+                                            onClick={() => handleRemoveFromStack(stackEntry.id)}
+                                        >
+                                            <img
+                                                src={stackEntry.url}
+                                                alt="Reference image"
+                                                className={styles.stackImage}
+                                            />
+                                            <div className={styles.removeIcon}>×</div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
                         {/* Prompt Input Section */}
                         <div className={styles.promptSection}>
                             <label htmlFor='prompt' className={styles.sectionLabel}>
