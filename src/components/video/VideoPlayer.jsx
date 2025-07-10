@@ -89,7 +89,8 @@ export default function VideoPlayer({ payload }) {
         }
     };
 
-    const canExtendVideo = status === 'succeed' && videoUrl && videoId && modelName == 'kling-v1-6';
+    const canExtendVideo = 
+        status === 'succeed' && videoUrl && videoId && modelName == 'v1'
 
     return (
         <div className={styles.videoItem}>

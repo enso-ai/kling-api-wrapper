@@ -24,7 +24,7 @@ export default function SidePanel() {
   useEffect(() => {
     if (currentTemplate) {
       // Update form fields with template values
-      setModel(currentTemplate.modelName || 'kling-v1-6');
+      setModel(currentTemplate.modelName || 'v1');
       setMode(currentTemplate.mode || 'std');
       setPrompt(currentTemplate.prompt || '');
       setNegativePrompt(currentTemplate.negativePrompt || '');
