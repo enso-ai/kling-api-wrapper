@@ -310,12 +310,10 @@ export const ImageContextProvider = ({ children }) => {
                         asset_type: 'element_images',
                     });
                 } else {
+                    console.log('selectedImages:', selectedImages);
                     // Image extension
-                    const imageUrls = selectedImages.map(
-                        (img) => img.gcsUrls?.[img.selectedImageIdx] || img.gcsUrls?.[0]
-                    );
                     result = await apiClient.extendImage({
-                        image_urls: imageUrls,
+                        image_urls: selectedImages,
                         prompt: prompt.trim(),
                         n: numberOfImages,
                     });
@@ -332,15 +330,11 @@ export const ImageContextProvider = ({ children }) => {
                 console.log('response payload:', result);
 
                 // Collect all generated image URLs
-                const allImageUrls = result.data?.images.map(img => img.imageUrl);
+                const allImageUrls = result.data?.images.map((img) => img.imageUrl);
                 const generationSources = {
                     type: isTextOnly ? 'text-to-image' : 'image-extension',
                     prompt: prompt.trim(),
-                    referenceImages: isTextOnly
-                        ? null
-                        : selectedImages.map((img) => {
-                              return img.gcsUrls?.[img.selectedImageIdx] || img.gcsUrls?.[0];
-                          }),
+                    referenceImages: isTextOnly ? null : selectedImages,
                     revisedPrompt: result.data?.images[0]?.revisedPrompt, // Use first image's revised prompt
                 };
 
@@ -379,11 +373,7 @@ export const ImageContextProvider = ({ children }) => {
                 id: generationId,
                 type: isTextOnly ? 'text-to-image' : 'image-extension',
                 prompt: prompt.trim(),
-                referenceImages: isTextOnly
-                    ? null
-                    : selectedImages.map((img) => {
-                          return img.gcsUrls?.[img.selectedImageIdx] || img.gcsUrls?.[0];
-                      }),
+                referenceImages: isTextOnly ? null : selectedImages,
                 numberOfImages,
                 status: 'generating',
                 startTime: Date.now(),
