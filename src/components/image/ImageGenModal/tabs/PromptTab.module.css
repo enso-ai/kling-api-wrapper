@@ -178,6 +178,44 @@
   border-radius: 8px;
   min-height: 60px;
   align-items: flex-start;
+  transition: all 0.2s ease;
+}
+
+/* Empty drop zone state */
+.referenceStack.emptyDropZone {
+  border: 2px dashed #ccc;
+  background: #fafafa;
+  justify-content: center;
+  align-items: center;
+  min-height: 80px;
+}
+
+/* Drag over state */
+.referenceStack.dragOver {
+  border-color: #007bff;
+  background: #f0f8ff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+/* Empty state message */
+.emptyStateMessage {
+  color: #666;
+  font-size: 14px;
+  text-align: center;
+  font-style: italic;
+  padding: 8px;
+}
+
+/* Validation error message */
+.validationError {
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 4px;
+  color: #721c24;
+  font-size: 12px;
+  line-height: 1.4;
 }
 
 .stackImageItem {
@@ -410,6 +448,21 @@
     gap: 6px;
     padding: 8px;
     min-height: 48px;
+  }
+  
+  .referenceStack.emptyDropZone {
+    min-height: 60px;
+  }
+  
+  .emptyStateMessage {
+    font-size: 12px;
+    padding: 6px;
+  }
+  
+  .validationError {
+    font-size: 11px;
+    padding: 6px 8px;
+    margin-top: 6px;
   }
   
   .stackImageItem {
