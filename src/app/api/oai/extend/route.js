@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { extendImage } from 'utils/image_gen.js';
+import { extendImage } from '@/utils/image_gen.js';
 
 export async function POST(request) {
     try {
@@ -14,6 +14,15 @@ export async function POST(request) {
                 { error: 'image_urls array is required and cannot be empty' },
                 { status: 400 }
             );
+        }
+
+        // check if all image URLs are valid
+        for (const url of image_urls) {
+            try {
+                new URL(url); // This will throw if the URL is invalid
+            } catch (error) {
+                return NextResponse.json({ error: `Invalid image URL: ${url}` }, { status: 400 });
+            }
         }
 
         // Validate image_urls array length (OpenAI limit)

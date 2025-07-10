@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { inpaintingImage } from '@utils/image_gen.js';
+import { inpaintingImage } from '@/utils/image_gen.js';
 
 export async function POST(request) {
     try {

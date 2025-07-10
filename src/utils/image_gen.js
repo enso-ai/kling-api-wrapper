@@ -99,6 +99,7 @@ export const extendImage = async (imageURLs, prompt, n = 1) => {
         if (error.message === 'CONTENT_MODERATION_BLOCKED') {
             throw error;
         }
+        console.error('Error extending image:', error);
         throw new Error(`Image extension failed: ${error.message}`);
     }
 };
