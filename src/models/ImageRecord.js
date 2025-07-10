@@ -7,9 +7,7 @@ class ImageRecord {
         
         // Image-specific fields
         this.modelName = formData.modelName || null;
-        // this is deprecated
-        this.srcImageUrls = formData.srcImageUrls || []; // Array of source image URLs
-        // new srcImages field can contains two typw of data (urls or base64)
+        // new srcImages field can contains two types of data (urls or base64)
         // [{url: {{url}} }, {base64: {{base64string}} }]
         this.srcImages = formData.srcImages || []
         this.mask = formData.mask || null; // Base64 data
