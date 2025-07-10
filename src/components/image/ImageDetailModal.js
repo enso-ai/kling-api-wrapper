@@ -36,12 +36,6 @@ export default function ImageDetailModal({ imageRecordId, onClose }) {
         updateSelectedImage(imageRecord.id, index);
     };
 
-    const handleDownloadClick = async () => {
-        const currentImageIndex = imageRecord.selectedImageIdx || 0;
-        const currentImageUrl = imageRecord.imageUrls[currentImageIndex];
-        await downloadImage(currentImageUrl, currentImageIndex);
-    };
-
     const formatCreatedAt = (createdAt) => {
         try {
             const date = new Date(createdAt);
@@ -55,9 +49,19 @@ export default function ImageDetailModal({ imageRecordId, onClose }) {
         return null;
     }
 
+    // Check if images exist and are valid
+    const hasImages = imageRecord.imageUrls && imageRecord.imageUrls.length > 0;
+    console.log("hasImages:", hasImages)
+
+    const handleDownloadClick = async () => {
+        if (!hasImages) return;
+        const currentImageIndex = imageRecord.selectedImageIdx || 0;
+        const currentImageUrl = imageRecord.imageUrls[currentImageIndex];
+        await downloadImage(currentImageUrl, currentImageIndex);
+    };
     const currentImageIndex = imageRecord.selectedImageIdx || 0;
-    const currentImageUrl = imageRecord.imageUrls[currentImageIndex];
-    const hasMultipleImages = imageRecord.imageUrls.length > 1;
+    const currentImageUrl = hasImages ? imageRecord.imageUrls[currentImageIndex] : null;
+    const hasMultipleImages = hasImages && imageRecord.imageUrls.length > 1;
     const hasReferenceImages = imageRecord.srcImageUrls && imageRecord.srcImageUrls.length > 0;
     const isInpaintingImage = hasReferenceImages && imageRecord.mask;
 
@@ -74,45 +78,60 @@ export default function ImageDetailModal({ imageRecordId, onClose }) {
                     <div className={styles.mainContainer}>
                         {/* Left Column - Image Display and Carousel */}
                         <div className={styles.leftColumn}>
-                            {/* Main Image Display */}
-                            <div className={styles.mainImageContainer}>
-                                <img
-                                    src={currentImageUrl}
-                                    alt={imageRecord.prompt || 'Generated image'}
-                                    className={styles.mainImage}
-                                />
-                                {/* Download button */}
-                                <button
-                                    className={styles.downloadButton}
-                                    onClick={handleDownloadClick}
-                                    title="Download image"
-                                >
-                                    <FaDownload />
-                                </button>
-                            </div>
-
-                            {/* Image Carousel */}
-                            {hasMultipleImages && (
-                                <div className={styles.carouselContainer}>
-                                    <div className={styles.carousel}>
-                                        {imageRecord.imageUrls.map((imageUrl, index) => (
-                                            <button
-                                                key={index}
-                                                className={`${styles.carouselThumbnail} ${
-                                                    index === currentImageIndex
-                                                        ? styles.carouselThumbnailActive
-                                                        : ''
-                                                }`}
-                                                onClick={() => handleThumbnailClick(index)}
-                                            >
-                                                <img
-                                                    src={imageUrl}
-                                                    alt={`Image ${index + 1}`}
-                                                    className={styles.carouselImage}
-                                                />
-                                            </button>
-                                        ))}
+                            {hasImages ? (
+                                <>
+                                    {/* Main Image Display */}
+                                    <div className={styles.mainImageContainer}>
+                                        <img
+                                            src={currentImageUrl}
+                                            alt={imageRecord.prompt || 'Generated image'}
+                                            className={styles.mainImage}
+                                        />
+                                        {/* Download button */}
+                                        <button
+                                            className={styles.downloadButton}
+                                            onClick={handleDownloadClick}
+                                            title="Download image"
+                                        >
+                                            <FaDownload />
+                                        </button>
                                     </div>
+
+                                    {/* Image Carousel */}
+                                    {hasMultipleImages && (
+                                        <div className={styles.carouselContainer}>
+                                            <div className={styles.carousel}>
+                                                {imageRecord.imageUrls.map((imageUrl, index) => (
+                                                    <button
+                                                        key={index}
+                                                        className={`${styles.carouselThumbnail} ${
+                                                            index === currentImageIndex
+                                                                ? styles.carouselThumbnailActive
+                                                                : ''
+                                                        }`}
+                                                        onClick={() => handleThumbnailClick(index)}
+                                                    >
+                                                        <img
+                                                            src={imageUrl}
+                                                            alt={`Image ${index + 1}`}
+                                                            className={styles.carouselImage}
+                                                        />
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </>
+                            ) : (
+                                /* Placeholder when no images */
+                                <div className={styles.mainImageContainer}>
+                                <div className={styles.imagePlaceholder}>
+                                    <div className={styles.placeholderContent}>
+                                        <div className={styles.placeholderText}>
+                                            No Image returned
+                                        </div>
+                                    </div>
+                                </div>
                                 </div>
                             )}
                         </div>
