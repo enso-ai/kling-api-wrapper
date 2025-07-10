@@ -1,5 +1,5 @@
 /**
- * Converts an image file to the Base64 format required by Kling API
+ * Converts an image file to the Base64 format required by Video Engine API
  * @param {string} dataUrl - The data URL string from FileReader (e.target.result)
  * @returns {string} - Clean Base64 string without the data URL prefix
  */

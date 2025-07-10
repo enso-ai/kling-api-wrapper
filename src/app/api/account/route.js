@@ -1,4 +1,4 @@
-import { klingClient } from '../../../service/kling';
+import { klingClient } from '@/service/kling';
 import { NextResponse } from 'next/server';
 
 // Kling acount information API route
@@ -26,7 +26,7 @@ export async function GET(request) {
   } catch (error) {
     console.error('Error getting account info:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to call Kling API' },
+      { error: error.message || 'Failed to call Video API Backend' },
       { status: 500 }
     );
   }

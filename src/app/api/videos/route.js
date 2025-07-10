@@ -11,9 +11,8 @@ export async function POST(request) {
     try {
         const body = await request.json();
 
-        // parse body model
-        if (MODEL_MAP.get(body.modelName))
-            body.modelName = MODEL_MAP[body.modelName]
+        if (MODEL_MAP[body.model_name])
+            body.model_name = MODEL_MAP[body.model_name]
         else
             return NextResponse.json({ error: 'bad modelName' }, { status: 500 });
 

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { apiClient, KlingThrottleError } from '../service/backend';
+import { apiClient, VideoAPIThrottleError } from '../service/backend';
 import VideoRecord from '../models/VideoRecord';
 import VideoOptions from '../models/VideoOptions';
 import ExtensionRecord from '../models/ExtensionRecord';
@@ -39,7 +39,7 @@ export function VideoProvider({ children }) {
                     total_quantity: info.total_quantity,
                 });
             } else {
-                // it's a known issue that kling won't return correct package data
+                // it's a known issue that k won't return correct package data
                 // so we reduce the severity of the log to info for now.
                 console.info('Invalid account info format:', data);
             }
@@ -132,12 +132,12 @@ export function VideoProvider({ children }) {
                 // console.log('options from video context', options);
                 try {
                     const response = await apiClient.createVideo(options);
-                    // Update the record with the Kling returned info
+                    // Update the record with the Video API returned info
                     videoRecord.updateWithTaskInfo(response.data);
                 } catch (error) {
-                    // Handle KlingThrottleError specifically
-                    if (error instanceof KlingThrottleError) {
-                        console.warn('Kling API throttling error:', error);
+                    // Handle VideoAPIThrottleError specifically
+                    if (error instanceof VideoAPIThrottleError) {
+                        console.warn('Video API throttling error:', error);
                     } else {
                         throw error; // Re-throw for handling below
                     }
@@ -191,12 +191,12 @@ export function VideoProvider({ children }) {
                         } else {
                             taskData = await apiClient.createVideo(record.options);
                         }
-                        // Update the record with the Kling returned info
+                        // Update the record with the Video API returned info
                         record.updateWithTaskInfo(taskData.data);
                     } catch (error) {
-                        // Handle KlingThrottleError specifically
-                        if (error instanceof KlingThrottleError) {
-                            console.warn('Kling API throttling error:', error);
+                        // Handle VideoAPIThrottleError specifically
+                        if (error instanceof VideoAPIThrottleError) {
+                            console.warn('Video API throttling error:', error);
                             // ignore this update
                             return null;
                         } else {

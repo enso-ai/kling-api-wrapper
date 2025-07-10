@@ -17,7 +17,7 @@ class VideoOptions {
 
   toApiRequest() {
     const requestBody = {
-      model_name: this.modelName || "kling-v1",
+      model_name: this.modelName || "v1",
       mode: this.mode || "std",
       duration: this.duration || "5",
       image: this.image,

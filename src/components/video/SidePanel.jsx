@@ -12,7 +12,7 @@ import { useVideoContext } from '@/context/VideoContext';
 export default function SidePanel() {
   const { createVideo, currentTemplate, clearTemplate } = useVideoContext();
   const [loading, setLoading] = useState(false);
-  const [model, setModel] = useState('kling-v2-1');
+  const [model, setModel] = useState('v2');
   const [mode, setMode] = useState('std');
   const [firstImage, setFirstImage] = useState(null);
   const [lastImage, setLastImage] = useState(null);

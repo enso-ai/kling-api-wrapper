@@ -4,7 +4,7 @@ import styles from './videoTool.module.css';
 
 export default function VideoTool() {
     return (
-        <div className={styles.klingContainer}>
+        <div className={styles.Container}>
             <SidePanel />
             <VideoGrid />
         </div>

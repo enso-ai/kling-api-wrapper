@@ -1,14 +1,14 @@
 // Client-side utilities for interacting with the Next.js API routes
 
-// Custom error class for Kling API throttling
-export class KlingThrottleError extends Error {
+// Custom error class for Video API throttling
+export class VideoAPIThrottleError extends Error {
     constructor(message) {
         super(message);
-        this.name = 'KlingThrottleError';
+        this.name = 'VideoAPIThrottleError';
     }
 }
 
-const createKlingApiClient = () => {
+const createApiClient = () => {
     // Create a video from an image
     const createVideo = async (videoOptions) => {
         try {
@@ -25,7 +25,7 @@ const createKlingApiClient = () => {
             if (!response.ok) {
                 // Check for throttling error (429 status)
                 if (response.status === 429) {
-                    throw new KlingThrottleError(data.error || 'Request limit exceeded');
+                    throw new VideoAPIThrottleError(data.error || 'Request limit exceeded');
                 }
                 
                 alert(`Error: ${data.error || 'Unknown error'}`);
@@ -427,4 +427,4 @@ const createKlingApiClient = () => {
     };
 };
 
-export const apiClient = createKlingApiClient();
+export const apiClient = createApiClient();
