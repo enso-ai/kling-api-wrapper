@@ -310,7 +310,6 @@ export const ImageContextProvider = ({ children }) => {
                         asset_type: 'element_images',
                     });
                 } else {
-                    console.log('selectedImages:', selectedImages);
                     // Image extension
                     result = await apiClient.extendImage({
                         image_urls: selectedImages,
@@ -327,7 +326,6 @@ export const ImageContextProvider = ({ children }) => {
                     console.error('Image generation failed:', result.error);
                     return;
                 }
-                console.log('response payload:', result);
 
                 // Collect all generated image URLs
                 const allImageUrls = result.data?.images.map((img) => img.imageUrl);
@@ -465,6 +463,7 @@ export const ImageContextProvider = ({ children }) => {
                 type: 'inpainting',
                 prompt: prompt.trim(),
                 referenceImages: [inputImageUrl],
+                mask: maskImage,
                 numberOfImages,
                 status: 'generating',
                 startTime: Date.now(),

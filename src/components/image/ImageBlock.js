@@ -7,8 +7,6 @@ import { downloadImage } from '../../utils/download';
 export default function ImageBlock({ imageRecord, onOpenModal }) {
     const { removeImageRecord, updateSelectedImage } = useImageContext();
 
-    console.log("image record:", imageRecord)
-
     const handleImageClick = () => {
         if (onOpenModal) {
             onOpenModal(imageRecord);

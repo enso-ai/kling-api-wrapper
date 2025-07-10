@@ -87,13 +87,6 @@
   background-color: #fff;
 }
 
-.thumbnailImage {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
 .moreIndicator {
   font-size: 10px;
   color: #f57c00;
@@ -104,10 +97,9 @@
 
 /* Inpainting Preview */
 .inpaintingPreview {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  max-width: 100%;
+  margin-top: 10px;
+  height: 100px;
+  width: 100px;
 }
 
 @keyframes spin {

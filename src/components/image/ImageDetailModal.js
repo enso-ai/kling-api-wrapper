@@ -183,10 +183,17 @@ export default function ImageDetailModal({ imageRecordId, onClose }) {
                                     
                                     {isInpaintingImage ? (
                                         // Show inpainting composite for inpainting images
-                                        <InpaintingComposite
-                                            referenceImageUrl={imageRecord.srcImageUrls[0]}
-                                            maskBase64={imageRecord.mask}
-                                        />
+                                        <div className={styles.inpaintingContainer}>
+                                            <div className={styles.inpaintingSingleItem}>
+                                                <div className={styles.inpaintingImageContainer}>
+                                                    <InpaintingComposite
+                                                        referenceImageUrl={imageRecord.srcImageUrls[0]}
+                                                        maskBase64={imageRecord.mask}
+                                                    />
+                                                </div>
+                                                <p className={styles.inpaintingLabel}>Reference image with inpainting areas highlighted</p>
+                                            </div>
+                                        </div>
                                     ) : (
                                         // Show regular grid for non-inpainting reference images
                                         <div className={styles.referenceGrid}>

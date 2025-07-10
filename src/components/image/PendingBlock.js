@@ -1,6 +1,7 @@
 import React from 'react';
 import styles from './PendingBlock.module.css';
 import { FaSpinner } from 'react-icons/fa';
+import InpaintingComposite from './InpaintingComposite';
 
 export default function PendingBlock({ pendingGeneration }) {
     if (!pendingGeneration) {
@@ -56,13 +57,10 @@ export default function PendingBlock({ pendingGeneration }) {
                             {isInpainting ? (
                                 // Inpainting: Show just the reference image (mask not available during pending)
                                 <div className={styles.inpaintingPreview}>
-                                    <div className={styles.referenceThumbnail}>
-                                        <img
-                                            src={pendingGeneration.referenceImages[0]}
-                                            alt="Inpainting source"
-                                            className={styles.thumbnailImage}
-                                        />
-                                    </div>
+                                    <InpaintingComposite
+                                        referenceImageUrl={pendingGeneration.referenceImages[0]}
+                                        maskBase64={pendingGeneration.mask}
+                                    />
                                 </div>
                             ) : (
                                 // Regular reference images: Show thumbnails

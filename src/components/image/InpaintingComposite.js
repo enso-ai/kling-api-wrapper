@@ -3,7 +3,6 @@ import styles from './InpaintingComposite.module.css';
 
 // Component to show reference image and mask side by side
 export default function InpaintingComposite({ referenceImageUrl, maskBase64 }) {
-    const [maskDataUrl, setMaskDataUrl] = useState(null);
     const [processedMaskUrl, setProcessedMaskUrl] = useState(null);
     const [error, setError] = useState(null);
 
@@ -70,7 +69,6 @@ export default function InpaintingComposite({ referenceImageUrl, maskBase64 }) {
                 
                 // Create URLs for display
                 const processedUrl = canvas.toDataURL('image/png');
-                setMaskDataUrl(dataUrl);
                 setProcessedMaskUrl(processedUrl);
                 setError(null);
                 
@@ -91,26 +89,22 @@ export default function InpaintingComposite({ referenceImageUrl, maskBase64 }) {
         );
     }
 
+    if (!processedMaskUrl) {
+        return null;
+    }
+
     return (
-        <div className={styles.container}>
-            {/* Combined View Only */}
-            {processedMaskUrl && (
-                <div className={styles.singleItem}>
-                    <div className={styles.overlayContainer}>
-                        <img
-                            src={referenceImageUrl}
-                            alt="Reference image"
-                            className={styles.overlayBaseImage}
-                        />
-                        <img
-                            src={processedMaskUrl}
-                            alt="Mask overlay"
-                            className={styles.overlayMask}
-                        />
-                    </div>
-                    <p className={styles.label}>Reference image with inpainting areas highlighted</p>
-                </div>
-            )}
+        <div className={styles.overlayContainer}>
+            <img
+                src={referenceImageUrl}
+                alt="Reference image"
+                className={styles.overlayBaseImage}
+            />
+            <img
+                src={processedMaskUrl}
+                alt="Mask overlay"
+                className={styles.overlayMask}
+            />
         </div>
     );
 }

@@ -1,31 +1,12 @@
 /* InpaintingComposite Component Styles */
-.container {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 12px;
-  background: #f8fafc;
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
-}
-
-.singleItem {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-}
 
 /* Overlay container for combining reference image and mask */
 .overlayContainer {
-  width: 200px;
-  height: 200px;
+  width: 100%;
+  height: 100%;
   border-radius: 6px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e5e7eb;
   position: relative;
   overflow: hidden;
-  background: white;
 }
 
 .overlayBaseImage {
@@ -53,23 +34,6 @@
   opacity: 0.7;
 }
 
-.label {
-  margin: 0;
-  font-size: 11px;
-  color: #6b7280;
-  text-align: center;
-  font-weight: 500;
-}
-
-.note {
-  margin: 0;
-  font-size: 12px;
-  color: #6b7280;
-  text-align: center;
-  font-style: italic;
-  padding-top: 8px;
-  border-top: 1px solid #e5e7eb;
-}
 
 .error {
   display: flex;
@@ -83,14 +47,4 @@
   font-size: 14px;
   text-align: center;
   padding: 16px;
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .overlayContainer,
-  .overlayBaseImage,
-  .overlayMask {
-    width: 100px;
-    height: 100px;
-  }
 }
