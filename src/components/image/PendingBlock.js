@@ -2,8 +2,12 @@ import React from 'react';
 import styles from './PendingBlock.module.css';
 import { FaSpinner } from 'react-icons/fa';
 import InpaintingComposite from './InpaintingComposite';
+import { FaPencilAlt } from 'react-icons/fa';
+import { useImageContext } from '@/context/ImageContext';
 
 export default function PendingBlock({ pendingGeneration }) {
+    const { openImageGenModal } = useImageContext();
+
     if (!pendingGeneration) {
         return (
             <div className={styles.container}>
@@ -28,6 +32,35 @@ export default function PendingBlock({ pendingGeneration }) {
     // For reference images display (non-inpainting)
     const displayImages = hasReferenceImages && !isInpainting ? pendingGeneration.referenceImages.slice(0, 3) : [];
     const remainingCount = hasReferenceImages && !isInpainting ? Math.max(0, pendingGeneration.referenceImages.length - 3) : 0;
+
+    const handleEditClick = (e) => {
+        e.stopPropagation();
+        
+        // Create prefill data based on imageRecord
+        const prefillData = {
+            initialTab: pendingGeneration.type == 'inpainting'? 'inpainting': 'prompt',
+            prompt: pendingGeneration.prompt,
+            srcImages: pendingGeneration.referenceImages,
+            mask: pendingGeneration.mask,
+        };
+        
+        // Open modal with prefill data
+        openImageGenModal(prefillData);
+    };
+
+    const ControlButtons = () => {
+        return (
+            <div className={styles.controls}>
+                <button
+                    className={styles.iconButton}
+                    onClick={handleEditClick}
+                    title="Edit image"
+                >
+                    <FaPencilAlt />
+                </button>
+            </div>
+        );
+    };
 
     return (
         <div className={styles.container}>
@@ -87,6 +120,7 @@ export default function PendingBlock({ pendingGeneration }) {
                         </div>
                     )}
                 </div>
+                <ControlButtons/>
             </div>
         </div>
     );

@@ -1,11 +1,11 @@
 import React from 'react';
 import styles from './ImageBlock.module.css';
-import { useImageContext } from '../../context/ImageContext';
+import { useImageContext } from '@/context/ImageContext';
 import { FaChevronLeft, FaChevronRight, FaPencilAlt, FaPaintBrush, FaTrash, FaDownload } from 'react-icons/fa';
-import { downloadImage } from '../../utils/download';
+import { downloadImage } from '@/utils/download';
 
 export default function ImageBlock({ imageRecord, onOpenModal }) {
-    const { removeImageRecord, updateSelectedImage } = useImageContext();
+    const { removeImageRecord, updateSelectedImage, openImageGenModal } = useImageContext();
 
     const handleImageClick = () => {
         if (onOpenModal) {
@@ -15,14 +15,39 @@ export default function ImageBlock({ imageRecord, onOpenModal }) {
 
     const handleEditClick = (e) => {
         e.stopPropagation();
-        // TODO: Implement edit functionality
-        console.log('Edit clicked for image:', imageRecord.id);
+        
+        // Create prefill data based on imageRecord
+        const prefillData = {
+            initialTab: imageRecord.mask ? 'inpainting' : 'prompt',
+            prompt: imageRecord.prompt,
+            srcImages: imageRecord.srcImages,
+            mask: imageRecord.mask,
+            sourceRecordId: imageRecord.id
+        };
+        
+        // Open modal with prefill data
+        openImageGenModal(prefillData);
     };
 
     const handleBrushClick = (e) => {
         e.stopPropagation();
-        // TODO: Implement brush functionality
-        console.log('Brush clicked for image:', imageRecord.id);
+        
+        // Get current image URL
+        const currentIdx = imageRecord.selectedImageIdx || 0;
+        const currentImageUrl = imageRecord.imageUrls[currentIdx];
+        
+        // Create minimal prefill data for fresh inpainting
+        const prefillData = {
+            initialTab: 'inpainting',
+            srcImages: [{ url: currentImageUrl }],
+            // Intentionally leave prompt and mask empty for fresh start
+            prompt: '',
+            mask: null,
+            sourceRecordId: imageRecord.id // For reference only
+        };
+        
+        // Open modal with minimal prefill data
+        openImageGenModal(prefillData);
     };
 
     const handleDeleteClick = async (e) => {
@@ -66,7 +91,7 @@ export default function ImageBlock({ imageRecord, onOpenModal }) {
     };
 
     // Reusable control buttons component
-    const ControlButtons = ({ showBrush = true }) => {
+    const ControlButtons = () => {
         return (
             <div className={styles.controls}>
                 <button
@@ -76,15 +101,6 @@ export default function ImageBlock({ imageRecord, onOpenModal }) {
                 >
                     <FaPencilAlt />
                 </button>
-                {showBrush && (
-                    <button
-                        className={styles.iconButton}
-                        onClick={handleBrushClick}
-                        title="Brush tool"
-                    >
-                        <FaPaintBrush />
-                    </button>
-                )}
                 <button
                     className={styles.deleteButton}
                     onClick={handleDeleteClick}
@@ -110,10 +126,29 @@ export default function ImageBlock({ imageRecord, onOpenModal }) {
                         </div>
                     )}
                 </div>
-                <ControlButtons showBrush={false} />
+                <ControlButtons />
             </div>
         );
     };
+
+    const ImageBasedActions = () => (
+        <div className={styles.imageBasedActions}>
+            <button
+                className={styles.imageBasedAction}
+                onClick={handleBrushClick}
+                title="Brush tool"
+            >
+                <FaPaintBrush />
+            </button>
+            <button
+                className={styles.imageBasedAction}
+                onClick={handleDownloadClick}
+                title="Download image"
+            >
+                <FaDownload />
+            </button>
+        </div>
+    )
 
     // Image content component
     const ImageContent = () => {
@@ -161,16 +196,9 @@ export default function ImageBlock({ imageRecord, onOpenModal }) {
                     </div>
                 )}
 
-                {/* Download button */}
-                <button
-                    className={styles.downloadButton}
-                    onClick={handleDownloadClick}
-                    title="Download image"
-                >
-                    <FaDownload />
-                </button>
-
                 <ControlButtons showBrush={true} />
+                {/* Action applied on image */}
+                <ImageBasedActions/>
             </div>
         );
     };

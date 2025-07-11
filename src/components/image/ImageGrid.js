@@ -6,7 +6,7 @@ import ImageBlock from './ImageBlock';
 import PendingBlock from './PendingBlock';
 import ImageDetailModal from './ImageDetailModal';
 
-export default function ImageGrid({ onOpenModal }) {
+export default function ImageGrid() {
     const { 
         imageRecords, 
         pendingGenerations,
@@ -23,12 +23,6 @@ export default function ImageGrid({ onOpenModal }) {
     // State for image detail modal
     const [selectedImageRecordId, setSelectedImageRecordId] = useState(null);
 
-    // Handle opening the image generation modal
-    const handleOpenModal = useCallback(() => {
-        if (onOpenModal) {
-            onOpenModal();
-        }
-    }, [onOpenModal]);
 
     // Handle opening the image detail modal
     const handleOpenImageDetail = useCallback((imageRecord) => {
@@ -98,7 +92,7 @@ export default function ImageGrid({ onOpenModal }) {
                     <>
                         {/* 1. Add Image Block - Plus sign button */}
                         <div className={styles.gridItem}>
-                            <AddImageBlock onOpenModal={handleOpenModal} />
+                            <AddImageBlock />
                         </div>
 
                         {/* 2. Pending Generation Blocks */}

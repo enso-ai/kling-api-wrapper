@@ -102,6 +102,47 @@
   width: 100px;
 }
 
+.controls {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  gap: 8px;
+  z-index: 2;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+}
+
+.container:hover .controls {
+  opacity: 1;
+  visibility: visible;
+}
+
+.iconButton {
+  width: 32px;
+  height: 32px;
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  backdrop-filter: blur(4px);
+}
+
+.iconButton:hover {
+  background: rgba(255, 255, 255, 1);
+}
+
+.iconButton svg {
+  width: 16px;
+  height: 16px;
+  color: #666;
+}
+
 @keyframes spin {
   from {
     transform: rotate(0deg);

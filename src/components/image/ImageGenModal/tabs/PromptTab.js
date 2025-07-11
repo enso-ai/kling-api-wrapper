@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useImageContext } from '@/context/ImageContext';
 import Dropdown from '@/components/common/Dropdown';
 import ReferenceImageStack from '@/components/image/ReferenceImageStack';
 import styles from './PromptTab.module.css';
 
-const PromptTab = ({ onClose }) => {
+const PromptTab = ({ onClose, prefillData }) => {
     const { imageRecords, startImageGeneration } = useImageContext();
 
     // State management
@@ -16,6 +16,28 @@ const PromptTab = ({ onClose }) => {
     const [isGenerating, setIsGenerating] = useState(false);
     const [generationError, setGenerationError] = useState(null);
     const [validationError, setValidationError] = useState(null);
+
+    // Handle prefill data
+    useEffect(() => {
+        if (prefillData) {
+            // Set prompt
+            if (prefillData.prompt) {
+                setPrompt(prefillData.prompt);
+            }
+
+            // Convert srcImages to referenceImageStack format
+            if (prefillData.srcImages && prefillData.srcImages.length > 0) {
+                const convertedStack = prefillData.srcImages.map((srcImage, index) => ({
+                    id: Date.now() + index,
+                    type: srcImage.url ? 'url' : 'base64',
+                    url: srcImage.url,
+                    base64: srcImage.base64,
+                    fileName: srcImage.base64 ? `prefilled-image-${index + 1}` : undefined
+                }));
+                setReferenceImageStack(convertedStack);
+            }
+        }
+    }, [prefillData]);
 
     // Dropdown options for number of images
     const numberOptions = [

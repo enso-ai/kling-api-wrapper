@@ -17,6 +17,8 @@ const IMAGE_ACTIONS = {
     SET_LOADING_STATE: 'SET_LOADING_STATE',
     SET_PAGINATION: 'SET_PAGINATION',
     UPDATE_SELECTED_IMAGE: 'UPDATE_SELECTED_IMAGE',
+    OPEN_IMAGE_GEN_MODAL: 'OPEN_IMAGE_GEN_MODAL',
+    CLOSE_IMAGE_GEN_MODAL: 'CLOSE_IMAGE_GEN_MODAL',
 };
 
 // Initial state
@@ -28,6 +30,9 @@ const initialState = {
     hasMoreImages: true,
     isLoadingMore: false,   // Set to true when pagination loading is in progress
     totalImages: 0,
+    // Modal state
+    isImageGenModalOpen: false,
+    imageGenModalPrefillData: null,
 };
 
 // Reducer
@@ -94,6 +99,20 @@ function imageReducer(state, action) {
                         ? { ...record, selectedImageIdx: action.payload.selectedImageIdx }
                         : record
                 ),
+            };
+
+        case IMAGE_ACTIONS.OPEN_IMAGE_GEN_MODAL:
+            return {
+                ...state,
+                isImageGenModalOpen: true,
+                imageGenModalPrefillData: action.payload,
+            };
+
+        case IMAGE_ACTIONS.CLOSE_IMAGE_GEN_MODAL:
+            return {
+                ...state,
+                isImageGenModalOpen: false,
+                imageGenModalPrefillData: null,
             };
 
         default:
@@ -462,7 +481,7 @@ export const ImageContextProvider = ({ children }) => {
                 id: generationId,
                 type: 'inpainting',
                 prompt: prompt.trim(),
-                referenceImages: [inputImageUrl],
+                referenceImages: [{url: inputImageUrl}],
                 mask: maskImage,
                 numberOfImages,
                 status: 'generating',
@@ -482,6 +501,28 @@ export const ImageContextProvider = ({ children }) => {
         },
         [executeInpainting]
     );
+
+    /**
+     * Opens the image generation modal with optional prefill data
+     * @param {Object} prefillData - Optional data to prefill the modal
+     * @param {string} prefillData.initialTab - Which tab to open ('prompt' | 'inpainting')
+     * @param {string} prefillData.prompt - Text prompt to prefill
+     * @param {Array} prefillData.srcImages - Array of source images [{url: string} | {base64: string}]
+     * @param {string} prefillData.mask - Base64 mask data for inpainting (optional)
+     * @param {string} prefillData.sourceRecordId - ID of the original image record (for reference)
+     */
+    const openImageGenModal = useCallback((prefillData = null) => {
+        dispatch({
+            type: IMAGE_ACTIONS.OPEN_IMAGE_GEN_MODAL,
+            payload: prefillData
+        });
+    }, []);
+
+    const closeImageGenModal = useCallback(() => {
+        dispatch({
+            type: IMAGE_ACTIONS.CLOSE_IMAGE_GEN_MODAL
+        });
+    }, []);
 
     const contextValue = {
         // Image records state
@@ -504,6 +545,12 @@ export const ImageContextProvider = ({ children }) => {
         // Record management
         removeImageRecord,
         updateSelectedImage,
+
+        // Modal state and management
+        isImageGenModalOpen: state.isImageGenModalOpen,
+        imageGenModalPrefillData: state.imageGenModalPrefillData,
+        openImageGenModal,
+        closeImageGenModal,
     };
 
     return <ImageContext.Provider value={contextValue}>{children}</ImageContext.Provider>;

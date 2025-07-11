@@ -1,14 +1,13 @@
 "use client";
 
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { useImageContext } from '@/context/ImageContext';
 import styles from './InpaintingTab.module.css';
 
-const InpaintingTab = ({ onImageGenerated, onClose }) => {
+const InpaintingTab = ({ onClose, prefillData }) => {
     const { 
         imageRecords, 
         startInpaintingGeneration, 
-        pendingGenerations 
     } = useImageContext();
 
     // Display constants (UI size)
@@ -29,10 +28,120 @@ const InpaintingTab = ({ onImageGenerated, onClose }) => {
     // Canvas refs and dimensions
     const backgroundCanvasRef = useRef(null);
     const maskCanvasRef = useRef(null);
-    const [canvasImage, setCanvasImage] = useState(null);
     const [originalImageDimensions, setOriginalImageDimensions] = useState(null);
     const [canvasScale, setCanvasScale] = useState(1);
     const [canvasDisplayStyle, setCanvasDisplayStyle] = useState({});
+
+    // Handle prefill data
+    useEffect(() => {
+        if (prefillData) {
+            // Set prompt
+            if (prefillData.prompt) {
+                setPrompt(prefillData.prompt);
+            }
+
+            // Auto-select image from srcImages (use first one for inpainting)
+            if (prefillData.srcImages && prefillData.srcImages.length > 0) {
+                const firstSrcImage = prefillData.srcImages[0];
+                
+                // Find matching imageRecord by URL
+                if (firstSrcImage.url) {
+                    const matchingRecord = imageRecords.find(record => 
+                        record.imageUrls?.some(url => url === firstSrcImage.url)
+                    );
+                    
+                    if (matchingRecord) {
+                        setSelectedImage(matchingRecord);
+                        loadImageToCanvas(matchingRecord);
+                    }
+                }
+            }
+
+            // Load mask if provided
+            if (prefillData.mask) {
+                // We'll load the mask after the image is loaded
+                // This will be handled in a separate useEffect
+            }
+        }
+    }, [prefillData, imageRecords]);
+
+    // Convert OpenAI format mask back to display format for canvas editing
+    const convertOpenAIMaskToDisplayFormat = useCallback((openaiMaskBase64) => {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => {
+                // Create temporary canvas to process the mask
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = img.width;
+                tempCanvas.height = img.height;
+                const tempCtx = tempCanvas.getContext('2d');
+
+                // Draw the OpenAI mask
+                tempCtx.drawImage(img, 0, 0);
+
+                // Get image data
+                const imageData = tempCtx.getImageData(0, 0, img.width, img.height);
+                const data = imageData.data;
+
+                // Convert from OpenAI format to display format
+                for (let i = 0; i < data.length; i += 4) {
+                    const alpha = data[i + 3];
+
+                    if (alpha === 0) {
+                        // OpenAI transparent (was painted) -> Display white with full opacity
+                        data[i] = 255;     // R
+                        data[i + 1] = 255; // G
+                        data[i + 2] = 255; // B
+                        data[i + 3] = 255; // A (full opacity = 1.0 * 255 = 255)
+                    } else {
+                        // OpenAI opaque (was not painted) -> Display transparent
+                        data[i] = 0;       // R
+                        data[i + 1] = 0;   // G
+                        data[i + 2] = 0;   // B
+                        data[i + 3] = 0;   // A (transparent)
+                    }
+                }
+
+                // Put the converted data back
+                tempCtx.putImageData(imageData, 0, 0);
+
+                // Return as base64
+                resolve(tempCanvas.toDataURL('image/png'));
+            };
+            img.onerror = reject;
+            img.src = openaiMaskBase64;
+        });
+    }, []);
+
+    // Load prefilled mask onto canvas
+    useEffect(() => {
+        if (prefillData?.mask && selectedImage && originalImageDimensions) {
+            const maskCanvas = maskCanvasRef.current;
+            if (!maskCanvas) return;
+
+            const ctx = maskCanvas.getContext('2d');
+            
+            // Convert OpenAI format mask to display format first
+            convertOpenAIMaskToDisplayFormat(prefillData.mask)
+                .then((displayFormatMask) => {
+                    const img = new Image();
+                    
+                    img.onload = () => {
+                        // Clear existing mask
+                        ctx.clearRect(0, 0, originalImageDimensions.width, originalImageDimensions.height);
+
+                        // Draw the converted mask in display format
+                        ctx.drawImage(img, 0, 0, originalImageDimensions.width, originalImageDimensions.height);
+                        setHasDrawnMask(true);
+                    };
+                    
+                    img.src = displayFormatMask;
+                })
+                .catch((error) => {
+                    console.error('Failed to convert mask format:', error);
+                });
+        }
+    }, [prefillData?.mask, selectedImage, originalImageDimensions, convertOpenAIMaskToDisplayFormat]);
 
     // Clear mask function
     const clearMask = useCallback(() => {
@@ -117,8 +226,6 @@ const InpaintingTab = ({ onImageGenerated, onClose }) => {
                 maskCanvas.height = originalHeight;
                 maskCtx.clearRect(0, 0, originalWidth, originalHeight);
             }
-
-            setCanvasImage(img);
         };
         img.src = imageUrl;
     }, []);
@@ -278,7 +385,10 @@ const InpaintingTab = ({ onImageGenerated, onClose }) => {
 
     // Handle generation with actual API call
     const handleGenerate = useCallback(async () => {
-        if (!selectedImage || !hasDrawnMask || !prompt.trim()) {
+        // Allow generation with prefill data even without drawn mask
+        const canGenerate = selectedImage && prompt.trim() && (hasDrawnMask || prefillData);
+        
+        if (!canGenerate) {
             return;
         }
 
@@ -287,10 +397,19 @@ const InpaintingTab = ({ onImageGenerated, onClose }) => {
 
         try {
             // Get mask data for API call
-            const maskBase64 = getMaskAsBase64();
-
-            if (!maskBase64) {
-                throw new Error('Failed to generate mask data');
+            let maskBase64;
+            
+            if (hasDrawnMask) {
+                // Use drawn mask
+                maskBase64 = getMaskAsBase64();
+                if (!maskBase64) {
+                    throw new Error('Failed to generate mask data');
+                }
+            } else if (prefillData?.mask) {
+                // Use prefilled mask
+                maskBase64 = prefillData.mask;
+            } else {
+                throw new Error('No mask available for inpainting');
             }
 
             // Call the inpainting generation function with ImageContext API
@@ -313,6 +432,7 @@ const InpaintingTab = ({ onImageGenerated, onClose }) => {
         selectedImage,
         hasDrawnMask,
         prompt,
+        prefillData,
         getMaskAsBase64,
         startInpaintingGeneration,
         onClose
@@ -494,7 +614,7 @@ const InpaintingTab = ({ onImageGenerated, onClose }) => {
                             <button
                                 className={styles.generateButton}
                                 onClick={handleGenerate}
-                                disabled={!selectedImage || !hasDrawnMask || !prompt.trim() || isGenerating}
+                                disabled={!selectedImage || (!hasDrawnMask && !prefillData) || !prompt.trim() || isGenerating}
                             >
                                 {isGenerating ? 'Generating Images...' : 'Generate'}
                             </button>

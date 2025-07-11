@@ -1,21 +1,37 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
+import { useImageContext } from '@/context/ImageContext';
 import PromptTab from './tabs/PromptTab';
 import InpaintingTab from './tabs/InpaintingTab';
 import styles from './ImageGenModal.module.css';
 
-const ImageGenModal = ({ isOpen, onClose }) => {
+const ImageGenModal = () => {
+    const { 
+        isImageGenModalOpen, 
+        imageGenModalPrefillData, 
+        closeImageGenModal 
+    } = useImageContext();
+    
     const [activeTab, setActiveTab] = useState('prompt');
+
+    // Set initial tab based on prefill data
+    useEffect(() => {
+        if (imageGenModalPrefillData?.initialTab) {
+            setActiveTab(imageGenModalPrefillData.initialTab);
+        } else {
+            setActiveTab('prompt');
+        }
+    }, [imageGenModalPrefillData]);
 
     useEffect(() => {
         const handleEscape = (e) => {
             if (e.key === 'Escape') {
-                onClose();
+                closeImageGenModal();
             }
         };
 
-        if (isOpen) {
+        if (isImageGenModalOpen) {
             document.addEventListener('keydown', handleEscape);
             document.body.style.overflow = 'hidden';
         }
@@ -24,13 +40,13 @@ const ImageGenModal = ({ isOpen, onClose }) => {
             document.removeEventListener('keydown', handleEscape);
             document.body.style.overflow = 'unset';
         };
-    }, [isOpen, onClose]);
+    }, [isImageGenModalOpen, closeImageGenModal]);
 
-    if (!isOpen) return null;
+    if (!isImageGenModalOpen) return null;
 
     const handleOverlayClick = (e) => {
         if (e.target === e.currentTarget) {
-            onClose();
+            closeImageGenModal();
         }
     };
 
@@ -41,9 +57,9 @@ const ImageGenModal = ({ isOpen, onClose }) => {
     const renderTabContent = () => {
         switch (activeTab) {
             case 'prompt':
-                return <PromptTab onClose={onClose} />;
+                return <PromptTab onClose={closeImageGenModal} prefillData={imageGenModalPrefillData} />;
             case 'inpainting':
-                return <InpaintingTab onClose={onClose} />;
+                return <InpaintingTab onClose={closeImageGenModal} prefillData={imageGenModalPrefillData} />;
             default:
                 return null;
         }
@@ -52,7 +68,7 @@ const ImageGenModal = ({ isOpen, onClose }) => {
     return (
         <div className={styles.overlay} onClick={handleOverlayClick}>
             <div className={styles.modal}>
-                <button className={styles.closeButton} onClick={onClose}>
+                <button className={styles.closeButton} onClick={closeImageGenModal}>
                     ×
                 </button>
 
