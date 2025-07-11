@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { klingClient } from '@/service/kling';
+import { klingClient, KlingThrottleError } from '@/service/kling';
 
 export async function POST(request, { params }) {
     /** 
@@ -38,6 +38,12 @@ export async function POST(request, { params }) {
         return NextResponse.json(data);
     } catch (error) {
         console.error('Error extending video:', error);
+        
+        // Check if this is a throttling error
+        if (error instanceof KlingThrottleError) {
+            return NextResponse.json({ error: error.message }, { status: 429 });
+        }
+        
         return NextResponse.json(
             { error: error.message },
             { status: 500 }
