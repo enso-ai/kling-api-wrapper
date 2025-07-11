@@ -1,6 +1,14 @@
 // Server-side utilities for interacting with the Kling API
 const API_DOMAIN = 'https://api.klingai.com';
 
+// Custom exception class for throttling errors
+class KlingThrottleError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'KlingThrottleError';
+    }
+}
+
 const parseKlingKeys = () => {
     const keyString = process.env.KLING_KEYS || '';
     const keySets = keyString.split(',').map((set) => set.trim());
@@ -41,14 +49,21 @@ const keyPicker = (history) => {
 const TOKEN_EXPIRATION = parseInt(process.env.KLING_TOKEN_EXPIRATION || '1800', 10);
 
 // Token generation for Kling API authentication
-async function generateToken() {
+async function generateToken(keySet = null) {
+    // Use provided keySet or pick the first available key
+    const currentKey = keySet || (KlingKeys.length > 0 ? KlingKeys[0] : null);
+    
+    if (!currentKey) {
+        throw new Error('No Kling API keys available');
+    }
+
     const headers = {
         alg: 'HS256',
         typ: 'JWT',
     };
 
     const payload = {
-        iss: ACCESS_KEY,
+        iss: currentKey.accessKey,
         exp: Math.floor(Date.now() / 1000) + TOKEN_EXPIRATION, // Valid for 30 minutes by default
         nbf: Math.floor(Date.now() / 1000) - 5, // Valid from 5 seconds ago
     };
@@ -66,7 +81,7 @@ async function generateToken() {
 
     const key = await crypto.subtle.importKey(
         'raw',
-        new TextEncoder().encode(SECRET_KEY),
+        new TextEncoder().encode(currentKey.secretKey),
         { name: 'HMAC', hash: 'SHA-256' },
         false,
         ['sign']
@@ -95,7 +110,14 @@ async function createVideoOnKlingAPI(videoOptions) {
     const data = await response.json();
 
     if (!response.ok) {
-        throw new Error(`Kling API error: ${data.message || 'Unknown error'}`);
+        const errorMessage = data.message || 'Unknown error';
+        
+        // Check if this is a throttling error
+        if (errorMessage.includes('parallel task over resource pack limit')) {
+            throw new KlingThrottleError(errorMessage);
+        }
+        
+        throw new Error(`Kling API error: ${errorMessage}`);
     }
 
     return data;
@@ -170,7 +192,14 @@ async function extendVideoOnKlingAPI(videoId, extensionOptions = {}) {
     const data = await response.json();
 
     if (!response.ok) {
-        throw new Error(`Kling API error: ${data.message || 'Unknown error'}`);
+        const errorMessage = data.message || 'Unknown error';
+        
+        // Check if this is a throttling error
+        if (errorMessage.includes('parallel task over resource pack limit')) {
+            throw new KlingThrottleError(errorMessage);
+        }
+        
+        throw new Error(`Kling API error: ${errorMessage}`);
     }
 
     return data;
@@ -229,8 +258,9 @@ export const klingClient = {
     extendVideoOnKlingAPI,
     getExtensionTaskByIdFromKlingAPI,
     listExtensionTasksFromKlingAPI,
-    ACCESS_KEY,
-    SECRET_KEY,
     API_DOMAIN,
     TOKEN_EXPIRATION,
 };
+
+// Export the custom error class
+export { KlingThrottleError };
