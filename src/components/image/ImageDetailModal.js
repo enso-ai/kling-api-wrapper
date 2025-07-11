@@ -148,12 +148,6 @@ export default function ImageDetailModal({ imageRecordId, onClose }) {
                                         {formatCreatedAt(imageRecord.createdAt)}
                                     </span>
                                 </div>
-                                <div className={styles.infoRow}>
-                                    <span className={styles.infoLabel}>Model:</span>
-                                    <span className={styles.infoValue}>
-                                        {imageRecord.modelName || 'Unknown'}
-                                    </span>
-                                </div>
                                 {hasMultipleImages && (
                                     <div className={styles.infoRow}>
                                         <span className={styles.infoLabel}>Images:</span>
