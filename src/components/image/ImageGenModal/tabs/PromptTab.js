@@ -12,7 +12,7 @@ const PromptTab = ({ onClose }) => {
     // State management
     const [referenceImageStack, setReferenceImageStack] = useState([]);
     const [prompt, setPrompt] = useState('');
-    const [numberOfImages, setNumberOfImages] = useState(1);
+    const [numberOfImages, setNumberOfImages] = useState(4);
     const [isGenerating, setIsGenerating] = useState(false);
     const [generationError, setGenerationError] = useState(null);
     const [validationError, setValidationError] = useState(null);
