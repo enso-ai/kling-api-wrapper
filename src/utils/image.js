@@ -69,3 +69,194 @@ export const getFirstSrcImageUrl = (srcImages) => {
     if (!hasSrcImages(srcImages)) return null;
     return getSrcImageUrl(srcImages[0]);
 };
+
+/**
+ * Convert any image file to PNG format using Canvas
+ */
+export const convertImageToPng = (file, quality = 1.0) => {
+  return new Promise((resolve, reject) => {
+    // Validate input
+    if (!file || !file.type.startsWith('image/')) {
+      reject(new Error('Invalid image file'));
+      return;
+    }
+
+    const img = new Image();
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+
+    img.onload = () => {
+      try {
+        // Set canvas dimensions to match image
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+
+        // Draw image to canvas
+        ctx.drawImage(img, 0, 0);
+
+        // Convert to PNG blob
+        canvas.toBlob(
+          (blob) => {
+            if (blob) {
+              // Clean up object URL
+              URL.revokeObjectURL(img.src);
+              resolve(blob);
+            } else {
+              reject(new Error('Failed to convert image to PNG'));
+            }
+          },
+          'image/png',
+          quality
+        );
+      } catch (error) {
+        reject(new Error(`Canvas error: ${error.message}`));
+      }
+    };
+
+    img.onerror = () => {
+      URL.revokeObjectURL(img.src);
+      reject(new Error('Failed to load image'));
+    };
+
+    // Create object URL and load image
+    img.src = URL.createObjectURL(file);
+  });
+};
+
+/**
+ * Convert image with optional resizing
+ */
+export const convertAndResizeImage = (file, maxWidth = null, maxHeight = null, quality = 1.0) => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+
+    img.onload = () => {
+      let { width, height } = img;
+
+      // Calculate new dimensions if max sizes provided
+      if (maxWidth && width > maxWidth) {
+        height = (height * maxWidth) / width;
+        width = maxWidth;
+      }
+      if (maxHeight && height > maxHeight) {
+        width = (width * maxHeight) / height;
+        height = maxHeight;
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+
+      // Draw resized image
+      ctx.drawImage(img, 0, 0, width, height);
+
+      canvas.toBlob(resolve, 'image/png', quality);
+      URL.revokeObjectURL(img.src);
+    };
+
+    img.onerror = () => {
+      URL.revokeObjectURL(img.src);
+      reject(new Error('Failed to load image'));
+    };
+
+    img.src = URL.createObjectURL(file);
+  });
+};
+
+/**
+ * Process image file and convert to data URL
+ * @param {File} file - The image file to process
+ * @returns {Promise<string>} - Promise that resolves to data URL
+ */
+export const processImageFile = (file) => {
+  return new Promise((resolve, reject) => {
+    if (!file || !file.type.startsWith('image/')) {
+      reject(new Error('Invalid image file'));
+      return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = (e) => resolve(e.target.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+};
+
+/**
+ * Process clipboard paste event and extract image files
+ * @param {ClipboardEvent} event - The paste event
+ * @param {Function} onFileProcessed - Callback function to handle each file
+ * @returns {boolean} - True if image files were found and processed
+ */
+export const processClipboardPaste = (event, onFileProcessed) => {
+  const items = event.clipboardData?.items;
+  if (!items) return false;
+  
+  let foundImage = false;
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    if (item.type.startsWith('image/')) {
+      const file = item.getAsFile();
+      if (file) {
+        onFileProcessed(file);
+        foundImage = true;
+      }
+    }
+  }
+  return foundImage;
+};
+
+/**
+ * Create drag and drop event handlers
+ * @param {Function} onFilesDropped - Callback function to handle dropped files
+ * @param {boolean} disabled - Whether drag and drop is disabled
+ * @returns {Object} - Object containing drag event handlers
+ */
+export const createDragHandlers = (onFilesDropped, disabled = false) => {
+  return {
+    handleDragEnter: (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!disabled) {
+        return true; // Indicate drag over state should be set
+      }
+      return false;
+    },
+    
+    handleDragLeave: (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      // Only set dragOver to false if we're leaving the drop zone entirely
+      if (!e.currentTarget.contains(e.relatedTarget)) {
+        return true; // Indicate drag over state should be cleared
+      }
+      return false;
+    },
+    
+    handleDragOver: (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!disabled) {
+        return true; // Indicate drag over state should be set
+      }
+      return false;
+    },
+    
+    handleDrop: (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      if (disabled) return false;
+      
+      const files = Array.from(e.dataTransfer.files);
+      const imageFiles = files.filter(file => file.type.startsWith('image/'));
+      
+      if (imageFiles.length > 0) {
+        onFilesDropped(imageFiles);
+        return true; // Indicate successful drop
+      }
+      return false;
+    }
+  };
+};
