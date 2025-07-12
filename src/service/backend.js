@@ -271,6 +271,7 @@ const createApiClient = () => {
      * @param {Object} options - Image generation options (required)
      * @param {string} options.prompt - Text description of the image to generate (required)
      * @param {string} options.asset_type - Asset type for GCS organization (required)
+     * @param {string} [options.size] - Image size specification (e.g., "1024x1536" for portrait, "1536x1024" for landscape)
      * @param {number} [options.n=1] - Number of images to generate (1-10, default: 1)
      * @returns {Promise<Object>} Generation response with image URLs and metadata
      */
@@ -310,6 +311,7 @@ const createApiClient = () => {
      * @param {Object} options - Image extension options (required)
      * @param {string[]} options.image_urls - Array of image URLs to extend (max 10 images, required)
      * @param {string} options.prompt - Description of how to extend the images (required)
+     * @param {string} [options.size] - Image size specification (e.g., "1024x1536" for portrait, "1536x1024" for landscape)
      * @param {number} [options.n=1] - Number of extended images to generate (1-10, default: 1)
      * @returns {Promise<Object>} Extension response with image URLs and metadata
      */
@@ -351,6 +353,7 @@ const createApiClient = () => {
      * @param {string} options.mask - Mask defining areas to modify (required)
      * @param {string} options.prompt - Description of the desired changes (required)
      * @param {string} options.asset_type - Asset type for GCS organization (required)
+     * @param {string} [options.size] - Image size specification (e.g., "1024x1536" for portrait, "1536x1024" for landscape)
      * @param {number} [options.n=1] - Number of inpainted images to generate (1-10, default: 1)
      * @returns {Promise<Object>} Inpainting response with image URLs and metadata
      */
