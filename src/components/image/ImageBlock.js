@@ -1,63 +1,28 @@
 import React from 'react';
 import styles from './ImageBlock.module.css';
 import { useImageContext } from '@/context/ImageContext';
-import { FaChevronLeft, FaChevronRight, FaPencilAlt, FaPaintBrush, FaTrash, FaDownload } from 'react-icons/fa';
+import { FaChevronLeft, FaChevronRight, FaTrash, FaDownload } from 'react-icons/fa';
 import { downloadImage } from '@/utils/download';
+import EditButton from './EditButton';
+import InpaintingButton from './InpaintingButton';
 
-export default function ImageBlock({ imageRecord, onOpenModal }) {
-    const { removeImageRecord, updateSelectedImage, openImageGenModal } = useImageContext();
+function ImageBlock({ imageRecord, onOpenDetailModal }) {
+    const { removeImageRecord, updateSelectedImage } = useImageContext();
 
     const handleImageClick = () => {
-        if (onOpenModal) {
-            onOpenModal(imageRecord);
+        if (onOpenDetailModal) {
+            onOpenDetailModal(imageRecord);
         }
-    };
-
-    const handleEditClick = (e) => {
-        e.stopPropagation();
-        
-        // Create prefill data based on imageRecord
-        const prefillData = {
-            initialTab: imageRecord.mask ? 'inpainting' : 'prompt',
-            prompt: imageRecord.prompt,
-            srcImages: imageRecord.srcImages,
-            mask: imageRecord.mask,
-            size: imageRecord.size,
-            sourceRecordId: imageRecord.id
-        };
-        
-        // Open modal with prefill data
-        openImageGenModal(prefillData);
-    };
-
-    const handleBrushClick = (e) => {
-        e.stopPropagation();
-        
-        // Get current image URL
-        const currentIdx = imageRecord.selectedImageIdx || 0;
-        const currentImageUrl = imageRecord.imageUrls[currentIdx];
-        
-        // Create minimal prefill data for fresh inpainting
-        const prefillData = {
-            initialTab: 'inpainting',
-            srcImages: [{ url: currentImageUrl }],
-            // Intentionally leave prompt and mask empty for fresh start
-            prompt: '',
-            mask: null,
-            size: imageRecord.size,
-            sourceRecordId: imageRecord.id // For reference only
-        };
-        
-        // Open modal with minimal prefill data
-        openImageGenModal(prefillData);
     };
 
     const handleDeleteClick = async (e) => {
         e.stopPropagation();
-        
+
         // Show confirmation dialog
-        const confirmed = window.confirm('Are you sure you want to delete this image? This action cannot be undone.');
-        
+        const confirmed = window.confirm(
+            'Are you sure you want to delete this image? This action cannot be undone.'
+        );
+
         if (confirmed) {
             try {
                 await removeImageRecord(imageRecord.id);
@@ -96,17 +61,11 @@ export default function ImageBlock({ imageRecord, onOpenModal }) {
     const ControlButtons = () => {
         return (
             <div className={styles.controls}>
-                <button
-                    className={styles.iconButton}
-                    onClick={handleEditClick}
-                    title="Edit image"
-                >
-                    <FaPencilAlt />
-                </button>
+                <EditButton imageRecord={imageRecord} className={styles.iconButton} />
                 <button
                     className={styles.deleteButton}
                     onClick={handleDeleteClick}
-                    title="Delete image"
+                    title='Delete image'
                 >
                     <FaTrash />
                 </button>
@@ -119,9 +78,7 @@ export default function ImageBlock({ imageRecord, onOpenModal }) {
         return (
             <div className={styles.placeholder}>
                 <div>
-                    <div className={styles.placeholderText}>
-                        No Image returned
-                    </div>
+                    <div className={styles.placeholderText}>No Image returned</div>
                     {imageRecord && (
                         <div className={styles.placeholderSubtext}>
                             ID: {imageRecord.id?.slice(0, 8)}...
@@ -135,22 +92,16 @@ export default function ImageBlock({ imageRecord, onOpenModal }) {
 
     const ImageBasedActions = () => (
         <div className={styles.imageBasedActions}>
-            <button
-                className={styles.imageBasedAction}
-                onClick={handleBrushClick}
-                title="Brush tool"
-            >
-                <FaPaintBrush />
-            </button>
+            <InpaintingButton imageRecord={imageRecord} className={styles.imageBasedAction} />
             <button
                 className={styles.imageBasedAction}
                 onClick={handleDownloadClick}
-                title="Download image"
+                title='Download image'
             >
                 <FaDownload />
             </button>
         </div>
-    )
+    );
 
     // Image content component
     const ImageContent = () => {
@@ -165,7 +116,7 @@ export default function ImageBlock({ imageRecord, onOpenModal }) {
                     alt={imageRecord.prompt || 'Generated image'}
                     className={styles.image}
                 />
-                
+
                 {/* Navigation arrows for multiple images */}
                 {hasMultipleImages && (
                     <>
@@ -173,17 +124,17 @@ export default function ImageBlock({ imageRecord, onOpenModal }) {
                             <button
                                 className={`${styles.navButton} ${styles.prevButton}`}
                                 onClick={handlePrevImage}
-                                title="Previous image"
+                                title='Previous image'
                             >
                                 <FaChevronLeft />
                             </button>
                         )}
-                        
+
                         {currentIdx < imageRecord.imageUrls.length - 1 && (
                             <button
                                 className={`${styles.navButton} ${styles.nextButton}`}
                                 onClick={handleNextImage}
-                                title="Next image"
+                                title='Next image'
                             >
                                 <FaChevronRight />
                             </button>
@@ -200,14 +151,14 @@ export default function ImageBlock({ imageRecord, onOpenModal }) {
 
                 <ControlButtons showBrush={true} />
                 {/* Action applied on image */}
-                <ImageBasedActions/>
+                <ImageBasedActions />
             </div>
         );
     };
 
     const renderContent = () => {
         const hasImages = imageRecord?.imageUrls && imageRecord.imageUrls.length > 0;
-        
+
         switch (hasImages) {
             case true:
                 return <ImageContent />;
@@ -223,3 +174,5 @@ export default function ImageBlock({ imageRecord, onOpenModal }) {
         </div>
     );
 }
+
+export default React.memo(ImageBlock);

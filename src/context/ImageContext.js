@@ -1,4 +1,12 @@
-import React, { createContext, useContext, useReducer, useCallback, useRef, useEffect } from 'react';
+import React, {
+    createContext,
+    useContext,
+    useReducer,
+    useCallback,
+    useRef,
+    useEffect,
+    useMemo,
+} from 'react';
 import { apiClient } from '@/service/backend';
 import ImageRecord from '@/models/ImageRecord';
 import { db, loadImageRecordsPage, getTotalImageRecordsCount } from '@/service/database';
@@ -17,22 +25,17 @@ const IMAGE_ACTIONS = {
     SET_LOADING_STATE: 'SET_LOADING_STATE',
     SET_PAGINATION: 'SET_PAGINATION',
     UPDATE_SELECTED_IMAGE: 'UPDATE_SELECTED_IMAGE',
-    OPEN_IMAGE_GEN_MODAL: 'OPEN_IMAGE_GEN_MODAL',
-    CLOSE_IMAGE_GEN_MODAL: 'CLOSE_IMAGE_GEN_MODAL',
 };
 
 // Initial state
 const initialState = {
     imageRecords: [],
     pendingGenerations: [],
-    isLoaded: false,        // Set to true after initial database load completes (success or error)
+    isLoaded: false, // Set to true after initial database load completes (success or error)
     currentPage: 1,
     hasMoreImages: true,
-    isLoadingMore: false,   // Set to true when pagination loading is in progress
+    isLoadingMore: false, // Set to true when pagination loading is in progress
     totalImages: 0,
-    // Modal state
-    isImageGenModalOpen: false,
-    imageGenModalPrefillData: null,
 };
 
 // Reducer
@@ -75,7 +78,7 @@ function imageReducer(state, action) {
         case IMAGE_ACTIONS.REMOVE_RECORD:
             return {
                 ...state,
-                imageRecords: state.imageRecords.filter(record => record.id !== action.payload),
+                imageRecords: state.imageRecords.filter((record) => record.id !== action.payload),
                 totalImages: state.totalImages - 1,
             };
 
@@ -94,25 +97,11 @@ function imageReducer(state, action) {
         case IMAGE_ACTIONS.UPDATE_SELECTED_IMAGE:
             return {
                 ...state,
-                imageRecords: state.imageRecords.map(record => 
-                    record.id === action.payload.recordId 
+                imageRecords: state.imageRecords.map((record) =>
+                    record.id === action.payload.recordId
                         ? { ...record, selectedImageIdx: action.payload.selectedImageIdx }
                         : record
                 ),
-            };
-
-        case IMAGE_ACTIONS.OPEN_IMAGE_GEN_MODAL:
-            return {
-                ...state,
-                isImageGenModalOpen: true,
-                imageGenModalPrefillData: action.payload,
-            };
-
-        case IMAGE_ACTIONS.CLOSE_IMAGE_GEN_MODAL:
-            return {
-                ...state,
-                isImageGenModalOpen: false,
-                imageGenModalPrefillData: null,
             };
 
         default:
@@ -126,7 +115,7 @@ const ImageContext = createContext();
 // Provider component
 export const ImageContextProvider = ({ children }) => {
     const [state, dispatch] = useReducer(imageReducer, initialState);
-    
+
     // Use ref to access current state in async functions
     const stateRef = useRef(state);
     useEffect(() => {
@@ -141,7 +130,7 @@ export const ImageContextProvider = ({ children }) => {
                 const total = await getTotalImageRecordsCount();
                 dispatch({
                     type: IMAGE_ACTIONS.SET_PAGINATION,
-                    payload: { totalImages: total }
+                    payload: { totalImages: total },
                 });
 
                 // Load first page
@@ -160,7 +149,7 @@ export const ImageContextProvider = ({ children }) => {
 
                 dispatch({
                     type: IMAGE_ACTIONS.SET_RECORDS,
-                    payload: records
+                    payload: records,
                 });
 
                 dispatch({
@@ -168,14 +157,14 @@ export const ImageContextProvider = ({ children }) => {
                     payload: {
                         currentPage: 1,
                         hasMoreImages: total > MAX_RECORDS,
-                        isLoaded: true
-                    }
+                        isLoaded: true,
+                    },
                 });
             } catch (error) {
                 console.error('Failed to load image records from database:', error);
                 dispatch({
                     type: IMAGE_ACTIONS.SET_LOADING_STATE,
-                    payload: { isLoaded: true }
+                    payload: { isLoaded: true },
                 });
             }
         };
@@ -196,69 +185,75 @@ export const ImageContextProvider = ({ children }) => {
     }, []);
 
     // Add images - handles both state and persistence
-    const addImages = useCallback(async (imageUrls, generationSources) => {
-        try {
-            // Create ImageRecord instance with array of URLs
-            const imageRecord = new ImageRecord({
-                modelName: 'gpt-image-1', // Default model for now
-                srcImages: generationSources.referenceImages || [],
-                mask: generationSources.mask || null,
-                prompt: generationSources.prompt,
-                size: generationSources.size || null,
-                imageUrls: imageUrls,
-            });
+    const addImages = useCallback(
+        async (imageUrls, generationSources) => {
+            try {
+                // Create ImageRecord instance with array of URLs
+                const imageRecord = new ImageRecord({
+                    modelName: 'gpt-image-1', // Default model for now
+                    srcImages: generationSources.referenceImages || [],
+                    mask: generationSources.mask || null,
+                    prompt: generationSources.prompt,
+                    size: generationSources.size || null,
+                    imageUrls: imageUrls,
+                });
 
-            // Add selectedImageIdx in memory (default to first image)
-            imageRecord.selectedImageIdx = 0;
+                // Add selectedImageIdx in memory (default to first image)
+                imageRecord.selectedImageIdx = 0;
 
-            // Save to database
-            await saveRecordToDB(imageRecord);
+                // Save to database
+                await saveRecordToDB(imageRecord);
 
-            // Add to state
-            dispatch({
-                type: IMAGE_ACTIONS.ADD_RECORD,
-                payload: imageRecord
-            });
+                // Add to state
+                dispatch({
+                    type: IMAGE_ACTIONS.ADD_RECORD,
+                    payload: imageRecord,
+                });
 
-            return { imageRecord };
-        } catch (error) {
-            console.error('Error adding image record:', error);
-            throw error;
-        }
-    }, [saveRecordToDB]);
+                return { imageRecord };
+            } catch (error) {
+                console.error('Error adding image record:', error);
+                throw error;
+            }
+        },
+        [saveRecordToDB]
+    );
 
     // Update selected image index for a record
     const updateSelectedImage = useCallback((recordId, newIndex) => {
         dispatch({
             type: IMAGE_ACTIONS.UPDATE_SELECTED_IMAGE,
-            payload: { recordId, selectedImageIdx: newIndex }
+            payload: { recordId, selectedImageIdx: newIndex },
         });
     }, []);
 
     // Remove image record
-    const removeImageRecord = useCallback(async (id) => {
-        try {
-            // Find the image record to get the imageUrls
-            const imageRecord = state.imageRecords.find(record => record.id === id);
-            
-            // Delete from GCS first (if imageUrls exists)
-            if (imageRecord?.imageUrls && imageRecord.imageUrls.length > 0) {
-                await apiClient.deleteImage(imageRecord.imageUrls);
+    const removeImageRecord = useCallback(
+        async (id) => {
+            try {
+                // Find the image record to get the imageUrls
+                const imageRecord = state.imageRecords.find((record) => record.id === id);
+
+                // Delete from GCS first (if imageUrls exists)
+                if (imageRecord?.imageUrls && imageRecord.imageUrls.length > 0) {
+                    await apiClient.deleteImage(imageRecord.imageUrls);
+                }
+
+                // Delete from local database
+                await db.imageRecords.delete(id);
+
+                // Update UI state
+                dispatch({
+                    type: IMAGE_ACTIONS.REMOVE_RECORD,
+                    payload: id,
+                });
+            } catch (error) {
+                console.error('Error deleting image record:', error);
+                throw error;
             }
-            
-            // Delete from local database
-            await db.imageRecords.delete(id);
-            
-            // Update UI state
-            dispatch({
-                type: IMAGE_ACTIONS.REMOVE_RECORD,
-                payload: id
-            });
-        } catch (error) {
-            console.error('Error deleting image record:', error);
-            throw error;
-        }
-    }, [state.imageRecords]);
+        },
+        [state.imageRecords]
+    );
 
     // Load more images (lazy loading)
     const loadMoreImages = useCallback(async () => {
@@ -266,7 +261,7 @@ export const ImageContextProvider = ({ children }) => {
 
         dispatch({
             type: IMAGE_ACTIONS.SET_LOADING_STATE,
-            payload: { isLoadingMore: true }
+            payload: { isLoadingMore: true },
         });
 
         try {
@@ -276,7 +271,7 @@ export const ImageContextProvider = ({ children }) => {
             if (moreRecords.length === 0) {
                 dispatch({
                     type: IMAGE_ACTIONS.SET_PAGINATION,
-                    payload: { hasMoreImages: false, isLoadingMore: false }
+                    payload: { hasMoreImages: false, isLoadingMore: false },
                 });
                 return;
             }
@@ -295,7 +290,7 @@ export const ImageContextProvider = ({ children }) => {
             // Append to existing records
             dispatch({
                 type: IMAGE_ACTIONS.APPEND_RECORDS,
-                payload: records
+                payload: records,
             });
 
             // Check if we have more images to load
@@ -305,17 +300,23 @@ export const ImageContextProvider = ({ children }) => {
                 payload: {
                     currentPage: nextPage,
                     hasMoreImages: totalLoaded < state.totalImages,
-                    isLoadingMore: false
-                }
+                    isLoadingMore: false,
+                },
             });
         } catch (error) {
             console.error('Failed to load more images:', error);
             dispatch({
                 type: IMAGE_ACTIONS.SET_LOADING_STATE,
-                payload: { isLoadingMore: false }
+                payload: { isLoadingMore: false },
             });
         }
-    }, [state.currentPage, state.hasMoreImages, state.isLoadingMore, state.totalImages, state.imageRecords]);
+    }, [
+        state.currentPage,
+        state.hasMoreImages,
+        state.isLoadingMore,
+        state.totalImages,
+        state.imageRecords,
+    ]);
 
     const executeImageGeneration = useCallback(
         async (generationId, isTextOnly, prompt, selectedImages, numberOfImages, size) => {
@@ -445,11 +446,11 @@ export const ImageContextProvider = ({ children }) => {
                 }
 
                 // Collect all generated image URLs
-                const allImageUrls = result.data?.images.map(img => img.imageUrl);
+                const allImageUrls = result.data?.images.map((img) => img.imageUrl);
                 const generationSources = {
                     type: 'inpainting',
                     prompt: prompt.trim(),
-                    referenceImages: [{url:inputImageUrl}],
+                    referenceImages: [{ url: inputImageUrl }],
                     mask: maskImage,
                     size: size,
                     revisedPrompt: result.data?.images[0]?.revisedPrompt, // Use first image's revised prompt
@@ -489,7 +490,7 @@ export const ImageContextProvider = ({ children }) => {
                 id: generationId,
                 type: 'inpainting',
                 prompt: prompt.trim(),
-                referenceImages: [{url: inputImageUrl}],
+                referenceImages: [{ url: inputImageUrl }],
                 mask: maskImage,
                 numberOfImages,
                 size,
@@ -511,56 +512,31 @@ export const ImageContextProvider = ({ children }) => {
         [executeInpainting]
     );
 
-    /**
-     * Opens the image generation modal with optional prefill data
-     * @param {Object} prefillData - Optional data to prefill the modal
-     * @param {string} prefillData.initialTab - Which tab to open ('prompt' | 'inpainting')
-     * @param {string} prefillData.prompt - Text prompt to prefill
-     * @param {Array} prefillData.srcImages - Array of source images [{url: string} | {base64: string}]
-     * @param {string} prefillData.mask - Base64 mask data for inpainting (optional)
-     * @param {string} prefillData.sourceRecordId - ID of the original image record (for reference)
-     */
-    const openImageGenModal = useCallback((prefillData = null) => {
-        dispatch({
-            type: IMAGE_ACTIONS.OPEN_IMAGE_GEN_MODAL,
-            payload: prefillData
-        });
-    }, []);
+    const contextValue = useMemo(
+        () => ({
+            // Image records state
+            imageRecords: state.imageRecords,
+            isLoaded: state.isLoaded,
 
-    const closeImageGenModal = useCallback(() => {
-        dispatch({
-            type: IMAGE_ACTIONS.CLOSE_IMAGE_GEN_MODAL
-        });
-    }, []);
+            // Pagination
+            loadMoreImages,
+            hasMoreImages: state.hasMoreImages,
+            isLoadingMore: state.isLoadingMore,
+            totalImages: state.totalImages,
 
-    const contextValue = {
-        // Image records state
-        imageRecords: state.imageRecords,
-        isLoaded: state.isLoaded,
+            // Pending generations
+            pendingGenerations: state.pendingGenerations,
 
-        // Pagination
-        loadMoreImages,
-        hasMoreImages: state.hasMoreImages,
-        isLoadingMore: state.isLoadingMore,
-        totalImages: state.totalImages,
+            // Generation methods
+            startImageGeneration,
+            startInpaintingGeneration,
 
-        // Pending generations
-        pendingGenerations: state.pendingGenerations,
-
-        // Generation methods
-        startImageGeneration,
-        startInpaintingGeneration,
-
-        // Record management
-        removeImageRecord,
-        updateSelectedImage,
-
-        // Modal state and management
-        isImageGenModalOpen: state.isImageGenModalOpen,
-        imageGenModalPrefillData: state.imageGenModalPrefillData,
-        openImageGenModal,
-        closeImageGenModal,
-    };
+            // Record management
+            removeImageRecord,
+            updateSelectedImage,
+        }),
+        [state]
+    );
 
     return <ImageContext.Provider value={contextValue}>{children}</ImageContext.Provider>;
 };
