@@ -155,7 +155,7 @@ const PromptTab = ({ onClose, prefillData }) => {
             }
             setIsGenerating(false);
         }
-    }, [prompt, referenceImageStack, numberOfImages, startImageGeneration, onClose]);
+    }, [prompt, referenceImageStack, numberOfImages, startImageGeneration, imageSize, onClose]);
 
     return (
         <div className={styles.tabContent}>
