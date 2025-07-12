@@ -179,6 +179,8 @@ const PromptTab = ({ onClose, prefillData }) => {
                     </div>
                 </div>
 
+                <div className={styles.divider}/>
+
                 {/* Right Column - Prompt Input Area */}
                 <div className={styles.rightColumn}>
                     <div className={styles.promptInputPanel}>
