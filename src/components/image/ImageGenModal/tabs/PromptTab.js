@@ -27,6 +27,11 @@ const PromptTab = ({ onClose, prefillData }) => {
                 setPrompt(prefillData.prompt);
             }
 
+            // Set size
+            if (prefillData.size) {
+                setImageSize(prefillData.size);
+            }
+
             // Convert srcImages to referenceImageStack format
             if (prefillData.srcImages && prefillData.srcImages.length > 0) {
                 const convertedStack = prefillData.srcImages.map((srcImage, index) => ({

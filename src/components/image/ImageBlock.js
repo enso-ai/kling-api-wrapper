@@ -22,6 +22,7 @@ export default function ImageBlock({ imageRecord, onOpenModal }) {
             prompt: imageRecord.prompt,
             srcImages: imageRecord.srcImages,
             mask: imageRecord.mask,
+            size: imageRecord.size,
             sourceRecordId: imageRecord.id
         };
         
@@ -43,6 +44,7 @@ export default function ImageBlock({ imageRecord, onOpenModal }) {
             // Intentionally leave prompt and mask empty for fresh start
             prompt: '',
             mask: null,
+            size: imageRecord.size,
             sourceRecordId: imageRecord.id // For reference only
         };
         

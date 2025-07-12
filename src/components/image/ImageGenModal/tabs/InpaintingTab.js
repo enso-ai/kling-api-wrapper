@@ -39,6 +39,11 @@ const InpaintingTab = ({ onClose, prefillData }) => {
                 setPrompt(prefillData.prompt);
             }
 
+            // Set size
+            if (prefillData.size) {
+                setImageSize(prefillData.size);
+            }
+
             // Auto-select image from srcImages (use first one for inpainting)
             if (prefillData.srcImages && prefillData.srcImages.length > 0) {
                 const firstSrcImage = prefillData.srcImages[0];
