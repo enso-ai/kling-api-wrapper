@@ -13,6 +13,9 @@
   overflow-y: auto;
   flex: 1;
   align-content: start;
+
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
 }
 
 .gridItem {
