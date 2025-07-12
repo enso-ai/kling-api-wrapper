@@ -204,6 +204,7 @@ export const ImageContextProvider = ({ children }) => {
                 srcImages: generationSources.referenceImages || [],
                 mask: generationSources.mask || null,
                 prompt: generationSources.prompt,
+                size: generationSources.size || null,
                 imageUrls: imageUrls,
             });
 
@@ -317,7 +318,7 @@ export const ImageContextProvider = ({ children }) => {
     }, [state.currentPage, state.hasMoreImages, state.isLoadingMore, state.totalImages, state.imageRecords]);
 
     const executeImageGeneration = useCallback(
-        async (generationId, isTextOnly, prompt, selectedImages, numberOfImages) => {
+        async (generationId, isTextOnly, prompt, selectedImages, numberOfImages, size) => {
             try {
                 let result;
 
@@ -326,6 +327,7 @@ export const ImageContextProvider = ({ children }) => {
                     result = await apiClient.generateImage({
                         prompt: prompt.trim(),
                         n: numberOfImages,
+                        size: size,
                         asset_type: 'element_images',
                     });
                 } else {
@@ -334,6 +336,7 @@ export const ImageContextProvider = ({ children }) => {
                         images: selectedImages,
                         prompt: prompt.trim(),
                         n: numberOfImages,
+                        size: size,
                     });
                 }
 
@@ -352,6 +355,7 @@ export const ImageContextProvider = ({ children }) => {
                     type: isTextOnly ? 'text-to-image' : 'image-extension',
                     prompt: prompt.trim(),
                     referenceImages: isTextOnly ? null : selectedImages,
+                    size: size,
                     revisedPrompt: result.data?.images[0]?.revisedPrompt, // Use first image's revised prompt
                 };
 
@@ -377,7 +381,7 @@ export const ImageContextProvider = ({ children }) => {
     );
 
     const startImageGeneration = useCallback(
-        ({ prompt, selectedImages = [], numberOfImages = 1 }) => {
+        ({ prompt, selectedImages = [], numberOfImages = 1, size }) => {
             if (!prompt.trim()) {
                 throw new Error('Prompt is required');
             }
@@ -392,6 +396,7 @@ export const ImageContextProvider = ({ children }) => {
                 prompt: prompt.trim(),
                 referenceImages: isTextOnly ? null : selectedImages,
                 numberOfImages,
+                size,
                 status: 'generating',
                 startTime: Date.now(),
             };
@@ -407,7 +412,8 @@ export const ImageContextProvider = ({ children }) => {
                 isTextOnly,
                 prompt,
                 selectedImages,
-                numberOfImages
+                numberOfImages,
+                size
             );
 
             // Return immediately with generationId
@@ -417,7 +423,7 @@ export const ImageContextProvider = ({ children }) => {
     );
 
     const executeInpainting = useCallback(
-        async (generationId, inputImageUrl, maskImage, prompt, numberOfImages) => {
+        async (generationId, inputImageUrl, maskImage, prompt, numberOfImages, size) => {
             try {
                 // Call inpainting API
                 const result = await apiClient.inpaintImage({
@@ -425,6 +431,7 @@ export const ImageContextProvider = ({ children }) => {
                     mask: maskImage,
                     prompt: prompt.trim(),
                     n: numberOfImages,
+                    size: size,
                     asset_type: 'element_images',
                 });
 
@@ -444,6 +451,7 @@ export const ImageContextProvider = ({ children }) => {
                     prompt: prompt.trim(),
                     referenceImages: [{url:inputImageUrl}],
                     mask: maskImage,
+                    size: size,
                     revisedPrompt: result.data?.images[0]?.revisedPrompt, // Use first image's revised prompt
                 };
 
@@ -469,7 +477,7 @@ export const ImageContextProvider = ({ children }) => {
     );
 
     const startInpaintingGeneration = useCallback(
-        (inputImageUrl, maskImage, prompt, numberOfImages = 3) => {
+        (inputImageUrl, maskImage, prompt, numberOfImages = 3, size) => {
             if (!inputImageUrl || !maskImage || !prompt.trim()) {
                 throw new Error('Image, mask, and prompt are required');
             }
@@ -484,6 +492,7 @@ export const ImageContextProvider = ({ children }) => {
                 referenceImages: [{url: inputImageUrl}],
                 mask: maskImage,
                 numberOfImages,
+                size,
                 status: 'generating',
                 startTime: Date.now(),
             };
@@ -494,7 +503,7 @@ export const ImageContextProvider = ({ children }) => {
             });
 
             // Trigger async execution in background
-            executeInpainting(generationId, inputImageUrl, maskImage, prompt, numberOfImages);
+            executeInpainting(generationId, inputImageUrl, maskImage, prompt, numberOfImages, size);
 
             // Return immediately with generationId
             return { generationId };
