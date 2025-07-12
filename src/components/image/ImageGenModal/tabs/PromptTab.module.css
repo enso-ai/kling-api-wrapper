@@ -207,10 +207,22 @@
 .optionsSection {
   align-self: flex-end;
   flex-shrink: 0;
+  display: grid;
+  grid-template-columns: 100px 250px auto 210px 100px;
+  align-items: center;
+  width: 100%;
+}
+
+.optionLabel {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.imageSizeRadioGroup {
   display: flex;
   flex-direction: row;
-  justify-content: space-between;
-  align-items: flex-end;
   gap: 10px;
 }
 

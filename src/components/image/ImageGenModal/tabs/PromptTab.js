@@ -6,12 +6,16 @@ import Dropdown from '@/components/common/Dropdown';
 import ReferenceImageStack from '@/components/image/ReferenceImageStack';
 import styles from './PromptTab.module.css';
 
+const IMAGE_SIZE_PORTRAIT = "1024x1536"
+const IMAGE_SIZE_LANDSCAPE = "1536x1024"
+
 const PromptTab = ({ onClose, prefillData }) => {
     const { imageRecords, startImageGeneration } = useImageContext();
 
     // State management
     const [referenceImageStack, setReferenceImageStack] = useState([]);
     const [prompt, setPrompt] = useState('');
+    const [imageSize, setImageSize] = useState(IMAGE_SIZE_PORTRAIT)
     const [numberOfImages, setNumberOfImages] = useState(4);
     const [isGenerating, setIsGenerating] = useState(false);
     const [generationError, setGenerationError] = useState(null);
@@ -48,6 +52,24 @@ const PromptTab = ({ onClose, prefillData }) => {
         { value: 5, label: '5 images' },
     ];
 
+    const ImageSizeSelector = () => {
+        return (
+            <div className={styles.imageSizeRadioGroup}>
+                <input 
+                    type="radio" id="portrait" name='imgSize'
+                    checked={imageSize == IMAGE_SIZE_PORTRAIT}
+                    onChange={() => {setImageSize(IMAGE_SIZE_PORTRAIT)}}
+                />
+                <label htmlFor="portrait">Portrait</label>
+                <input 
+                    type="radio" id="landscape" name='imgSize'
+                    checked={imageSize == IMAGE_SIZE_LANDSCAPE}
+                    onChange={() => {setImageSize(IMAGE_SIZE_LANDSCAPE)}}
+                />
+                <label htmlFor="landscape">Landscape</label>
+            </div>
+        )
+    }
 
     // Handle adding image to reference stack from library
     const handleAddToStack = useCallback((imageRecord) => {
@@ -213,7 +235,12 @@ const PromptTab = ({ onClose, prefillData }) => {
 
                         {/* Generation Options */}
                         <div className={styles.optionsSection}>
-                            <label className={styles.sectionLabel}>
+                            <label className={styles.optionLabel}>
+                                Image Size:
+                            </label>
+                            <ImageSizeSelector/>
+                            <div className={styles.middle}/>
+                            <label className={styles.optionLabel}>
                                 Number of images to generate:
                             </label>
                             <Dropdown
