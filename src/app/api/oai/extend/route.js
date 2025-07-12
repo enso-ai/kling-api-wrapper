@@ -6,7 +6,7 @@ export async function POST(request) {
         const body = await request.json();
 
         // Extract parameters from HTTP payload - supporting new srcImages format
-        const { images, prompt, n = 1 } = body;
+        const { images, prompt, size, n = 1 } = body;
 
         // Validate required parameter - images array (srcImages format)
         if (!images || !Array.isArray(images) || images.length === 0) {
@@ -57,7 +57,7 @@ export async function POST(request) {
         }
 
         // Call the extend function with srcImages format
-        const extendedImages = await extendImage(images, prompt, n);
+        const extendedImages = await extendImage(images, prompt, size, n);
 
         return NextResponse.json({
             success: true,

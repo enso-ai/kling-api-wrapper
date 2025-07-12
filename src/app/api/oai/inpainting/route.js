@@ -6,7 +6,7 @@ export async function POST(request) {
         const body = await request.json();
 
         // Extract camelCase parameters from HTTP payload
-        const { image_gcs_url, mask, prompt, n = 1, asset_type } = body;
+        const { image_gcs_url, mask, prompt, size, n = 1 } = body;
 
         // Validate required parameter - image
         if (!image_gcs_url) {
@@ -23,10 +23,6 @@ export async function POST(request) {
             return NextResponse.json({ error: 'prompt is required' }, { status: 400 });
         }
 
-        if (!asset_type) {
-            return NextResponse.json({ error: 'asset_type is required' }, { status: 400 });
-        }
-
         // Validate n parameter
         if (n && (typeof n !== 'number' || n < 1 || n > 10)) {
             return NextResponse.json(
@@ -36,7 +32,7 @@ export async function POST(request) {
         }
 
         // Call the inpainting function
-        const images = await inpaintingImage(image_gcs_url, mask, prompt, n, asset_type);
+        const images = await inpaintingImage(image_gcs_url, mask, prompt, size, n);
         return NextResponse.json({
             success: true,
             data: {
