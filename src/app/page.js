@@ -7,6 +7,7 @@ import VideoTool from './tabs/videoTool';
 import styles from './page.module.css';
 import { VideoProvider } from '@/context/VideoContext';
 import { ImageContextProvider } from '@/context/ImageContext';
+import { ImageGenModalContextProvider } from '@/context/ImageGenModalContext';
 
 function HomeContent() {
     const searchParams = useSearchParams();
@@ -59,9 +60,11 @@ export default function Home() {
     return (
         <VideoProvider>
             <ImageContextProvider>
-                <Suspense fallback={<div className={styles.container}>Loading...</div>}>
-                    <HomeContent />
-                </Suspense>
+                <ImageGenModalContextProvider>
+                    <Suspense fallback={<div className={styles.container}>Loading...</div>}>
+                        <HomeContent />
+                    </Suspense>
+                </ImageGenModalContextProvider>
             </ImageContextProvider>
         </VideoProvider>
     );

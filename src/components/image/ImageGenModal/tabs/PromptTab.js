@@ -140,7 +140,7 @@ const PromptTab = ({ onClose, prefillData }) => {
                 }
             });
 
-            await startImageGeneration({
+            startImageGeneration({
                 prompt: prompt.trim(),
                 selectedImages: srcImages,
                 numberOfImages,

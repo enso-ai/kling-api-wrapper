@@ -439,7 +439,7 @@ const InpaintingTab = ({ onClose, prefillData }) => {
             }
 
             // Call the inpainting generation function with ImageContext API
-            await startInpaintingGeneration(
+            startInpaintingGeneration(
                 selectedImage.imageUrls?.[selectedImage.selectedImageIdx || 0],
                 maskBase64,
                 prompt.trim(),

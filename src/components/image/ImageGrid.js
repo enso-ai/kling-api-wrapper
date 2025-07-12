@@ -7,22 +7,21 @@ import PendingBlock from './PendingBlock';
 import ImageDetailModal from './ImageDetailModal';
 
 export default function ImageGrid() {
-    const { 
-        imageRecords, 
+    const {
+        imageRecords,
         pendingGenerations,
-        isLoaded, 
-        loadMoreImages, 
-        hasMoreImages, 
+        isLoaded,
+        loadMoreImages,
+        hasMoreImages,
         isLoadingMore,
-        totalImages 
+        totalImages,
     } = useImageContext();
-    
+
     const gridRef = useRef(null);
     const loadingRef = useRef(null);
-    
+
     // State for image detail modal
     const [selectedImageRecordId, setSelectedImageRecordId] = useState(null);
-
 
     // Handle opening the image detail modal
     const handleOpenImageDetail = useCallback((imageRecord) => {
@@ -105,9 +104,9 @@ export default function ImageGrid() {
                         {/* 3. Existing Image Blocks */}
                         {imageRecords.map((imageRecord) => (
                             <div key={imageRecord.id} className={styles.gridItem}>
-                                <ImageBlock 
-                                    imageRecord={imageRecord} 
-                                    onOpenModal={handleOpenImageDetail}
+                                <ImageBlock
+                                    imageRecord={imageRecord}
+                                    onOpenDetailModal={handleOpenImageDetail}
                                 />
                             </div>
                         ))}
@@ -123,8 +122,8 @@ export default function ImageGrid() {
                                 {isLoadingMore ? (
                                     <div className={styles.loading}>Loading more images...</div>
                                 ) : (
-                                    <button 
-                                        className={styles.loadMoreButton} 
+                                    <button
+                                        className={styles.loadMoreButton}
                                         onClick={loadMoreImages}
                                         disabled={isLoadingMore}
                                     >
@@ -133,18 +132,20 @@ export default function ImageGrid() {
                                 )}
                             </div>
                         )}
-                        
+
                         {/* End of list indicator */}
-                        {!hasMoreImages && (imageRecords.length > 0 || pendingGenerations.length > 0) && (
-                            <div className={styles.endOfList}>
-                                All images loaded ({imageRecords.length} total)
-                            </div>
-                        )}
+                        {!hasMoreImages &&
+                            (imageRecords.length > 0 || pendingGenerations.length > 0) && (
+                                <div className={styles.endOfList}>
+                                    All images loaded ({imageRecords.length} total)
+                                </div>
+                            )}
 
                         {/* No results state */}
                         {imageRecords.length === 0 && pendingGenerations.length === 0 && (
                             <div className={styles.noResults}>
-                                No images generated yet.<br />
+                                No images generated yet.
+                                <br />
                                 Click the + button to create your first image!
                             </div>
                         )}

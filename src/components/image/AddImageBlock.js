@@ -1,10 +1,10 @@
 import React from 'react';
 import { IoAdd } from 'react-icons/io5';
-import { useImageContext } from '@/context/ImageContext';
+import { useImageGenModalContext } from '@/context/ImageGenModalContext';
 import styles from './AddImageBlock.module.css';
 
 export default function AddImageBlock() {
-    const { openImageGenModal } = useImageContext();
+    const { openImageGenModal } = useImageGenModalContext();
 
     return (
         <div 

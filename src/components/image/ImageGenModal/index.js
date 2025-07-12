@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { useImageContext } from '@/context/ImageContext';
+import { useImageGenModalContext } from '@/context/ImageGenModalContext';
 import PromptTab from './tabs/PromptTab';
 import InpaintingTab from './tabs/InpaintingTab';
 import styles from './ImageGenModal.module.css';
@@ -11,7 +11,7 @@ const ImageGenModal = () => {
         isImageGenModalOpen, 
         imageGenModalPrefillData, 
         closeImageGenModal 
-    } = useImageContext();
+    } = useImageGenModalContext();
     
     const [activeTab, setActiveTab] = useState('prompt');
 
