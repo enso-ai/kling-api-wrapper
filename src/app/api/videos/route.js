@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { klingClient } from '@/service/kling';
+import { klingClient, KlingThrottleError } from '@/service/kling';
 
 const MODEL_MAP = {
     v1: 'kling-v1-6',
@@ -24,12 +24,11 @@ export async function POST(request) {
         console.error('Error creating video:', error);
 
         // Check if this is a throttling error
-        const errorMessage = error.message || '';
-        if (errorMessage.includes('parallel task over resource pack limit')) {
-            return NextResponse.json({ error: errorMessage }, { status: 429 });
+        if (error instanceof KlingThrottleError) {
+            return NextResponse.json({ error: error.message }, { status: 429 });
         }
 
-        return NextResponse.json({ error: errorMessage }, { status: 500 });
+        return NextResponse.json({ error: error.message || 'Unknown error' }, { status: 500 });
     }
 }
 

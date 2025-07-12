@@ -12,7 +12,6 @@ export default function ModelSelector({ value, onChange }) {
       >
         <option value="v1"> Video Engine (Legacy) </option>
         <option value="v2"> Video Engine 2 </option>
-        <option value="v2-advance"> Video Engine 2 Adv. </option>
       </select>
     </div>
   );
