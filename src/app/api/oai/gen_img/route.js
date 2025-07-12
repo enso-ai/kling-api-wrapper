@@ -6,15 +6,11 @@ export async function POST(request) {
         const body = await request.json();
 
         // Extract camelCase parameters from HTTP payload
-        const { prompt, n = 1, asset_type } = body;
+        const { prompt, size, n = 1 } = body;
 
         // Validate required parameters
         if (!prompt) {
             return NextResponse.json({ error: 'prompt is required' }, { status: 400 });
-        }
-
-        if (!asset_type) {
-            return NextResponse.json({ error: 'asset_type is required' }, { status: 400 });
         }
 
         // Validate n parameter
@@ -26,7 +22,7 @@ export async function POST(request) {
         }
 
         // Call the generation function
-        const images = await generateImage(prompt, n, asset_type);
+        const images = await generateImage(prompt, size, n);
 
         // Return response with GCS URLs instead of base64 (clean format)
         return NextResponse.json({

@@ -147,7 +147,7 @@ async function generateImageWithOpenAI(prompt, options = {}) {
             model: options.model || DEFAULT_GENERATION_MODEL,
             size: options.size || DEFAULT_GENERATION_SIZE,
             quality: options.quality || DEFAULT_QUALITY,
-            output_format: "png", // Always return base64
+            output_format: 'png', // Always return base64
             n: options.n || DEFAULT_N,
             moderation: DEFAULT_MODERATION,
             ...(options.output_format && {

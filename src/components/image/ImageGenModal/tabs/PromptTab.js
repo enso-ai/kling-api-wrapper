@@ -5,6 +5,7 @@ import { useImageContext } from '@/context/ImageContext';
 import Dropdown from '@/components/common/Dropdown';
 import ReferenceImageStack from '@/components/image/ReferenceImageStack';
 import styles from './PromptTab.module.css';
+import { IMAGE_SIZE_LANDSCAPE, IMAGE_SIZE_PORTRAIT } from '@/constants/image';
 
 const PromptTab = ({ onClose, prefillData }) => {
     const { imageRecords, startImageGeneration } = useImageContext();
@@ -12,6 +13,7 @@ const PromptTab = ({ onClose, prefillData }) => {
     // State management
     const [referenceImageStack, setReferenceImageStack] = useState([]);
     const [prompt, setPrompt] = useState('');
+    const [imageSize, setImageSize] = useState(IMAGE_SIZE_PORTRAIT);
     const [numberOfImages, setNumberOfImages] = useState(4);
     const [isGenerating, setIsGenerating] = useState(false);
     const [generationError, setGenerationError] = useState(null);
@@ -25,6 +27,11 @@ const PromptTab = ({ onClose, prefillData }) => {
                 setPrompt(prefillData.prompt);
             }
 
+            // Set size
+            if (prefillData.size) {
+                setImageSize(prefillData.size);
+            }
+
             // Convert srcImages to referenceImageStack format
             if (prefillData.srcImages && prefillData.srcImages.length > 0) {
                 const convertedStack = prefillData.srcImages.map((srcImage, index) => ({
@@ -32,7 +39,7 @@ const PromptTab = ({ onClose, prefillData }) => {
                     type: srcImage.url ? 'url' : 'base64',
                     url: srcImage.url,
                     base64: srcImage.base64,
-                    fileName: srcImage.base64 ? `prefilled-image-${index + 1}` : undefined
+                    fileName: srcImage.base64 ? `prefilled-image-${index + 1}` : undefined,
                 }));
                 setReferenceImageStack(convertedStack);
             }
@@ -48,23 +55,55 @@ const PromptTab = ({ onClose, prefillData }) => {
         { value: 5, label: '5 images' },
     ];
 
+    const ImageSizeSelector = () => {
+        return (
+            <div className={styles.imageSizeRadioGroup}>
+                <input
+                    type='radio'
+                    id='portrait'
+                    name='imgSize'
+                    checked={imageSize == IMAGE_SIZE_PORTRAIT}
+                    onChange={() => {
+                        setImageSize(IMAGE_SIZE_PORTRAIT);
+                    }}
+                />
+                <label htmlFor='portrait'>Portrait</label>
+                <input
+                    type='radio'
+                    id='landscape'
+                    name='imgSize'
+                    checked={imageSize == IMAGE_SIZE_LANDSCAPE}
+                    onChange={() => {
+                        setImageSize(IMAGE_SIZE_LANDSCAPE);
+                    }}
+                />
+                <label htmlFor='landscape'>Landscape</label>
+            </div>
+        );
+    };
 
     // Handle adding image to reference stack from library
-    const handleAddToStack = useCallback((imageRecord) => {
-        if (referenceImageStack.length >= 10) return; // Respect 10-image limit
-        
-        const imageUrl = imageRecord.imageUrls?.[imageRecord.selectedImageIdx || 0];
-        setReferenceImageStack(prev => [...prev, { 
-            id: Date.now() + Math.random(),
-            url: imageUrl,
-            sourceRecord: imageRecord,
-            type: 'url'
-        }]);
-    }, [referenceImageStack.length]);
+    const handleAddToStack = useCallback(
+        (imageRecord) => {
+            if (referenceImageStack.length >= 10) return; // Respect 10-image limit
+
+            const imageUrl = imageRecord.imageUrls?.[imageRecord.selectedImageIdx || 0];
+            setReferenceImageStack((prev) => [
+                ...prev,
+                {
+                    id: Date.now() + Math.random(),
+                    url: imageUrl,
+                    sourceRecord: imageRecord,
+                    type: 'url',
+                },
+            ]);
+        },
+        [referenceImageStack.length]
+    );
 
     // Handle removing image from reference stack
     const handleRemoveFromStack = useCallback((stackEntryId) => {
-        setReferenceImageStack(prev => prev.filter(entry => entry.id !== stackEntryId));
+        setReferenceImageStack((prev) => prev.filter((entry) => entry.id !== stackEntryId));
     }, []);
 
     // Clear all reference images from stack
@@ -78,7 +117,7 @@ const PromptTab = ({ onClose, prefillData }) => {
             setValidationError(error);
             setTimeout(() => setValidationError(null), 3000);
         } else if (newStackEntry) {
-            setReferenceImageStack(prev => [...prev, newStackEntry]);
+            setReferenceImageStack((prev) => [...prev, newStackEntry]);
         }
     }, []);
 
@@ -105,6 +144,7 @@ const PromptTab = ({ onClose, prefillData }) => {
                 prompt: prompt.trim(),
                 selectedImages: srcImages,
                 numberOfImages,
+                size: imageSize,
             });
 
             // Close modal on successful generation start
@@ -120,7 +160,7 @@ const PromptTab = ({ onClose, prefillData }) => {
             }
             setIsGenerating(false);
         }
-    }, [prompt, referenceImageStack, numberOfImages, startImageGeneration, onClose]);
+    }, [prompt, referenceImageStack, numberOfImages, startImageGeneration, imageSize, onClose]);
 
     return (
         <div className={styles.tabContent}>
@@ -129,9 +169,7 @@ const PromptTab = ({ onClose, prefillData }) => {
                 {/* Left Column - Element Images */}
                 <div className={styles.leftColumn}>
                     <div className={styles.elementImagesColumn}>
-                        <label className={styles.sectionLabel}>
-                            Previous Results:
-                        </label>
+                        <label className={styles.sectionLabel}>Previous Results:</label>
 
                         {imageRecords.length > 0 ? (
                             <>
@@ -144,11 +182,19 @@ const PromptTab = ({ onClose, prefillData }) => {
                                                 className={`${styles.elementImageItem} ${
                                                     isDisabled ? styles.disabled : ''
                                                 }`}
-                                                onClick={() => !isDisabled && handleAddToStack(record)}
-                                                style={{ cursor: isDisabled ? 'not-allowed' : 'pointer' }}
+                                                onClick={() =>
+                                                    !isDisabled && handleAddToStack(record)
+                                                }
+                                                style={{
+                                                    cursor: isDisabled ? 'not-allowed' : 'pointer',
+                                                }}
                                             >
                                                 <img
-                                                    src={record.imageUrls?.[record.selectedImageIdx || 0]}
+                                                    src={
+                                                        record.imageUrls?.[
+                                                            record.selectedImageIdx || 0
+                                                        ]
+                                                    }
                                                     alt={record.prompt || 'Generated image'}
                                                     className={styles.elementImage}
                                                 />
@@ -178,6 +224,8 @@ const PromptTab = ({ onClose, prefillData }) => {
                         )}
                     </div>
                 </div>
+
+                <div className={styles.divider} />
 
                 {/* Right Column - Prompt Input Area */}
                 <div className={styles.rightColumn}>
@@ -211,7 +259,10 @@ const PromptTab = ({ onClose, prefillData }) => {
 
                         {/* Generation Options */}
                         <div className={styles.optionsSection}>
-                            <label className={styles.sectionLabel}>
+                            <label className={styles.optionLabel}>Image Size:</label>
+                            <ImageSizeSelector />
+                            <div className={styles.middle} />
+                            <label className={styles.optionLabel}>
                                 Number of images to generate:
                             </label>
                             <Dropdown

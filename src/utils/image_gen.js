@@ -10,9 +10,9 @@ import { toFile } from 'openai';
  * @param {number} n - Number of variations to generate (default: 1)
  * @returns {Promise<Object>} Response data from OpenAI
  */
-export const generateImage = async (prompt, n = 1) => {
+export const generateImage = async (prompt, size, n = 1) => {
     // Call the OpenAI service to generate images
-    const response = await openaiClient.generateImageWithOpenAI(prompt, { n });
+    const response = await openaiClient.generateImageWithOpenAI(prompt, { n, size });
 
     // Handle both success and error cases
     if (response.success) {
@@ -60,7 +60,7 @@ function base64ToBlob(base64, mimeType = 'image/png') {
  * @param {number} n - Number of variations to generate (default: 1)
  * @returns {Promise<Object>} Response data from OpenAI
  */
-export const extendImage = async (srcImages, prompt, n = 1) => {
+export const extendImage = async (srcImages, prompt, size, n = 1) => {
     try {
         // Convert srcImages array to File objects with sequential naming
         const imageFiles = await Promise.all(
@@ -80,7 +80,7 @@ export const extendImage = async (srcImages, prompt, n = 1) => {
             })
         );
 
-        const response = await openaiClient.editImagesWithOpenAI(imageFiles, null, prompt, { n });
+        const response = await openaiClient.editImagesWithOpenAI(imageFiles, null, prompt, { n, size });
         if (response.success) {
             // Upload images to GCS and replace base64 with URLs
             const { images } = response.data;
@@ -130,7 +130,7 @@ export const extendImage = async (srcImages, prompt, n = 1) => {
  * @param {number} n - Number of variations to generate (default: 1)
  * @returns {Promise<Object>} Response data from OpenAI
  */
-export const inpaintingImage = async (image_gcs_url, mask, prompt, n = 1) => {
+export const inpaintingImage = async (image_gcs_url, mask, prompt, size, n = 1) => {
     try {
         // Convert URL to File object
         const imageFile = await toFile(fetch(image_gcs_url), 'image_1.png', { type: 'image/png' });
@@ -141,7 +141,7 @@ export const inpaintingImage = async (image_gcs_url, mask, prompt, n = 1) => {
         const maskFile = await toFile(maskBuffer, 'mask.png', { type: 'image/png' });
 
         const response = await openaiClient.editImagesWithOpenAI([imageFile], maskFile, prompt, {
-            n,
+            size, n,
         });
 
         if (response.success) {
