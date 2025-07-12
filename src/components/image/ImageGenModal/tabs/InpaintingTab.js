@@ -3,12 +3,10 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { useImageContext } from '@/context/ImageContext';
 import styles from './InpaintingTab.module.css';
+import { IMAGE_SIZE_PORTRAIT, IMAGE_SIZE_LANDSCAPE } from '@/constants/image';
 
 const InpaintingTab = ({ onClose, prefillData }) => {
-    const { 
-        imageRecords, 
-        startInpaintingGeneration, 
-    } = useImageContext();
+    const { imageRecords, startInpaintingGeneration } = useImageContext();
 
     // Display constants (UI size)
     const DISPLAY_WIDTH = 512;
@@ -21,6 +19,7 @@ const InpaintingTab = ({ onClose, prefillData }) => {
     const [isDrawing, setIsDrawing] = useState(false);
     const [hasDrawnMask, setHasDrawnMask] = useState(false);
     const [prompt, setPrompt] = useState('');
+    const [imageSize, setImageSize] = useState(IMAGE_SIZE_PORTRAIT);
     const [isGenerating, setIsGenerating] = useState(false);
     const [generationError, setGenerationError] = useState(null);
     const [mousePosition, setMousePosition] = useState(null);
@@ -43,13 +42,13 @@ const InpaintingTab = ({ onClose, prefillData }) => {
             // Auto-select image from srcImages (use first one for inpainting)
             if (prefillData.srcImages && prefillData.srcImages.length > 0) {
                 const firstSrcImage = prefillData.srcImages[0];
-                
+
                 // Find matching imageRecord by URL
                 if (firstSrcImage.url) {
-                    const matchingRecord = imageRecords.find(record => 
-                        record.imageUrls?.some(url => url === firstSrcImage.url)
+                    const matchingRecord = imageRecords.find((record) =>
+                        record.imageUrls?.some((url) => url === firstSrcImage.url)
                     );
-                    
+
                     if (matchingRecord) {
                         setSelectedImage(matchingRecord);
                         loadImageToCanvas(matchingRecord);
@@ -89,16 +88,16 @@ const InpaintingTab = ({ onClose, prefillData }) => {
 
                     if (alpha === 0) {
                         // OpenAI transparent (was painted) -> Display white with full opacity
-                        data[i] = 255;     // R
+                        data[i] = 255; // R
                         data[i + 1] = 255; // G
                         data[i + 2] = 255; // B
                         data[i + 3] = 255; // A (full opacity = 1.0 * 255 = 255)
                     } else {
                         // OpenAI opaque (was not painted) -> Display transparent
-                        data[i] = 0;       // R
-                        data[i + 1] = 0;   // G
-                        data[i + 2] = 0;   // B
-                        data[i + 3] = 0;   // A (transparent)
+                        data[i] = 0; // R
+                        data[i + 1] = 0; // G
+                        data[i + 2] = 0; // B
+                        data[i + 3] = 0; // A (transparent)
                     }
                 }
 
@@ -120,28 +119,44 @@ const InpaintingTab = ({ onClose, prefillData }) => {
             if (!maskCanvas) return;
 
             const ctx = maskCanvas.getContext('2d');
-            
+
             // Convert OpenAI format mask to display format first
             convertOpenAIMaskToDisplayFormat(prefillData.mask)
                 .then((displayFormatMask) => {
                     const img = new Image();
-                    
+
                     img.onload = () => {
                         // Clear existing mask
-                        ctx.clearRect(0, 0, originalImageDimensions.width, originalImageDimensions.height);
+                        ctx.clearRect(
+                            0,
+                            0,
+                            originalImageDimensions.width,
+                            originalImageDimensions.height
+                        );
 
                         // Draw the converted mask in display format
-                        ctx.drawImage(img, 0, 0, originalImageDimensions.width, originalImageDimensions.height);
+                        ctx.drawImage(
+                            img,
+                            0,
+                            0,
+                            originalImageDimensions.width,
+                            originalImageDimensions.height
+                        );
                         setHasDrawnMask(true);
                     };
-                    
+
                     img.src = displayFormatMask;
                 })
                 .catch((error) => {
                     console.error('Failed to convert mask format:', error);
                 });
         }
-    }, [prefillData?.mask, selectedImage, originalImageDimensions, convertOpenAIMaskToDisplayFormat]);
+    }, [
+        prefillData?.mask,
+        selectedImage,
+        originalImageDimensions,
+        convertOpenAIMaskToDisplayFormat,
+    ]);
 
     // Clear mask function
     const clearMask = useCallback(() => {
@@ -263,17 +278,20 @@ const InpaintingTab = ({ onClose, prefillData }) => {
     );
 
     // Mouse position tracking for custom cursor
-    const updateMousePosition = useCallback((e) => {
-        if (!selectedImage) return;
-        const canvas = maskCanvasRef.current;
-        if (!canvas) return;
-        
-        const rect = canvas.getBoundingClientRect();
-        setMousePosition({
-            x: e.clientX - rect.left,
-            y: e.clientY - rect.top
-        });
-    }, [selectedImage]);
+    const updateMousePosition = useCallback(
+        (e) => {
+            if (!selectedImage) return;
+            const canvas = maskCanvasRef.current;
+            if (!canvas) return;
+
+            const rect = canvas.getBoundingClientRect();
+            setMousePosition({
+                x: e.clientX - rect.left,
+                y: e.clientY - rect.top,
+            });
+        },
+        [selectedImage]
+    );
 
     // Mouse event handlers for drawing
     const handleMouseDown = useCallback(
@@ -301,11 +319,14 @@ const InpaintingTab = ({ onClose, prefillData }) => {
         setIsDrawing(false);
     }, []);
 
-    const handleMouseEnter = useCallback((e) => {
-        if (selectedImage) {
-            updateMousePosition(e);
-        }
-    }, [selectedImage, updateMousePosition]);
+    const handleMouseEnter = useCallback(
+        (e) => {
+            if (selectedImage) {
+                updateMousePosition(e);
+            }
+        },
+        [selectedImage, updateMousePosition]
+    );
 
     const handleMouseLeave = useCallback(() => {
         setIsDrawing(false);
@@ -387,7 +408,7 @@ const InpaintingTab = ({ onClose, prefillData }) => {
     const handleGenerate = useCallback(async () => {
         // Allow generation with prefill data even without drawn mask
         const canGenerate = selectedImage && prompt.trim() && (hasDrawnMask || prefillData);
-        
+
         if (!canGenerate) {
             return;
         }
@@ -398,7 +419,7 @@ const InpaintingTab = ({ onClose, prefillData }) => {
         try {
             // Get mask data for API call
             let maskBase64;
-            
+
             if (hasDrawnMask) {
                 // Use drawn mask
                 maskBase64 = getMaskAsBase64();
@@ -417,12 +438,12 @@ const InpaintingTab = ({ onClose, prefillData }) => {
                 selectedImage.imageUrls?.[selectedImage.selectedImageIdx || 0],
                 maskBase64,
                 prompt.trim(),
-                3 // for now we always generate 3 images
+                3, // for now we always generate 3 images
+                imageSize
             );
 
             // Close modal on successful generation start
             onClose();
-
         } catch (error) {
             console.error('Inpainting generation failed:', error);
             setGenerationError(error.message || 'Failed to generate inpainted images');
@@ -432,10 +453,11 @@ const InpaintingTab = ({ onClose, prefillData }) => {
         selectedImage,
         hasDrawnMask,
         prompt,
+        imageSize,
         prefillData,
         getMaskAsBase64,
         startInpaintingGeneration,
-        onClose
+        onClose,
     ]);
 
     // Check if image is selected
@@ -453,9 +475,7 @@ const InpaintingTab = ({ onClose, prefillData }) => {
                 {/* Left Column - Element Images */}
                 <div className={styles.leftColumn}>
                     <div className={styles.elementImagesColumn}>
-                        <label className={styles.sectionLabel}>
-                            Select Image to Edit:
-                        </label>
+                        <label className={styles.sectionLabel}>Select Image to Edit:</label>
 
                         {imageRecords.length > 0 ? (
                             <div className={styles.verticalImageList}>
@@ -471,7 +491,9 @@ const InpaintingTab = ({ onClose, prefillData }) => {
                                             onClick={() => handleImageSelection(record)}
                                         >
                                             <img
-                                                src={record.imageUrls?.[record.selectedImageIdx || 0]}
+                                                src={
+                                                    record.imageUrls?.[record.selectedImageIdx || 0]
+                                                }
                                                 alt={record.prompt || 'Generated image'}
                                                 className={styles.elementImage}
                                             />
@@ -529,8 +551,12 @@ const InpaintingTab = ({ onClose, prefillData }) => {
                                         width: `${BRUSH_SIZES[brushSize] * 2}px`,
                                         height: `${BRUSH_SIZES[brushSize] * 2}px`,
                                         display: isDrawing || mousePosition ? 'block' : 'none',
-                                        left: mousePosition ? `${mousePosition.x - BRUSH_SIZES[brushSize]}px` : '0px',
-                                        top: mousePosition ? `${mousePosition.y - BRUSH_SIZES[brushSize]}px` : '0px',
+                                        left: mousePosition
+                                            ? `${mousePosition.x - BRUSH_SIZES[brushSize]}px`
+                                            : '0px',
+                                        top: mousePosition
+                                            ? `${mousePosition.y - BRUSH_SIZES[brushSize]}px`
+                                            : '0px',
                                     }}
                                 />
                             )}
@@ -562,6 +588,35 @@ const InpaintingTab = ({ onClose, prefillData }) => {
                 {/* Right Column - Controls */}
                 <div className={styles.rightColumn}>
                     <div className={styles.controlsPanel}>
+                        {/* Image Size Section */}
+                        <div className={styles.imageSizeSection}>
+                            <label className={styles.sectionLabel}>Image Size:</label>
+                            <div className={styles.imageSizeRadioGroup}>
+                                <input
+                                    type='radio'
+                                    id='inpaint-portrait'
+                                    name='inpaintImgSize'
+                                    checked={imageSize === IMAGE_SIZE_PORTRAIT}
+                                    onChange={() => {
+                                        setImageSize(IMAGE_SIZE_PORTRAIT);
+                                    }}
+                                    disabled={isGenerating}
+                                />
+                                <label htmlFor='inpaint-portrait'>Portrait</label>
+                                <input
+                                    type='radio'
+                                    id='inpaint-landscape'
+                                    name='inpaintImgSize'
+                                    checked={imageSize === IMAGE_SIZE_LANDSCAPE}
+                                    onChange={() => {
+                                        setImageSize(IMAGE_SIZE_LANDSCAPE);
+                                    }}
+                                    disabled={isGenerating}
+                                />
+                                <label htmlFor='inpaint-landscape'>Landscape</label>
+                            </div>
+                        </div>
+
                         {/* Brush Size Section */}
                         <div className={styles.brushSection}>
                             <label className={styles.sectionLabel}>Brush Size:</label>
@@ -569,15 +624,15 @@ const InpaintingTab = ({ onClose, prefillData }) => {
                                 {['Small', 'Medium', 'Large'].map((size, index) => (
                                     <label key={size} className={styles.brushSizeRadio}>
                                         <input
-                                            type="radio"
-                                            name="brushSize"
+                                            type='radio'
+                                            name='brushSize'
                                             value={index}
                                             checked={brushSize === index}
                                             onChange={() => setBrushSize(index)}
                                             disabled={!selectedImage || isGenerating}
                                         />
                                         <div className={styles.radioContent}>
-                                            <div 
+                                            <div
                                                 className={styles.brushPreview}
                                                 style={{
                                                     width: `${BRUSH_SIZES[index] * 2}px`,
@@ -614,14 +669,21 @@ const InpaintingTab = ({ onClose, prefillData }) => {
                             <button
                                 className={styles.generateButton}
                                 onClick={handleGenerate}
-                                disabled={!selectedImage || (!hasDrawnMask && !prefillData) || !prompt.trim() || isGenerating}
+                                disabled={
+                                    !selectedImage ||
+                                    (!hasDrawnMask && !prefillData) ||
+                                    !prompt.trim() ||
+                                    isGenerating
+                                }
                             >
                                 {isGenerating ? 'Generating Images...' : 'Generate'}
                             </button>
                         </div>
 
                         {/* Error Message */}
-                        {generationError && <div className={styles.errorMessage}>{generationError}</div>}
+                        {generationError && (
+                            <div className={styles.errorMessage}>{generationError}</div>
+                        )}
                     </div>
                 </div>
             </div>
