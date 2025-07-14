@@ -260,3 +260,55 @@ export const createDragHandlers = (onFilesDropped, disabled = false) => {
     }
   };
 };
+
+/**
+ * Convert OpenAI required mask format to display format
+ * @param {Function} openaiMaskBase64 - openAI mask in Base64 format
+ * This function is mainly to recover inpainting input in inpainting tab
+ */
+export function convertOpenAIMaskToDisplayFormat(openaiMaskBase64) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => {
+            // Create temporary canvas to process the mask
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = img.width;
+            tempCanvas.height = img.height;
+            const tempCtx = tempCanvas.getContext('2d');
+
+            // Draw the OpenAI mask
+            tempCtx.drawImage(img, 0, 0);
+
+            // Get image data
+            const imageData = tempCtx.getImageData(0, 0, img.width, img.height);
+            const data = imageData.data;
+
+            // Convert from OpenAI format to display format
+            for (let i = 0; i < data.length; i += 4) {
+                const alpha = data[i + 3];
+
+                if (alpha === 0) {
+                    // OpenAI transparent (was painted) -> Display white with full opacity
+                    data[i] = 255; // R
+                    data[i + 1] = 255; // G
+                    data[i + 2] = 255; // B
+                    data[i + 3] = 255; // A (full opacity = 1.0 * 255 = 255)
+                } else {
+                    // OpenAI opaque (was not painted) -> Display transparent
+                    data[i] = 0; // R
+                    data[i + 1] = 0; // G
+                    data[i + 2] = 0; // B
+                    data[i + 3] = 0; // A (transparent)
+                }
+            }
+
+            // Put the converted data back
+            tempCtx.putImageData(imageData, 0, 0);
+
+            // Return as base64
+            resolve(tempCanvas.toDataURL('image/png'));
+        };
+        img.onerror = reject;
+        img.src = openaiMaskBase64;
+    });
+};
