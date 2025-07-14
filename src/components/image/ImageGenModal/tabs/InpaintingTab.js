@@ -9,9 +9,7 @@ import { IMAGE_SIZE_PORTRAIT, IMAGE_SIZE_LANDSCAPE } from '@/constants/image';
 const InpaintingTab = ({ onClose, prefillData }) => {
     const { imageRecords, startInpaintingGeneration } = useImageContext();
 
-    // Display constants (UI size)
-    const DISPLAY_WIDTH = 512;
-    const DISPLAY_HEIGHT = 768;
+    // Brush sizes for display (radius in pixels)
     const BRUSH_SIZES = [10, 20, 40]; // Small, Medium, Large (radius in pixels)
 
     // State management
@@ -28,7 +26,6 @@ const InpaintingTab = ({ onClose, prefillData }) => {
     // Canvas refs and dimensions
     const maskCanvasRef = useRef(null);
     const [originalImageDimensions, setOriginalImageDimensions] = useState(null);
-    const [canvasScale, setCanvasScale] = useState(1);
 
     // Handle prefill data
     useEffect(() => {
@@ -145,12 +142,6 @@ const InpaintingTab = ({ onClose, prefillData }) => {
             const originalHeight = img.height;
             setOriginalImageDimensions({ width: originalWidth, height: originalHeight });
 
-            // Calculate scale to fit display area while maintaining aspect ratio
-            const scaleX = DISPLAY_WIDTH / originalWidth;
-            const scaleY = DISPLAY_HEIGHT / originalHeight;
-            const scale = Math.min(scaleX, scaleY);
-            setCanvasScale(scale);
-
             // Initialize mask canvas at original dimensions
             const maskCanvas = maskCanvasRef.current;
             if (maskCanvas) {
@@ -172,16 +163,22 @@ const InpaintingTab = ({ onClose, prefillData }) => {
             const ctx = canvas.getContext('2d');
             const rect = canvas.getBoundingClientRect();
 
-            // Get mouse position relative to the scaled canvas
+            // Get mouse position relative to the visual canvas
             const displayX = e.clientX - rect.left;
             const displayY = e.clientY - rect.top;
 
-            // Transform coordinates from display space to canvas space
-            const canvasX = displayX / canvasScale;
-            const canvasY = displayY / canvasScale;
+            // Calculate the actual scale based on visual canvas size vs original image size
+            const visualWidth = rect.width;
+            const visualHeight = rect.height;
+            const scaleX = originalImageDimensions.width / visualWidth;
+            const scaleY = originalImageDimensions.height / visualHeight;
 
-            // Calculate brush size in canvas space
-            const brushRadius = BRUSH_SIZES[brushSize] / canvasScale;
+            // Transform coordinates from display space to canvas buffer space
+            const canvasX = displayX * scaleX;
+            const canvasY = displayY * scaleY;
+
+            // Calculate brush size in canvas buffer space
+            const brushRadius = BRUSH_SIZES[brushSize] * Math.min(scaleX, scaleY);
 
             // Draw white circular brush stroke at native resolution
             ctx.globalCompositeOperation = 'source-over';
@@ -192,7 +189,7 @@ const InpaintingTab = ({ onClose, prefillData }) => {
 
             setHasDrawnMask(true);
         },
-        [brushSize, canvasScale, originalImageDimensions]
+        [brushSize, originalImageDimensions]
     );
 
     // Mouse position tracking for custom cursor
