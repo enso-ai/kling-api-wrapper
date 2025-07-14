@@ -473,6 +473,10 @@ const InpaintingTab = ({ onClose, prefillData }) => {
         [selectedImage]
     );
 
+    const selectedImageURL = selectedImage
+        ? selectedImage.imageUrls[selectedImage.selectedImageIdx || 0]
+        : null;
+
     return (
         <div className={styles.container}>
             {/* Three Column Layout */}
@@ -524,13 +528,9 @@ const InpaintingTab = ({ onClose, prefillData }) => {
                         </label>
 
                         {/* Canvas Container */}
-                        <div className={styles.canvasContainer}>
+                        <div className={styles.canvasPortraitContainer}>
                             {/* Background canvas for image */}
-                            <canvas
-                                ref={backgroundCanvasRef}
-                                className={styles.backgroundCanvas}
-                                style={canvasDisplayStyle}
-                            />
+                            <img className={styles.backgroundImage} src={selectedImageURL} />
 
                             {/* Mask canvas for drawing */}
                             <canvas
