@@ -202,19 +202,6 @@ const PromptTab = ({ onClose, prefillData }) => {
                                         );
                                     })}
                                 </div>
-
-                                <div className={styles.selectionCounter}>
-                                    <span>Stack: {referenceImageStack.length}/10</span>
-                                    {referenceImageStack.length > 0 && (
-                                        <button
-                                            className={styles.clearAllButton}
-                                            onClick={handleClearAll}
-                                            disabled={isGenerating}
-                                        >
-                                            Clear All
-                                        </button>
-                                    )}
-                                </div>
                             </>
                         ) : (
                             <div className={styles.noImagesMessage}>
