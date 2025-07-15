@@ -11,7 +11,7 @@
 .threeColumnLayout {
   position: relative;
   display: grid;
-  grid-template-columns: 180px minmax(520px, 1fr) 300px;
+  grid-template-columns: 180px minmax(400px, 1fr) 300px;
   grid-template-rows: 1fr;
   gap: 24px;
   height: 100%;
@@ -156,13 +156,21 @@
 
 .canvasLandscapeContainer {
   position: relative;
-  height: 768px; /* 384 when screen is narrower */
-  width: 512px; /* 576 when screen is narrower */
+  width: 768px;
+  height: 512px;
   border: 2px solid #e0e0e0;
   border-radius: 8px;
   overflow: hidden;
   background: #f8f9fa;
   margin-bottom: 16px;
+}
+
+/* laptop monitor - landscape */
+@media (max-height: 1050px) {
+    .canvasLandscapeContainer {
+        width: 576px;
+        height: 384px;
+    }
 }
 
 .backgroundImage {
