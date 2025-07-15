@@ -482,7 +482,7 @@ const InpaintingTab = ({ onClose, prefillData }) => {
                             )}
                         </div>
 
-                        {/* Clear Mask Button */}
+                        {/* Canvas Action Buttons */}
                         <div className={styles.canvasActions}>
                             <button
                                 className={styles.clearMaskButton}
