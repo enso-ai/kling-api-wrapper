@@ -187,7 +187,7 @@ const ReferenceImageStack = ({
                     <div className={styles.emptyStateMessage}>
                         {isHovered
                             ? 'Ready to paste! Press Ctrl+V or drag and drop PNG/JPG/WebP files here'
-                            : 'Pick images from left, drag and drop, or hover and paste PNG/JPG/WebP files here'}
+                            : 'Pick one from left, drag and drop, or hover and paste PNG/JPG/WebP files here'}
                     </div>
                 )}
             </div>
