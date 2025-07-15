@@ -1,5 +1,5 @@
 .tabContent {
-  max-height: calc(90vh - 150px);
+  max-height: calc(90vh - 200px);
   display: flex;
   flex-direction: column;
 }
