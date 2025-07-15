@@ -22,6 +22,7 @@ const InpaintingTab = ({ onClose, prefillData }) => {
     const [isGenerating, setIsGenerating] = useState(false);
     const [generationError, setGenerationError] = useState(null);
     const [mousePosition, setMousePosition] = useState(null);
+    const [detectedOrientation, setDetectedOrientation] = useState(null); // 'portrait' | 'landscape'
 
     // Canvas refs and dimensions
     const maskCanvasRef = useRef(null);
@@ -141,6 +142,14 @@ const InpaintingTab = ({ onClose, prefillData }) => {
             const originalWidth = img.width;
             const originalHeight = img.height;
             setOriginalImageDimensions({ width: originalWidth, height: originalHeight });
+
+            // Auto-detect orientation and set image size
+            const isPortrait = originalHeight > originalWidth;
+            const detectedOrient = isPortrait ? 'portrait' : 'landscape';
+            const autoImageSize = isPortrait ? IMAGE_SIZE_PORTRAIT : IMAGE_SIZE_LANDSCAPE;
+
+            setDetectedOrientation(detectedOrient);
+            setImageSize(autoImageSize);
 
             // Initialize mask canvas at original dimensions
             const maskCanvas = maskCanvasRef.current;
@@ -438,7 +447,13 @@ const InpaintingTab = ({ onClose, prefillData }) => {
                         </label>
 
                         {/* Canvas Container */}
-                        <div className={styles.canvasPortraitContainer}>
+                        <div
+                            className={
+                                detectedOrientation === 'landscape'
+                                    ? styles.canvasLandscapeContainer
+                                    : styles.canvasPortraitContainer
+                            }
+                        >
                             {/* Background canvas for image */}
                             <img className={styles.backgroundImage} src={selectedImageURL} />
 
@@ -498,35 +513,6 @@ const InpaintingTab = ({ onClose, prefillData }) => {
                 {/* Right Column - Controls */}
                 <div className={styles.rightColumn}>
                     <div className={styles.controlsPanel}>
-                        {/* Image Size Section */}
-                        <div className={styles.imageSizeSection}>
-                            <label className={styles.sectionLabel}>Image Size:</label>
-                            <div className={styles.imageSizeRadioGroup}>
-                                <input
-                                    type='radio'
-                                    id='inpaint-portrait'
-                                    name='inpaintImgSize'
-                                    checked={imageSize === IMAGE_SIZE_PORTRAIT}
-                                    onChange={() => {
-                                        setImageSize(IMAGE_SIZE_PORTRAIT);
-                                    }}
-                                    disabled={isGenerating}
-                                />
-                                <label htmlFor='inpaint-portrait'>Portrait</label>
-                                <input
-                                    type='radio'
-                                    id='inpaint-landscape'
-                                    name='inpaintImgSize'
-                                    checked={imageSize === IMAGE_SIZE_LANDSCAPE}
-                                    onChange={() => {
-                                        setImageSize(IMAGE_SIZE_LANDSCAPE);
-                                    }}
-                                    disabled={isGenerating}
-                                />
-                                <label htmlFor='inpaint-landscape'>Landscape</label>
-                            </div>
-                        </div>
-
                         {/* Brush Size Section */}
                         <div className={styles.brushSection}>
                             <label className={styles.sectionLabel}>Brush Size:</label>
