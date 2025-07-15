@@ -140,15 +140,30 @@ const ReferenceImageStack = ({
 
     return (
         <div className={styles.referenceStackSection}>
-            <label className={styles.sectionLabel}>
-                Reference Images ({referenceImageStack.length}/{maxImages})
-            </label>
-            <div 
+            <div className={styles.sectionHeader}>
+                <label className={styles.sectionLabel}>
+                    Reference Images ({referenceImageStack.length}/{maxImages})
+                </label>
+                {referenceImageStack.length > 0 && (
+                    <div className={styles.stackActions}>
+                        <button
+                            className={styles.clearAllButton}
+                            onClick={handleClearAll}
+                            disabled={disabled}
+                        >
+                            Clear All
+                        </button>
+                    </div>
+                )}
+            </div>
+            <div
                 ref={elementRef}
                 tabIndex={0}
                 className={`${styles.referenceStack} ${
                     referenceImageStack.length === 0 ? styles.emptyDropZone : ''
-                } ${isDragOver ? styles.dragOver : ''} ${isFocused ? styles.focused : ''} ${isHovered ? styles.hovered : ''} ${disabled ? styles.disabled : ''}`}
+                } ${isDragOver ? styles.dragOver : ''} ${isFocused ? styles.focused : ''} ${
+                    isHovered ? styles.hovered : ''
+                } ${disabled ? styles.disabled : ''}`}
                 {...dragHandlers}
                 {...pasteHandlers}
                 {...focusHandlers}
@@ -162,7 +177,7 @@ const ReferenceImageStack = ({
                         >
                             <img
                                 src={stackEntry.type === 'url' ? stackEntry.url : stackEntry.base64}
-                                alt="Reference image"
+                                alt='Reference image'
                                 className={styles.stackImage}
                             />
                             <div className={styles.removeIcon}>×</div>
@@ -170,26 +185,13 @@ const ReferenceImageStack = ({
                     ))
                 ) : (
                     <div className={styles.emptyStateMessage}>
-                        {isHovered ? "Ready to paste! Press Ctrl+V or drag and drop PNG/JPG/WebP files here" : "Pick images from left, drag and drop, or hover and paste PNG/JPG/WebP files here"}
+                        {isHovered
+                            ? 'Ready to paste! Press Ctrl+V or drag and drop PNG/JPG/WebP files here'
+                            : 'Pick images from left, drag and drop, or hover and paste PNG/JPG/WebP files here'}
                     </div>
                 )}
             </div>
-            {validationError && (
-                <div className={styles.validationError}>
-                    {validationError}
-                </div>
-            )}
-            {referenceImageStack.length > 0 && (
-                <div className={styles.stackActions}>
-                    <button
-                        className={styles.clearAllButton}
-                        onClick={handleClearAll}
-                        disabled={disabled}
-                    >
-                        Clear All
-                    </button>
-                </div>
-            )}
+            {validationError && <div className={styles.validationError}>{validationError}</div>}
         </div>
     );
 };

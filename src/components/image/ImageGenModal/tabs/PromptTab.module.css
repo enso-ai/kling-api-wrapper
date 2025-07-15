@@ -8,7 +8,7 @@
 .twoColumnLayout {
   position: relative;
   display: grid;
-  grid-template-columns: 365px 1px 1fr;
+  grid-template-columns: 365px 1px auto;
   gap: 24px;
   height: 100%;
   overflow: hidden;
@@ -149,14 +149,12 @@
 }
 
 .promptTextarea {
-  width: 100%;
   padding: 16px;
   border: 1px solid #ddd;
   border-radius: 8px;
   font-size: 14px;
   font-family: inherit;
-  resize: vertical;
-  min-height: 180px;
+  min-height: 100px;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
   flex: 1;
   line-height: 1.5;
@@ -179,7 +177,7 @@
   align-self: flex-end;
   flex-shrink: 0;
   display: grid;
-  grid-template-columns: 100px 250px auto 210px 100px;
+  grid-template-columns: 50px 250px 1fr 100px 100px;
   align-items: center;
   width: 100%;
 }
