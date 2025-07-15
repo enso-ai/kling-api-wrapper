@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
+import { convertOpenAIMaskToDisplayFormat } from '@/utils/image';
 import { useImageContext } from '@/context/ImageContext';
 import styles from './InpaintingTab.module.css';
 import { IMAGE_SIZE_PORTRAIT, IMAGE_SIZE_LANDSCAPE } from '@/constants/image';
@@ -8,9 +9,7 @@ import { IMAGE_SIZE_PORTRAIT, IMAGE_SIZE_LANDSCAPE } from '@/constants/image';
 const InpaintingTab = ({ onClose, prefillData }) => {
     const { imageRecords, startInpaintingGeneration } = useImageContext();
 
-    // Display constants (UI size)
-    const DISPLAY_WIDTH = 512;
-    const DISPLAY_HEIGHT = 768;
+    // Brush sizes for display (radius in pixels)
     const BRUSH_SIZES = [10, 20, 40]; // Small, Medium, Large (radius in pixels)
 
     // State management
@@ -23,13 +22,11 @@ const InpaintingTab = ({ onClose, prefillData }) => {
     const [isGenerating, setIsGenerating] = useState(false);
     const [generationError, setGenerationError] = useState(null);
     const [mousePosition, setMousePosition] = useState(null);
+    const [detectedOrientation, setDetectedOrientation] = useState(null); // 'portrait' | 'landscape'
 
     // Canvas refs and dimensions
-    const backgroundCanvasRef = useRef(null);
     const maskCanvasRef = useRef(null);
     const [originalImageDimensions, setOriginalImageDimensions] = useState(null);
-    const [canvasScale, setCanvasScale] = useState(1);
-    const [canvasDisplayStyle, setCanvasDisplayStyle] = useState({});
 
     // Handle prefill data
     useEffect(() => {
@@ -60,62 +57,8 @@ const InpaintingTab = ({ onClose, prefillData }) => {
                     }
                 }
             }
-
-            // Load mask if provided
-            if (prefillData.mask) {
-                // We'll load the mask after the image is loaded
-                // This will be handled in a separate useEffect
-            }
         }
     }, [prefillData, imageRecords]);
-
-    // Convert OpenAI format mask back to display format for canvas editing
-    const convertOpenAIMaskToDisplayFormat = useCallback((openaiMaskBase64) => {
-        return new Promise((resolve, reject) => {
-            const img = new Image();
-            img.onload = () => {
-                // Create temporary canvas to process the mask
-                const tempCanvas = document.createElement('canvas');
-                tempCanvas.width = img.width;
-                tempCanvas.height = img.height;
-                const tempCtx = tempCanvas.getContext('2d');
-
-                // Draw the OpenAI mask
-                tempCtx.drawImage(img, 0, 0);
-
-                // Get image data
-                const imageData = tempCtx.getImageData(0, 0, img.width, img.height);
-                const data = imageData.data;
-
-                // Convert from OpenAI format to display format
-                for (let i = 0; i < data.length; i += 4) {
-                    const alpha = data[i + 3];
-
-                    if (alpha === 0) {
-                        // OpenAI transparent (was painted) -> Display white with full opacity
-                        data[i] = 255; // R
-                        data[i + 1] = 255; // G
-                        data[i + 2] = 255; // B
-                        data[i + 3] = 255; // A (full opacity = 1.0 * 255 = 255)
-                    } else {
-                        // OpenAI opaque (was not painted) -> Display transparent
-                        data[i] = 0; // R
-                        data[i + 1] = 0; // G
-                        data[i + 2] = 0; // B
-                        data[i + 3] = 0; // A (transparent)
-                    }
-                }
-
-                // Put the converted data back
-                tempCtx.putImageData(imageData, 0, 0);
-
-                // Return as base64
-                resolve(tempCanvas.toDataURL('image/png'));
-            };
-            img.onerror = reject;
-            img.src = openaiMaskBase64;
-        });
-    }, []);
 
     // Load prefilled mask onto canvas
     useEffect(() => {
@@ -200,43 +143,13 @@ const InpaintingTab = ({ onClose, prefillData }) => {
             const originalHeight = img.height;
             setOriginalImageDimensions({ width: originalWidth, height: originalHeight });
 
-            // Calculate scale to fit display area while maintaining aspect ratio
-            const scaleX = DISPLAY_WIDTH / originalWidth;
-            const scaleY = DISPLAY_HEIGHT / originalHeight;
-            const scale = Math.min(scaleX, scaleY);
-            setCanvasScale(scale);
+            // Auto-detect orientation and set image size
+            const isPortrait = originalHeight > originalWidth;
+            const detectedOrient = isPortrait ? 'portrait' : 'landscape';
+            const autoImageSize = isPortrait ? IMAGE_SIZE_PORTRAIT : IMAGE_SIZE_LANDSCAPE;
 
-            // Calculate actual display dimensions
-            const displayWidth = originalWidth * scale;
-            const displayHeight = originalHeight * scale;
-
-            // Calculate centering offset for the container
-            const offsetX = (DISPLAY_WIDTH - displayWidth) / 2;
-            const offsetY = (DISPLAY_HEIGHT - displayHeight) / 2;
-
-            // Set canvas display style with CSS transform
-            const canvasStyle = {
-                width: `${originalWidth}px`,
-                height: `${originalHeight}px`,
-                transform: `scale(${scale})`,
-                transformOrigin: 'top left',
-                position: 'absolute',
-                left: `${offsetX}px`,
-                top: `${offsetY}px`,
-            };
-            setCanvasDisplayStyle(canvasStyle);
-
-            // Set background canvas to original dimensions
-            const canvas = backgroundCanvasRef.current;
-            if (canvas) {
-                const ctx = canvas.getContext('2d');
-                canvas.width = originalWidth;
-                canvas.height = originalHeight;
-
-                // Draw image at full resolution
-                ctx.clearRect(0, 0, originalWidth, originalHeight);
-                ctx.drawImage(img, 0, 0, originalWidth, originalHeight);
-            }
+            setDetectedOrientation(detectedOrient);
+            setImageSize(autoImageSize);
 
             // Initialize mask canvas at original dimensions
             const maskCanvas = maskCanvasRef.current;
@@ -259,16 +172,22 @@ const InpaintingTab = ({ onClose, prefillData }) => {
             const ctx = canvas.getContext('2d');
             const rect = canvas.getBoundingClientRect();
 
-            // Get mouse position relative to the scaled canvas
+            // Get mouse position relative to the visual canvas
             const displayX = e.clientX - rect.left;
             const displayY = e.clientY - rect.top;
 
-            // Transform coordinates from display space to canvas space
-            const canvasX = displayX / canvasScale;
-            const canvasY = displayY / canvasScale;
+            // Calculate the actual scale based on visual canvas size vs original image size
+            const visualWidth = rect.width;
+            const visualHeight = rect.height;
+            const scaleX = originalImageDimensions.width / visualWidth;
+            const scaleY = originalImageDimensions.height / visualHeight;
 
-            // Calculate brush size in canvas space
-            const brushRadius = BRUSH_SIZES[brushSize] / canvasScale;
+            // Transform coordinates from display space to canvas buffer space
+            const canvasX = displayX * scaleX;
+            const canvasY = displayY * scaleY;
+
+            // Calculate brush size in canvas buffer space
+            const brushRadius = BRUSH_SIZES[brushSize] * Math.min(scaleX, scaleY);
 
             // Draw white circular brush stroke at native resolution
             ctx.globalCompositeOperation = 'source-over';
@@ -279,7 +198,7 @@ const InpaintingTab = ({ onClose, prefillData }) => {
 
             setHasDrawnMask(true);
         },
-        [brushSize, canvasScale, originalImageDimensions]
+        [brushSize, originalImageDimensions]
     );
 
     // Mouse position tracking for custom cursor
@@ -473,6 +392,10 @@ const InpaintingTab = ({ onClose, prefillData }) => {
         [selectedImage]
     );
 
+    const selectedImageURL = selectedImage
+        ? selectedImage.imageUrls[selectedImage.selectedImageIdx || 0]
+        : null;
+
     return (
         <div className={styles.container}>
             {/* Three Column Layout */}
@@ -524,13 +447,15 @@ const InpaintingTab = ({ onClose, prefillData }) => {
                         </label>
 
                         {/* Canvas Container */}
-                        <div className={styles.canvasContainer}>
+                        <div
+                            className={
+                                detectedOrientation === 'landscape'
+                                    ? styles.canvasLandscapeContainer
+                                    : styles.canvasPortraitContainer
+                            }
+                        >
                             {/* Background canvas for image */}
-                            <canvas
-                                ref={backgroundCanvasRef}
-                                className={styles.backgroundCanvas}
-                                style={canvasDisplayStyle}
-                            />
+                            <img className={styles.backgroundImage} src={selectedImageURL} />
 
                             {/* Mask canvas for drawing */}
                             <canvas
@@ -541,11 +466,6 @@ const InpaintingTab = ({ onClose, prefillData }) => {
                                 onMouseUp={handleMouseUp}
                                 onMouseEnter={handleMouseEnter}
                                 onMouseLeave={handleMouseLeave}
-                                style={{
-                                    ...canvasDisplayStyle,
-                                    cursor: selectedImage ? 'none' : 'not-allowed',
-                                    pointerEvents: selectedImage ? 'auto' : 'none',
-                                }}
                             />
 
                             {/* Custom brush cursor */}
@@ -577,7 +497,7 @@ const InpaintingTab = ({ onClose, prefillData }) => {
                             )}
                         </div>
 
-                        {/* Clear Mask Button */}
+                        {/* Canvas Action Buttons */}
                         <div className={styles.canvasActions}>
                             <button
                                 className={styles.clearMaskButton}
@@ -593,35 +513,6 @@ const InpaintingTab = ({ onClose, prefillData }) => {
                 {/* Right Column - Controls */}
                 <div className={styles.rightColumn}>
                     <div className={styles.controlsPanel}>
-                        {/* Image Size Section */}
-                        <div className={styles.imageSizeSection}>
-                            <label className={styles.sectionLabel}>Image Size:</label>
-                            <div className={styles.imageSizeRadioGroup}>
-                                <input
-                                    type='radio'
-                                    id='inpaint-portrait'
-                                    name='inpaintImgSize'
-                                    checked={imageSize === IMAGE_SIZE_PORTRAIT}
-                                    onChange={() => {
-                                        setImageSize(IMAGE_SIZE_PORTRAIT);
-                                    }}
-                                    disabled={isGenerating}
-                                />
-                                <label htmlFor='inpaint-portrait'>Portrait</label>
-                                <input
-                                    type='radio'
-                                    id='inpaint-landscape'
-                                    name='inpaintImgSize'
-                                    checked={imageSize === IMAGE_SIZE_LANDSCAPE}
-                                    onChange={() => {
-                                        setImageSize(IMAGE_SIZE_LANDSCAPE);
-                                    }}
-                                    disabled={isGenerating}
-                                />
-                                <label htmlFor='inpaint-landscape'>Landscape</label>
-                            </div>
-                        </div>
-
                         {/* Brush Size Section */}
                         <div className={styles.brushSection}>
                             <label className={styles.sectionLabel}>Brush Size:</label>

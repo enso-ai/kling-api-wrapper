@@ -202,19 +202,6 @@ const PromptTab = ({ onClose, prefillData }) => {
                                         );
                                     })}
                                 </div>
-
-                                <div className={styles.selectionCounter}>
-                                    <span>Stack: {referenceImageStack.length}/10</span>
-                                    {referenceImageStack.length > 0 && (
-                                        <button
-                                            className={styles.clearAllButton}
-                                            onClick={handleClearAll}
-                                            disabled={isGenerating}
-                                        >
-                                            Clear All
-                                        </button>
-                                    )}
-                                </div>
                             </>
                         ) : (
                             <div className={styles.noImagesMessage}>
@@ -252,19 +239,17 @@ const PromptTab = ({ onClose, prefillData }) => {
                                 onChange={(e) => setPrompt(e.target.value)}
                                 placeholder='Describe the element you want to generate...'
                                 className={styles.promptTextarea}
-                                rows={6}
+                                rows={3}
                                 disabled={isGenerating}
                             />
                         </div>
 
                         {/* Generation Options */}
                         <div className={styles.optionsSection}>
-                            <label className={styles.optionLabel}>Image Size:</label>
+                            <label className={styles.optionLabel}>Size:</label>
                             <ImageSizeSelector />
                             <div className={styles.middle} />
-                            <label className={styles.optionLabel}>
-                                Number of images to generate:
-                            </label>
+                            <label className={styles.optionLabel}>No. images:</label>
                             <Dropdown
                                 value={numberOfImages}
                                 onChange={setNumberOfImages}
