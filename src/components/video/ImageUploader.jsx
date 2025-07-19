@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { FaTimes } from 'react-icons/fa';
 import { useImageDropAndPaste } from '../../hooks/useImageDropAndPaste';
 import styles from './ImageUploader.module.css';
@@ -10,6 +10,15 @@ export default function ImageUploader({
   label,
   isFirst
 }) {
+  const fileInputRef = useRef(null);
+
+  // Reset file input when image is cleared
+  useEffect(() => {
+    if (!image && fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  }, [image]);
+
   // Shared file processing logic
   const processFile = (file) => {
     if (file && file.type.startsWith('image/')) {
@@ -69,6 +78,7 @@ export default function ImageUploader({
   return (
     <div className={styles.imageUpload}>
       <input
+        ref={fileInputRef}
         type="file"
         accept="image/*"
         id={id}
