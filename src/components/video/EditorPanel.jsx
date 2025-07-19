@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import styles from './SidePanel.module.css';
+import styles from './EditorPanel.module.css';
 import ModelSelector from './ModelSelector';
 import ModeSelector from './ModeSelector';
 import ImageUploader from './ImageUploader';
@@ -9,7 +9,7 @@ import GenerateButton from './GenerateButton';
 import { convertImageToBase64 } from '@/utils/image';
 import { useVideoContext } from '@/context/VideoContext';
 
-export default function SidePanel() {
+export default function EditorPanel() {
   const { createVideo, currentTemplate, clearTemplate } = useVideoContext();
   const [loading, setLoading] = useState(false);
   const [model, setModel] = useState('v2');
@@ -86,7 +86,7 @@ export default function SidePanel() {
   };
 
   return (
-    <div className={styles.sidePanel}>
+    <div className={styles.container}>
       <ModelSelector
         value={model}
         onChange={setModel}
