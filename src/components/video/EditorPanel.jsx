@@ -35,11 +35,22 @@ export default function EditorPanel() {
         // Create a data URL from the base64 image
         const firstImageDataUrl = `data:image/png;base64,${currentTemplate.image}`;
         setFirstImage(firstImageDataUrl);
+      } else {
+        if (firstImage) {
+          // incoming template has no first frame but current editor panel has one
+          setFirstImage(null);
+        }
       }
       
       if (currentTemplate.imageTail) {
         const lastImageDataUrl = `data:image/png;base64,${currentTemplate.imageTail}`;
         setLastImage(lastImageDataUrl);
+      } else {
+        if (lastImage) {
+          // incoming template has no last frame but current editor panel has one
+          // reset it
+          setLastImage(null);
+        }
       }
     }
   }, [currentTemplate]);
