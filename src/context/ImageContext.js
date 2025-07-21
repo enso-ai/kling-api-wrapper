@@ -9,7 +9,12 @@ import React, {
 } from 'react';
 import { apiClient } from '@/service/backend';
 import ImageRecord from '@/models/ImageRecord';
-import { db, loadImageRecordsPage, getTotalImageRecordsCount } from '@/service/database';
+import {
+    db,
+    loadImageRecordsPageByProject,
+    getTotalImageRecordsCountByProject,
+} from '@/service/database';
+import { useProjectContext } from './ProjectContext';
 
 const MAX_RECORDS = 20; // Maximum number of records to load per page
 
@@ -114,6 +119,7 @@ const ImageContext = createContext();
 
 // Provider component
 export const ImageContextProvider = ({ children }) => {
+    const { curProjectId, isLoaded: projectsLoaded } = useProjectContext();
     const [state, dispatch] = useReducer(imageReducer, initialState);
 
     // Use ref to access current state in async functions
@@ -122,19 +128,25 @@ export const ImageContextProvider = ({ children }) => {
         stateRef.current = state;
     }, [state]);
 
-    // Load records from database on initial mount with pagination
+    // Load records from database when project is loaded and project ID is available
     useEffect(() => {
+        if (!projectsLoaded || !curProjectId) return;
+
         const loadInitialRecords = async () => {
             try {
-                // Get total count first
-                const total = await getTotalImageRecordsCount();
+                // Get total count first for the current project
+                const total = await getTotalImageRecordsCountByProject(curProjectId);
                 dispatch({
                     type: IMAGE_ACTIONS.SET_PAGINATION,
                     payload: { totalImages: total },
                 });
 
-                // Load first page
-                const savedRecords = await loadImageRecordsPage(1, MAX_RECORDS);
+                // Load first page for the current project
+                const savedRecords = await loadImageRecordsPageByProject(
+                    curProjectId,
+                    1,
+                    MAX_RECORDS
+                );
 
                 // Convert DB objects back to ImageRecord instances
                 const records = savedRecords.map((data) => {
@@ -170,7 +182,7 @@ export const ImageContextProvider = ({ children }) => {
         };
 
         loadInitialRecords();
-    }, []);
+    }, [projectsLoaded, curProjectId]);
 
     // Save a record to the database
     const saveRecordToDB = useCallback(async (record) => {
@@ -188,7 +200,7 @@ export const ImageContextProvider = ({ children }) => {
     const addImages = useCallback(
         async (imageUrls, generationSources) => {
             try {
-                // Create ImageRecord instance with array of URLs
+                // Create ImageRecord instance with array of URLs and current project ID
                 const imageRecord = new ImageRecord({
                     modelName: 'gpt-image-1', // Default model for now
                     srcImages: generationSources.referenceImages || [],
@@ -196,6 +208,7 @@ export const ImageContextProvider = ({ children }) => {
                     prompt: generationSources.prompt,
                     size: generationSources.size || null,
                     imageUrls: imageUrls,
+                    projectId: curProjectId,
                 });
 
                 // Add selectedImageIdx in memory (default to first image)
@@ -216,7 +229,7 @@ export const ImageContextProvider = ({ children }) => {
                 throw error;
             }
         },
-        [saveRecordToDB]
+        [saveRecordToDB, curProjectId]
     );
 
     // Update selected image index for a record
@@ -266,7 +279,11 @@ export const ImageContextProvider = ({ children }) => {
 
         try {
             const nextPage = state.currentPage + 1;
-            const moreRecords = await loadImageRecordsPage(nextPage, MAX_RECORDS);
+            const moreRecords = await loadImageRecordsPageByProject(
+                curProjectId,
+                nextPage,
+                MAX_RECORDS
+            );
 
             if (moreRecords.length === 0) {
                 dispatch({
@@ -316,6 +333,7 @@ export const ImageContextProvider = ({ children }) => {
         state.isLoadingMore,
         state.totalImages,
         state.imageRecords,
+        curProjectId,
     ]);
 
     const executeImageGeneration = useCallback(
