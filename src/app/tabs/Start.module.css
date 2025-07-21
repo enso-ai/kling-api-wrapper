@@ -168,7 +168,7 @@
 
 .tableHeader {
     display: grid;
-    grid-template-columns: 1fr auto;
+    grid-template-columns: 1fr auto auto;
     gap: 1rem;
     padding: 1rem 1.5rem;
     background-color: #333;
@@ -187,7 +187,7 @@
 
 .tableRow {
     display: grid;
-    grid-template-columns: 1fr auto;
+    grid-template-columns: 1fr auto auto;
     gap: 1rem;
     padding: 1rem 1.5rem;
     border-bottom: 1px solid #444;
@@ -226,7 +226,7 @@
     color: #f5f5f5;
     font-weight: 500;
     font-size: 1rem;
-    truncate: ellipsis;
+    text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
 }
@@ -249,6 +249,98 @@
     min-width: 140px;
 }
 
+.columnActions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    min-width: 80px;
+}
+
+/* Delete Button */
+.deleteButton {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.deleteButton:hover {
+    background-color: #c82333;
+}
+
+/* Modal Styles */
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal {
+    background-color: #2a2a2a;
+    border: 1px solid #444;
+    border-radius: 8px;
+    padding: 2rem;
+    max-width: 500px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal h3 {
+    color: #f5f5f5;
+    margin: 0 0 1rem 0;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.modal p {
+    color: #b0b0b0;
+    margin: 0 0 1rem 0;
+    line-height: 1.5;
+}
+
+.warningText {
+    color: #ff9999 !important;
+    font-weight: 500;
+    margin-bottom: 2rem !important;
+}
+
+.modalButtons {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+}
+
+.deleteConfirmButton {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.deleteConfirmButton:hover:not(:disabled) {
+    background-color: #c82333;
+}
+
+.deleteConfirmButton:disabled {
+    background-color: #666;
+    cursor: not-allowed;
+}
 
 /* Responsive Design */
 @media (max-width: 768px) {
@@ -267,13 +359,21 @@
     
     .tableHeader,
     .tableRow {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr auto;
         gap: 0.5rem;
     }
     
     .columnModified {
-        grid-column: 1;
-        margin-top: 0.5rem;
-        text-align: left;
+        display: none;
+    }
+    
+    .columnActions {
+        justify-content: flex-start;
+        min-width: auto;
+    }
+    
+    .deleteButton {
+        font-size: 0.7rem;
+        padding: 4px 8px;
     }
 }

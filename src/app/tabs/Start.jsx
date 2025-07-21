@@ -7,10 +7,12 @@ import styles from './Start.module.css';
 
 export default function Start() {
     const router = useRouter();
-    const { projects, isLoaded, createProject, selectProject, curProjectId } = useProjectContext();
+    const { projects, isLoaded, createProject, selectProject, deleteProject, curProjectId } = useProjectContext();
     const [showCreateForm, setShowCreateForm] = useState(false);
     const [projectName, setProjectName] = useState('');
     const [isCreating, setIsCreating] = useState(false);
+    const [deleteConfirm, setDeleteConfirm] = useState(null); // { projectId, projectName }
+    const [isDeleting, setIsDeleting] = useState(false);
     const shouldNavigateAfterCreate = useRef(false);
 
     const handleCreateProject = async (e) => {
@@ -37,6 +39,30 @@ export default function Start() {
     const handleSelectProject = (projectId) => {
         selectProject(projectId);
         router.push('/?tab=image');
+    };
+
+    const handleDeleteClick = (e, projectId, projectName) => {
+        e.stopPropagation(); // Prevent row selection
+        setDeleteConfirm({ projectId, projectName });
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!deleteConfirm) return;
+        
+        setIsDeleting(true);
+        try {
+            await deleteProject(deleteConfirm.projectId);
+            setDeleteConfirm(null);
+        } catch (error) {
+            console.error('Failed to delete project:', error);
+            alert('Failed to delete project. Please try again.');
+        } finally {
+            setIsDeleting(false);
+        }
+    };
+
+    const handleCancelDelete = () => {
+        setDeleteConfirm(null);
     };
 
     // Handle navigation after project creation
@@ -130,6 +156,7 @@ export default function Start() {
                         <div className={styles.tableHeader}>
                             <div className={styles.columnName}>Project Name</div>
                             <div className={styles.columnModified}>Modified</div>
+                            <div className={styles.columnActions}>Actions</div>
                         </div>
                         <div className={styles.tableBody}>
                             {projects.map((project) => {
@@ -152,6 +179,17 @@ export default function Start() {
                                         <div className={styles.columnModified}>
                                             {formatDate(payload.modified)}
                                         </div>
+                                        <div className={styles.columnActions}>
+                                            {payload.projectName !== 'Default Project' && (
+                                                <button 
+                                                    className={styles.deleteButton}
+                                                    onClick={(e) => handleDeleteClick(e, payload.id, payload.projectName)}
+                                                    title="Delete project"
+                                                >
+                                                    Delete
+                                                </button>
+                                            )}
+                                        </div>
                                     </div>
                                 );
                             })}
@@ -159,6 +197,37 @@ export default function Start() {
                     </div>
                 )}
             </div>
+
+            {/* Delete Confirmation Modal */}
+            {deleteConfirm && (
+                <div className={styles.modalOverlay}>
+                    <div className={styles.modal}>
+                        <h3>Delete Project</h3>
+                        <p>
+                            Are you sure you want to delete "{deleteConfirm.projectName}"?
+                        </p>
+                        <p className={styles.warningText}>
+                            This will permanently delete the project and all related videos and images. This action cannot be undone.
+                        </p>
+                        <div className={styles.modalButtons}>
+                            <button 
+                                className={styles.deleteConfirmButton}
+                                onClick={handleConfirmDelete}
+                                disabled={isDeleting}
+                            >
+                                {isDeleting ? 'Deleting...' : 'Delete'}
+                            </button>
+                            <button 
+                                className={styles.cancelButton}
+                                onClick={handleCancelDelete}
+                                disabled={isDeleting}
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

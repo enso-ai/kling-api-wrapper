@@ -2,7 +2,8 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { 
     listProjects, 
     createProject as dbCreateProject, 
-    getOrCreateDefaultProject 
+    getOrCreateDefaultProject,
+    deleteProjectCascade 
 } from '@/service/database';
 import Project from '@/models/Project';
 
@@ -64,6 +65,26 @@ export function ProjectProvider({ children }) {
         [projects]
     );
 
+    // Method to delete a project
+    const deleteProject = useCallback(async (projectId) => {
+        try {
+            await deleteProjectCascade(projectId);
+            
+            // Update local state
+            setProjects(prev => prev.filter(p => p.id !== projectId));
+            
+            // Handle if deleted project was currently selected
+            if (curProjectId === projectId) {
+                setCurProjectId(null);
+            }
+            
+            return true;
+        } catch (error) {
+            console.error('Error deleting project:', error);
+            throw error;
+        }
+    }, [curProjectId]);
+
     // Method to get current project object
     const getCurrentProject = useCallback(() => {
         return projects.find((p) => p.id === curProjectId);
@@ -75,6 +96,7 @@ export function ProjectProvider({ children }) {
         isLoaded,
         createProject,
         selectProject,
+        deleteProject,
         getCurrentProject,
     };
 

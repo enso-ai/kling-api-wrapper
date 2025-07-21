@@ -221,6 +221,25 @@ export const getOrCreateDefaultProject = async () => {
   }
 };
 
+// Delete project and all related records (cascade delete)
+export const deleteProjectCascade = async (projectId) => {
+  try {
+    // Delete all video records for this project
+    await db.videoRecords.where('projectId').equals(projectId).delete();
+    
+    // Delete all image records for this project  
+    await db.imageRecords.where('projectId').equals(projectId).delete();
+    
+    // Delete the project itself
+    await db.projects.delete(projectId);
+    
+    console.log(`Successfully deleted project ${projectId} and all related records`);
+  } catch (error) {
+    console.error('Failed to delete project cascade:', error);
+    throw error;
+  }
+};
+
 // ========== Project-Filtered Video Functions ==========
 
 // Load video records with pagination filtered by project
