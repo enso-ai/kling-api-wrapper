@@ -4,14 +4,13 @@ import {
     createProject as dbCreateProject, 
     getOrCreateDefaultProject 
 } from '@/service/database';
-
-const DEFAULT_PROJECT_ID = "00000000-0000-0000-0000-000000000001";
+import Project from '@/models/Project';
 
 const ProjectContext = createContext();
 
 export function ProjectProvider({ children }) {
     const [projects, setProjects] = useState([]);
-    const [curProjectId, setCurProjectId] = useState(DEFAULT_PROJECT_ID);
+    const [curProjectId, setCurProjectId] = useState(null);
     const [isLoaded, setIsLoaded] = useState(false);
 
     // Load projects on initial mount
@@ -20,15 +19,12 @@ export function ProjectProvider({ children }) {
             try {
                 // Ensure default project exists
                 await getOrCreateDefaultProject();
-                
+
                 // Load all projects
                 const projectList = await listProjects();
                 setProjects(projectList);
-                
-                // Set current project to default if not already set
-                if (!curProjectId || !projectList.find(p => p.id === curProjectId)) {
-                    setCurProjectId(DEFAULT_PROJECT_ID);
-                }
+
+                // Don't auto-select any project - user must explicitly choose
             } catch (error) {
                 console.error('Failed to load projects:', error);
                 // Still set as loaded even on error
@@ -43,9 +39,11 @@ export function ProjectProvider({ children }) {
     // Method to create a new project
     const createProject = useCallback(async (projectName) => {
         try {
-            const newProject = await dbCreateProject(projectName);
-            setProjects(prev => [...prev, newProject]);
-            return newProject;
+            const newProject = new Project({ project_name: projectName });
+            const savedProject = await dbCreateProject(newProject);
+            setProjects((prev) => [...prev, savedProject]);
+            setCurProjectId(savedProject.id); // Auto-select new project
+            return savedProject;
         } catch (error) {
             console.error('Error creating project:', error);
             throw error;
@@ -53,19 +51,22 @@ export function ProjectProvider({ children }) {
     }, []);
 
     // Method to select a project
-    const selectProject = useCallback((projectId) => {
-        // Validate that the project exists
-        const projectExists = projects.find(p => p.id === projectId);
-        if (projectExists) {
-            setCurProjectId(projectId);
-        } else {
-            console.warn(`Project with id ${projectId} not found, keeping current selection`);
-        }
-    }, [projects]);
+    const selectProject = useCallback(
+        (projectId) => {
+            // Validate that the project exists
+            const projectExists = projects.find((p) => p.id === projectId);
+            if (projectExists) {
+                setCurProjectId(projectId);
+            } else {
+                console.warn(`Project with id ${projectId} not found, keeping current selection`);
+            }
+        },
+        [projects]
+    );
 
     // Method to get current project object
     const getCurrentProject = useCallback(() => {
-        return projects.find(p => p.id === curProjectId);
+        return projects.find((p) => p.id === curProjectId);
     }, [projects, curProjectId]);
 
     const value = {
