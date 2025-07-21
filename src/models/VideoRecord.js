@@ -23,6 +23,7 @@ class VideoRecord {
         this.id = crypto.randomUUID(); // Generate a unique task ID
         this.taskId = null; // By default, taskId is null until set by API response
         this.videoId = null; // Video ID from API response for extensions
+        this.projectId = formData.projectId || '00000000-0000-0000-0000-000000000001'; // Default project ID
         this.status = "pending";
         this.task_msg = "";
         this.timestamp = Date.now();
@@ -83,6 +84,7 @@ class VideoRecord {
             id: this.id, // Primary key
             taskId: this.taskId, // Explicit task ID field
             videoId: this.videoId, // Video ID for extensions
+            projectId: this.projectId, // Project association
             status: this.status,
             createdAt: this.createdAt,
             updatedAt: this.updatedAt,
@@ -101,6 +103,7 @@ class VideoRecord {
         record.id = data.id;
         record.taskId = data.taskId || null; // allow it to be null
         record.videoId = data.videoId || null; // Video ID for extensions (new field)
+        record.projectId = data.projectId || '00000000-0000-0000-0000-000000000001'; // Default project for old records
         record.status = data.status;
         record.createdAt = data.createdAt;
         record.updatedAt = data.updatedAt;
