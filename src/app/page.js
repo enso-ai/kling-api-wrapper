@@ -8,6 +8,7 @@ import styles from './page.module.css';
 import { VideoProvider } from '@/context/VideoContext';
 import { ImageContextProvider } from '@/context/ImageContext';
 import { ImageGenModalContextProvider } from '@/context/ImageGenModalContext';
+import { ProjectProvider } from '@/context/ProjectContext';
 
 function HomeContent() {
     const searchParams = useSearchParams();
@@ -58,14 +59,16 @@ function HomeContent() {
 
 export default function Home() {
     return (
-        <VideoProvider>
-            <ImageContextProvider>
-                <ImageGenModalContextProvider>
-                    <Suspense fallback={<div className={styles.container}>Loading...</div>}>
-                        <HomeContent />
-                    </Suspense>
-                </ImageGenModalContextProvider>
-            </ImageContextProvider>
-        </VideoProvider>
+        <ProjectProvider>
+            <VideoProvider>
+                <ImageContextProvider>
+                    <ImageGenModalContextProvider>
+                        <Suspense fallback={<div className={styles.container}>Loading...</div>}>
+                            <HomeContent />
+                        </Suspense>
+                    </ImageGenModalContextProvider>
+                </ImageContextProvider>
+            </VideoProvider>
+        </ProjectProvider>
     );
 }
