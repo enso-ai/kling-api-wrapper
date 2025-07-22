@@ -1,71 +1,89 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useState, useEffect, Suspense, useMemo } from 'react';
 import ImageTool from './tabs/ImageTool';
 import VideoTool from './tabs/videoTool';
+import Start from './tabs/Start';
 import styles from './page.module.css';
 import { VideoProvider } from '@/context/VideoContext';
 import { ImageContextProvider } from '@/context/ImageContext';
 import { ImageGenModalContextProvider } from '@/context/ImageGenModalContext';
+import { ProjectProvider, useProjectContext } from '@/context/ProjectContext';
+import { TabContextProvider, useTabContext } from '@/context/TabManager';
+
+import { apiClient } from '@/service/backend';
 
 function HomeContent() {
-    const searchParams = useSearchParams();
-    const router = useRouter();
+    const { curProjectId } = useProjectContext();
+    const isProjectSelected = useMemo(() => curProjectId !== null, [curProjectId]);
+    const { activeTab, handleTabChange } = useTabContext()
 
-    // Get initial tab from URL, default to 'image'
-    const getInitialTab = () => {
-        const tabParam = searchParams.get('tab');
-        return tabParam === 'video' || tabParam === 'image' ? tabParam : 'image';
-    };
+    const [authInfo, setAuthInfo] = useState(null);
 
-    const [activeTab, setActiveTab] = useState(getInitialTab());
-
-    // Sync state with URL changes
+    // Method to fetch account information
     useEffect(() => {
-        const tabParam = searchParams.get('tab');
-        const validTab = tabParam === 'video' || tabParam === 'image' ? tabParam : 'image';
-        setActiveTab(validTab);
-    }, [searchParams]);
+        const getAuthInfo = async () => {
+            apiClient.getIAPAuthInfo().then((res) => {
+                if (res) {
+                    console.log('User info:', res);
+                    setAuthInfo(res);
+                }
+            });
+        };
 
-    // Handle tab change with URL update
-    const handleTabChange = (tab) => {
-        setActiveTab(tab);
-        router.push(`/?tab=${tab}`);
-    };
+        getAuthInfo()
+    }, []);
 
     return (
         <div className={styles.container}>
             <div className={styles.tabs}>
                 <button
-                    className={`${styles.tabButton} ${activeTab === 'image' ? styles.active : ''}`}
+                    className={`${styles.tabButton} ${activeTab === 'start' ? styles.active : ''}`}
+                    onClick={() => handleTabChange('start')}
+                >
+                    Start
+                </button>
+                <button
+                    className={`${styles.tabButton} ${activeTab === 'image' ? styles.active : ''} ${!isProjectSelected ? styles.disabled : ''}`}
                     onClick={() => handleTabChange('image')}
+                    disabled={!isProjectSelected}
+                    title={!isProjectSelected ? 'Select a project to access this tab' : ''}
                 >
                     Image
                 </button>
                 <button
-                    className={`${styles.tabButton} ${activeTab === 'video' ? styles.active : ''}`}
+                    className={`${styles.tabButton} ${activeTab === 'video' ? styles.active : ''} ${!isProjectSelected ? styles.disabled : ''}`}
                     onClick={() => handleTabChange('video')}
+                    disabled={!isProjectSelected}
+                    title={!isProjectSelected ? 'Select a project to access this tab' : ''}
                 >
                     Video
                 </button>
+                <div className={styles.userInfo}>
+                    {authInfo?.name}
+                </div>
             </div>
-            {activeTab === 'image' && <ImageTool />}
-            {activeTab === 'video' && <VideoTool />}
+            {activeTab === 'start' && <Start onRedirect={handleTabChange}/>}
+            {activeTab === 'image' && isProjectSelected && <ImageTool />}
+            {activeTab === 'video' && isProjectSelected && <VideoTool />}
         </div>
     );
 }
 
 export default function Home() {
     return (
-        <VideoProvider>
-            <ImageContextProvider>
-                <ImageGenModalContextProvider>
-                    <Suspense fallback={<div className={styles.container}>Loading...</div>}>
-                        <HomeContent />
-                    </Suspense>
-                </ImageGenModalContextProvider>
-            </ImageContextProvider>
-        </VideoProvider>
+        <ProjectProvider>
+            <VideoProvider>
+                <ImageContextProvider>
+                    <ImageGenModalContextProvider>
+                        <TabContextProvider>
+                            <Suspense fallback={<div className={styles.container}>Loading...</div>}>
+                                <HomeContent />
+                            </Suspense>
+                        </TabContextProvider>
+                    </ImageGenModalContextProvider>
+                </ImageContextProvider>
+            </VideoProvider>
+        </ProjectProvider>
     );
 }

@@ -3,13 +3,20 @@ import { apiClient, VideoAPIThrottleError } from '../service/backend';
 import VideoRecord from '../models/VideoRecord';
 import VideoOptions from '../models/VideoOptions';
 import ExtensionRecord from '../models/ExtensionRecord';
-import { db, loadVideoRecordsPage, getTotalVideoRecordsCount } from '../service/database';
+import {
+    db,
+    loadVideoRecordsPageByProject,
+    getTotalVideoRecordsCountByProject,
+} from '@/service/database';
+import { useProjectContext } from './ProjectContext';
 
 const MAX_RECORDS = 20; // Maximum number of records to load per page
 
 const VideoContext = createContext();
 
 export function VideoProvider({ children }) {
+    const { curProjectId, isLoaded: projectsLoaded } = useProjectContext();
+
     const [videoRecords, setVideoRecords] = useState([]);
     const [isLoaded, setIsLoaded] = useState(false);
     const [currentTemplate, setCurrentTemplate] = useState(null);
@@ -53,16 +60,22 @@ export function VideoProvider({ children }) {
         getAccountInfo();
     }, [getAccountInfo]);
 
-    // Load records from database on initial mount with pagination
+    // Load records from database when project is loaded and project ID is available
     useEffect(() => {
+        if (!projectsLoaded || !curProjectId) return;
+
         const loadInitialRecords = async () => {
             try {
-                // Get total count first
-                const total = await getTotalVideoRecordsCount();
+                // Get total count first for the current project
+                const total = await getTotalVideoRecordsCountByProject(curProjectId);
                 setTotalVideos(total);
 
-                // Load first page
-                const savedRecords = await loadVideoRecordsPage(1, MAX_RECORDS);
+                // Load first page for the current project
+                const savedRecords = await loadVideoRecordsPageByProject(
+                    curProjectId,
+                    1,
+                    MAX_RECORDS
+                );
 
                 // Convert DB objects back to appropriate record instances
                 const records = savedRecords.map((data) => {
@@ -87,7 +100,7 @@ export function VideoProvider({ children }) {
         };
 
         loadInitialRecords();
-    }, []);
+    }, [projectsLoaded, curProjectId]);
 
     // Save a record to the database
     const saveRecordToDB = useCallback(async (record) => {
@@ -125,9 +138,9 @@ export function VideoProvider({ children }) {
 
             // Make the API request first
             try {
-                // Only now create the VideoRecord with existing info
-                // init VideoRecord with formData
-                videoRecord = new VideoRecord(formData);
+                // Create the VideoRecord with current project ID
+                const formDataWithProject = { ...formData, projectId: curProjectId };
+                videoRecord = new VideoRecord(formDataWithProject);
 
                 // console.log('options from video context', options);
                 try {
@@ -163,7 +176,7 @@ export function VideoProvider({ children }) {
 
             return videoRecord;
         },
-        [saveRecordToDB, videoRecords, getAccountInfo]
+        [saveRecordToDB, videoRecords, getAccountInfo, curProjectId]
     );
 
     // Method to update a video record (enhanced with DB persistence)
@@ -185,9 +198,11 @@ export function VideoProvider({ children }) {
                 if (!record.taskId) {
                     // record hasn't get a taskId yet, need to send a request to the API
                     try {
-                        
                         if (record.isExtension) {
-                            taskData = await apiClient.extendVideo(record.videoId, record.extensionOptions);
+                            taskData = await apiClient.extendVideo(
+                                record.videoId,
+                                record.extensionOptions
+                            );
                         } else {
                             taskData = await apiClient.createVideo(record.options);
                         }
@@ -207,7 +222,10 @@ export function VideoProvider({ children }) {
                     // task id exists, no need to request a new task
                     if (record.isExtension) {
                         // For extension records, use the extension API
-                        taskData = await apiClient.getExtensionTaskById(record.taskId, record.originalVideoId);
+                        taskData = await apiClient.getExtensionTaskById(
+                            record.taskId,
+                            record.originalVideoId
+                        );
                     } else {
                         // For regular video records, use the standard API
                         taskData = await apiClient.getTaskById(record.taskId);
@@ -219,7 +237,7 @@ export function VideoProvider({ children }) {
 
                 // swap it out in the state
                 setVideoRecords((prev) =>
-                    prev.map((curRecord) => 
+                    prev.map((curRecord) =>
                         curRecord.taskId === record.taskId ? record : curRecord
                     )
                 );
@@ -310,7 +328,11 @@ export function VideoProvider({ children }) {
         setIsLoadingMore(true);
         try {
             const nextPage = currentPage + 1;
-            const moreRecords = await loadVideoRecordsPage(nextPage, MAX_RECORDS);
+            const moreRecords = await loadVideoRecordsPageByProject(
+                curProjectId,
+                nextPage,
+                MAX_RECORDS
+            );
 
             if (moreRecords.length === 0) {
                 setHasMoreVideos(false);
@@ -334,14 +356,14 @@ export function VideoProvider({ children }) {
             setCurrentPage(nextPage);
 
             // Check if we have more videos to load
-            const totalLoaded = currentPage * MAX_RECORDS + records.length;
+            const totalLoaded = nextPage * MAX_RECORDS;
             setHasMoreVideos(totalLoaded < totalVideos);
         } catch (error) {
             console.error('Failed to load more videos:', error);
         } finally {
             setIsLoadingMore(false);
         }
-    }, [currentPage, hasMoreVideos, isLoadingMore, totalVideos]);
+    }, [currentPage, hasMoreVideos, isLoadingMore, totalVideos, curProjectId]);
 
     const value = {
         videoRecords,

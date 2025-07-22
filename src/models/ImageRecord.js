@@ -15,6 +15,7 @@ class ImageRecord {
         this.prompt = formData.prompt || null;
         this.size = formData.size || IMAGE_SIZE_PORTRAIT; // Image size specification (e.g., "1024x1536")
         this.imageUrls = formData.imageUrls || []; // Array of generated image URLs
+        this.projectId = formData.projectId || '00000000-0000-0000-0000-000000000001'; // Default project ID
     }
 
     // Convert to the format expected by components
@@ -43,6 +44,7 @@ class ImageRecord {
             prompt: this.prompt,
             size: this.size,
             imageUrls: this.imageUrls,
+            projectId: this.projectId, // Project association
         };
     }
 
@@ -63,6 +65,7 @@ class ImageRecord {
         record.prompt = data.prompt;
         record.size = data.size;
         record.imageUrls = data.imageUrls || [];
+        record.projectId = data.projectId || '00000000-0000-0000-0000-000000000001'; // Default project for old records
         return record;
     }
 }

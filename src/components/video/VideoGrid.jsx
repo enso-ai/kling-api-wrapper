@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useCallback } from 'react';
 import styles from './VideoGrid.module.css';
 import VideoPlayer from './VideoPlayer';
-import UserInfo from './UserInfo';
 import { useVideoContext } from '@/context/VideoContext';
 
 export default function VideoGrid() {
@@ -70,7 +69,6 @@ export default function VideoGrid() {
         <div className={styles.gridContainer}>
             <div className={styles.gridHeader}>
                 <div className={styles.gridHeaderTitle}>Results</div>
-                <UserInfo />
             </div>
             <div className={styles.videoGrid} ref={gridRef}>
                 {!isLoaded ? (
