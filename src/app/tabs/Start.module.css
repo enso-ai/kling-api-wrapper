@@ -272,6 +272,12 @@
     background-color: #c82333;
 }
 
+.deleteButton:disabled {
+    background-color: #6c757d; /* Gray color */
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
 /* Modal Styles */
 .modalOverlay {
     position: fixed;

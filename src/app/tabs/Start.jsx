@@ -94,7 +94,6 @@ export default function Start() {
     return (
         <div className={styles.container}>
             <div className={styles.header}>
-                <h1>Project Management</h1>
                 <p>Create a new project or select an existing one to continue</p>
             </div>
 
@@ -180,15 +179,14 @@ export default function Start() {
                                             {formatDate(payload.modified)}
                                         </div>
                                         <div className={styles.columnActions}>
-                                            {payload.projectName !== 'Default Project' && (
-                                                <button 
-                                                    className={styles.deleteButton}
-                                                    onClick={(e) => handleDeleteClick(e, payload.id, payload.projectName)}
-                                                    title="Delete project"
-                                                >
-                                                    Delete
-                                                </button>
-                                            )}
+                                            <button 
+                                                className={styles.deleteButton}
+                                                onClick={(e) => handleDeleteClick(e, payload.id, payload.projectName)}
+                                                title="Delete project"
+                                                disabled={(payload.projectName === 'Default Project')}
+                                            >
+                                                Delete
+                                            </button>
                                         </div>
                                     </div>
                                 );
