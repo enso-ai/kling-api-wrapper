@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useCallback } from 'react';
-import { useImageDropAndPaste } from '../../hooks/useImageDropAndPaste';
+import { useImageDropAndPaste } from '@/hooks/useImageDropAndPaste';
+import { validateAndResizeImage } from '@/utils/image';
 import styles from './ReferenceImageStack.module.css';
 
 const ReferenceImageStack = ({
@@ -13,37 +14,27 @@ const ReferenceImageStack = ({
     disabled = false,
     validationError = null
 }) => {
-    // Validate image file
+    // Validate image file type
     const validateImageFile = useCallback((file) => {
         // Check if it's a supported image file (will be converted to PNG)
         const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
         if (!allowedTypes.includes(file.type)) {
             return 'Only PNG/JPG/WebP images are supported';
         }
-
         return null;
     }, []);
 
-    // Validate image dimensions
-    const validateImageDimensions = useCallback((img) => {
-        const { width, height } = img;
-        if (width < 768 || width > 2048 || height < 768 || height > 2048) {
-            return 'Image dimensions must be between 768x768 and 2048x2048 pixels';
-        }
-        return null;
-    }, []);
-
-    // Convert file to base64
-    const fileToBase64 = useCallback((file) => {
+    // Convert blob to base64
+    const blobToBase64 = useCallback((blob) => {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.onload = () => resolve(reader.result);
             reader.onerror = reject;
-            reader.readAsDataURL(file);
+            reader.readAsDataURL(blob);
         });
     }, []);
 
-    // Handle adding base64 image to stack
+    // Handle adding image to stack with smart validation and resizing
     const handleAddBase64ToStack = useCallback(async (file) => {
         if (referenceImageStack.length >= maxImages) {
             if (onAddImage) {
@@ -52,7 +43,7 @@ const ReferenceImageStack = ({
             return;
         }
 
-        // Validate file type
+        // Validate file type first
         const fileError = validateImageFile(file);
         if (fileError) {
             if (onAddImage) {
@@ -62,51 +53,60 @@ const ReferenceImageStack = ({
         }
 
         try {
-            // Convert to base64
-            const base64 = await fileToBase64(file);
+            // Use the new smart validation and resizing function
+            const validationResult = await validateAndResizeImage(file);
             
-            // Create image element to check dimensions
-            const img = new Image();
-            img.onload = () => {
-                // Validate dimensions
-                const dimensionError = validateImageDimensions(img);
-                if (dimensionError) {
-                    if (onAddImage) {
-                        onAddImage(null, dimensionError);
-                    }
-                    return;
-                }
-
-                // Add to stack
-                const newStackEntry = {
-                    id: Date.now() + Math.random(),
-                    base64,
-                    type: 'base64',
-                    fileName: file.name,
-                    dimensions: { width: img.width, height: img.height }
-                };
-
-                if (onAddImage) {
-                    onAddImage(newStackEntry, null);
-                }
-            };
-            img.onerror = () => {
-                if (onAddImage) {
-                    onAddImage(null, 'Failed to load image');
-                }
-            };
-            img.src = base64;
-        } catch (error) {
-            if (onAddImage) {
-                // Check if it's a conversion error
-                if (error.message && error.message.includes('conversion failed')) {
-                    onAddImage(null, 'Unable to process image - conversion failed');
-                } else {
-                    onAddImage(null, 'Failed to process image file');
+            // Convert the processed blob to base64
+            const base64 = await blobToBase64(validationResult.blob);
+            
+            // Create enhanced filename if image was resized
+            let displayFileName = file.name;
+            if (validationResult.needsResize) {
+                const { width, height } = validationResult.dimensions;
+                const originalDimensions = validationResult.originalDimensions;
+                displayFileName = `${file.name.replace(/\.[^/.]+$/, '')}_resized_${width}x${height}.png`;
+                
+                // Log resizing info for debugging
+                console.log(`Image resized: ${originalDimensions.width}x${originalDimensions.height} → ${width}x${height}`);
+                if (validationResult.quality < 0.9) {
+                    console.log(`Quality adjusted to ${validationResult.quality} to meet file size requirements`);
                 }
             }
+
+            // Add to stack
+            const newStackEntry = {
+                id: Date.now() + Math.random(),
+                base64,
+                type: 'base64',
+                fileName: displayFileName,
+                dimensions: validationResult.dimensions,
+                originalDimensions: validationResult.originalDimensions,
+                wasResized: validationResult.needsResize,
+                finalFileSize: validationResult.finalSize,
+                originalFileSize: validationResult.originalSize
+            };
+
+            if (onAddImage) {
+                // Include success message if image was automatically resized
+                let successMessage = null;
+                if (validationResult.needsResize) {
+                    const originalSize = (validationResult.originalSize / (1024 * 1024)).toFixed(1);
+                    const finalSize = (validationResult.finalSize / (1024 * 1024)).toFixed(1);
+                    const originalDims = validationResult.originalDimensions;
+                    const finalDims = validationResult.dimensions;
+                    
+                    successMessage = `Image automatically resized from ${originalDims.width}×${originalDims.height} to ${finalDims.width}×${finalDims.height} (${originalSize}MB → ${finalSize}MB)`;
+                }
+                
+                onAddImage(newStackEntry, null, successMessage);
+            }
+
+        } catch (error) {
+            if (onAddImage) {
+                onAddImage(null, error.message);
+            }
         }
-    }, [referenceImageStack.length, maxImages, validateImageFile, validateImageDimensions, fileToBase64, onAddImage]);
+    }, [referenceImageStack.length, maxImages, validateImageFile, blobToBase64, onAddImage]);
 
     // Use the shared hook for drag & drop and paste functionality
     const {

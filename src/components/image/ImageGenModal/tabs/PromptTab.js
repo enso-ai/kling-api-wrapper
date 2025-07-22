@@ -112,12 +112,19 @@ const PromptTab = ({ onClose, prefillData }) => {
     }, []);
 
     // Handle adding image from ReferenceImageStack component
-    const handleAddImageFromStack = useCallback((newStackEntry, error) => {
+    const handleAddImageFromStack = useCallback((newStackEntry, error, successMessage) => {
         if (error) {
             setValidationError(error);
             setTimeout(() => setValidationError(null), 3000);
         } else if (newStackEntry) {
             setReferenceImageStack((prev) => [...prev, newStackEntry]);
+            
+            // Show success message if image was automatically resized
+            if (successMessage) {
+                console.log('Image processing success:', successMessage);
+                // For now, we'll log the message. In the future, this could be shown as a toast notification
+                // or temporary success message in the UI
+            }
         }
     }, []);
 
