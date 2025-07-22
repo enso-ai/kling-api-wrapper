@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useMemo } from 'react';
+import { useState, useEffect, Suspense, useMemo } from 'react';
 import ImageTool from './tabs/ImageTool';
 import VideoTool from './tabs/videoTool';
 import Start from './tabs/Start';
@@ -11,11 +11,28 @@ import { ImageGenModalContextProvider } from '@/context/ImageGenModalContext';
 import { ProjectProvider, useProjectContext } from '@/context/ProjectContext';
 import { TabContextProvider, useTabContext } from '@/context/TabManager';
 
+import { apiClient } from '@/service/backend';
+
 function HomeContent() {
     const { curProjectId } = useProjectContext();
+    const isProjectSelected = useMemo(() => curProjectId !== null, [curProjectId]);
     const { activeTab, handleTabChange } = useTabContext()
 
-    const isProjectSelected = useMemo(() => curProjectId !== null, [curProjectId]);
+    const [authInfo, setAuthInfo] = useState(null);
+
+    // Method to fetch account information
+    useEffect(() => {
+        const getAuthInfo = async () => {
+            apiClient.getIAPAuthInfo().then((res) => {
+                if (res) {
+                    console.log('User info:', res);
+                    setAuthInfo(res);
+                }
+            });
+        };
+
+        getAuthInfo()
+    }, []);
 
     return (
         <div className={styles.container}>
@@ -42,6 +59,9 @@ function HomeContent() {
                 >
                     Video
                 </button>
+                <div className={styles.userInfo}>
+                    {authInfo.name}
+                </div>
             </div>
             {activeTab === 'start' && <Start onRedirect={handleTabChange}/>}
             {activeTab === 'image' && isProjectSelected && <ImageTool />}

@@ -8,6 +8,8 @@
     display: flex;
     border-bottom: 1px solid #444;
     height: 50px;
+
+    align-items: center;
 }
 
 .tabButton {
@@ -34,4 +36,10 @@
 .tabButton.disabled:hover {
     color: #666;
     background-color: transparent;
+}
+
+.userInfo {
+    position: absolute;
+    right: 20px;
+    text-align: center;
 }
