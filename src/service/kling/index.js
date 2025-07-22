@@ -9,6 +9,17 @@ import {
 
 const API_DOMAIN = 'https://api.klingai.com';
 
+const RETRIABLE_ERROR_PATTERS = [
+    'parallel task over resource pack limit',
+    'resource pack exhausted',
+]
+
+const isRetriable = (errorMessage) => {
+    return RETRIABLE_ERROR_PATTERS.some(
+        pattern => errorMessage.includes(pattern)
+    )
+}
+
 // Custom exception class for throttling errors
 class KlingThrottleError extends Error {
     constructor(message) {
@@ -19,13 +30,20 @@ class KlingThrottleError extends Error {
 
 const TOKEN_EXPIRATION = parseInt(process.env.KLING_TOKEN_EXPIRATION || '1800', 10);
 
+// Helper function to log errors and return generic message
+function logErrorAndReturnGeneric(error, context = '') {
+    console.error(`[Video API Error] ${context}:`, error);
+    return new Error('Video API error');
+}
+
 // Token generation for Kling API authentication
 async function generateToken(keySet = null) {
     // Use provided keySet or pick the first available key
     const currentKey = keySet || (KlingKeys.length > 0 ? KlingKeys[0] : null);
     
     if (!currentKey) {
-        throw new Error('No Kling API keys available');
+        console.error('[Video API Error] No API keys available for token generation');
+        throw new Error('No Video API keys available');
     }
 
     const headers = {
@@ -68,7 +86,7 @@ async function generateToken(keySet = null) {
 // Server-side utility to create a video from an image
 async function createVideoOnKlingAPI(videoOptions) {
     let history = [];
-    let lastThrottleError = null;
+    let lastError = null;
     const MAX_RETRIES = 5;
     let retryCount = 0;
     
@@ -79,7 +97,7 @@ async function createVideoOnKlingAPI(videoOptions) {
         if (!key) {
             // All keys exhausted - throw the last throttling error
             throw new KlingThrottleError(
-                lastThrottleError?.message || 'All API keys have reached their rate limits'
+                'All API keys have reached their rate limits or exhausted'
             );
         }
         
@@ -100,14 +118,19 @@ async function createVideoOnKlingAPI(videoOptions) {
 
             if (!response.ok) {
                 const errorMessage = data.message || 'Unknown error';
+                console.error(`[Video API Error] createVideoOnKlingAPI failed:`, {
+                    status: response.status,
+                    message: errorMessage,
+                    data: data
+                });
                 
-                if (errorMessage.includes('parallel task over resource pack limit')) {
-                    lastThrottleError = new Error(errorMessage);
+                if (isRetriable(errorMessage)) {
+                    lastError = new Error(errorMessage);
                     retryCount++;
                     continue; // Try next key
                 }
                 
-                throw new Error(`Kling API error: ${errorMessage}`);
+                throw new Error('Video API error');
             }
 
             // Encode the task ID with the accessKey before returning
@@ -118,8 +141,8 @@ async function createVideoOnKlingAPI(videoOptions) {
             return data; // Return the modified data with encoded task ID
             
         } catch (error) {
-            if (error.message.includes('parallel task over resource pack limit')) {
-                lastThrottleError = error;
+            if (isRetriable(error.message)) {
+                lastError = error;
                 retryCount++;
                 continue;
             }
@@ -129,7 +152,7 @@ async function createVideoOnKlingAPI(videoOptions) {
     
     // If we exit the loop due to max retries, throw throttling error
     throw new KlingThrottleError(
-        lastThrottleError?.message || `Maximum retry attempts (${MAX_RETRIES}) reached due to rate limiting`
+        lastError?.message || `Maximum retry attempts (${MAX_RETRIES}) reached due to rate limiting`
     );
 }
 
@@ -155,7 +178,12 @@ async function getAccountInfoFromKlingAPI(startTime, endTime, resourcePackName) 
     const data = await response.json();
 
     if (!response.ok) {
-        throw new Error(`Kling API error: ${data.message || 'Unknown error'}`);
+        console.error('[Video API Error] getAccountInfoFromKlingAPI failed:', {
+            status: response.status,
+            message: data.message || 'Unknown error',
+            data: data
+        });
+        throw new Error('Video API error');
     }
 
     return data;
@@ -185,7 +213,13 @@ async function getTaskByIdFromKlingAPI(taskId) {
     const data = await response.json();
 
     if (!response.ok) {
-        throw new Error(`Kling API error (${response.status}): ${data.message || 'Unknown error'}`);
+        console.error('[Video API Error] getTaskByIdFromKlingAPI failed:', {
+            status: response.status,
+            message: data.message || 'Unknown error',
+            data: data,
+            taskId: originalTaskId
+        });
+        throw new Error('Video API error');
     }
 
     return data;
@@ -231,14 +265,20 @@ async function extendVideoOnKlingAPI(videoId, extensionOptions = {}) {
 
             if (!response.ok) {
                 const errorMessage = data.message || 'Unknown error';
+                console.error(`[Video API Error] extendVideoOnKlingAPI failed:`, {
+                    status: response.status,
+                    message: errorMessage,
+                    data: data,
+                    videoId: videoId
+                });
                 
-                if (errorMessage.includes('parallel task over resource pack limit')) {
+                if (isRetriable(errorMessage)) {
                     lastThrottleError = new Error(errorMessage);
                     retryCount++;
                     continue; // Try next key
                 }
                 
-                throw new Error(`Kling API error: ${errorMessage}`);
+                throw new Error('Video API error');
             }
 
             // Encode the task ID with the accessKey before returning
@@ -249,7 +289,7 @@ async function extendVideoOnKlingAPI(videoId, extensionOptions = {}) {
             return data; // Return the modified data with encoded task ID
             
         } catch (error) {
-            if (error.message.includes('parallel task over resource pack limit')) {
+            if (isRetriable(error.message)) {
                 lastThrottleError = error;
                 retryCount++;
                 continue;
@@ -288,7 +328,13 @@ async function getExtensionTaskByIdFromKlingAPI(taskId) {
     const data = await response.json();
 
     if (!response.ok) {
-        throw new Error(`Kling API error (${response.status}): ${data.message || 'Unknown error'}`);
+        console.error('[Video API Error] getExtensionTaskByIdFromKlingAPI failed:', {
+            status: response.status,
+            message: data.message || 'Unknown error',
+            data: data,
+            taskId: originalTaskId
+        });
+        throw new Error('Video API error');
     }
 
     return data;
@@ -312,7 +358,14 @@ async function listExtensionTasksFromKlingAPI(pageNum = 1, pageSize = 30) {
     const data = await response.json();
 
     if (!response.ok) {
-        throw new Error(`Kling API error: ${data.message || 'Unknown error'}`);
+        console.error('[Video API Error] listExtensionTasksFromKlingAPI failed:', {
+            status: response.status,
+            message: data.message || 'Unknown error',
+            data: data,
+            pageNum: pageNum,
+            pageSize: pageSize
+        });
+        throw new Error('Video API error');
     }
 
     return data;
