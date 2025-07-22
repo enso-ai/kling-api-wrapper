@@ -1,19 +1,16 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import { useProjectContext } from '@/context/ProjectContext';
 import styles from './Start.module.css';
 
-export default function Start() {
-    const router = useRouter();
-    const { projects, isLoaded, createProject, selectProject, deleteProject, curProjectId } = useProjectContext();
+export default function Start({onRedirect}) {
+    const { projects, isLoaded, createProject, deleteProject, curProjectId } = useProjectContext();
     const [showCreateForm, setShowCreateForm] = useState(false);
     const [projectName, setProjectName] = useState('');
     const [isCreating, setIsCreating] = useState(false);
     const [deleteConfirm, setDeleteConfirm] = useState(null); // { projectId, projectName }
     const [isDeleting, setIsDeleting] = useState(false);
-    const shouldNavigateAfterCreate = useRef(false);
 
     const handleCreateProject = async (e) => {
         e.preventDefault();
@@ -24,10 +21,7 @@ export default function Start() {
             const newProject = await createProject(projectName.trim());
             setProjectName('');
             setShowCreateForm(false);
-            // Auto-select the newly created project
-            selectProject(newProject.id);
-            // Flag that we should navigate after the project is selected
-            shouldNavigateAfterCreate.current = true;
+            onRedirect('image', newProject.id);
         } catch (error) {
             console.error('Failed to create project:', error);
             alert('Failed to create project. Please try again.');
@@ -37,8 +31,8 @@ export default function Start() {
     };
 
     const handleSelectProject = (projectId) => {
-        selectProject(projectId);
-        router.push('/?tab=image');
+        console.log("start to redirect to:", projectId, 'image')
+        onRedirect('image', projectId)
     };
 
     const handleDeleteClick = (e, projectId, projectName) => {
@@ -64,14 +58,6 @@ export default function Start() {
     const handleCancelDelete = () => {
         setDeleteConfirm(null);
     };
-
-    // Handle navigation after project creation
-    useEffect(() => {
-        if (shouldNavigateAfterCreate.current && curProjectId) {
-            shouldNavigateAfterCreate.current = false;
-            router.push('/?tab=image');
-        }
-    }, [curProjectId, router]);
 
     const formatDate = (dateString) => {
         return new Date(dateString).toLocaleDateString('en-US', {

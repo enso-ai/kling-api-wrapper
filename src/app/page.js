@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, Suspense, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import ImageTool from './tabs/ImageTool';
 import VideoTool from './tabs/videoTool';
@@ -11,56 +11,53 @@ import { ImageContextProvider } from '@/context/ImageContext';
 import { ImageGenModalContextProvider } from '@/context/ImageGenModalContext';
 import { ProjectProvider, useProjectContext } from '@/context/ProjectContext';
 
+const VALID_TABS = ['start', 'video', 'image'];
+
 function HomeContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
-    const { curProjectId } = useProjectContext();
+    const { curProjectId, selectProject, isLoaded, isValidProjectId } = useProjectContext();
 
-    const isProjectSelected = curProjectId !== null;
+    const isProjectSelected = useMemo(() => curProjectId !== null, [curProjectId]);
 
-    // Get initial tab from URL, default to 'start'
-    const getInitialTab = () => {
-        const tabParam = searchParams.get('tab');
-        const validTabs = ['start', 'video', 'image'];
-        
-        if (!validTabs.includes(tabParam)) {
-            return 'start';
-        }
-        
-        // If no project selected, force to start tab
-        if (!isProjectSelected && (tabParam === 'video' || tabParam === 'image')) {
-            return 'start';
-        }
-        
-        return tabParam;
-    };
+    const [activeTab, setActiveTab] = useState(null);
 
-    const [activeTab, setActiveTab] = useState(getInitialTab());
-
-    // Sync state with URL changes and project selection
     useEffect(() => {
-        const tabParam = searchParams.get('tab');
-        const validTabs = ['start', 'video', 'image'];
-        let validTab = validTabs.includes(tabParam) ? tabParam : 'start';
-        
-        // If no project selected, force to start tab
-        if (!isProjectSelected && (validTab === 'video' || validTab === 'image')) {
-            validTab = 'start';
-            router.replace('/?tab=start');
-        }
-        
-        setActiveTab(validTab);
-    }, [searchParams, isProjectSelected, router]);
+        // Sync url -> internal state (tab, projectId)
+        // url change could triggered by:
+        // - initialization: given a url with tab &/or projectId
+        // - browser navigation (e.g goback)
+        if (!isLoaded ) return;
 
-    // Handle tab change with URL update and project validation
-    const handleTabChange = (tab) => {
-        // Prevent navigation to locked tabs
-        if (!isProjectSelected && (tab === 'video' || tab === 'image')) {
-            return;
+        const tabParam = searchParams.get('tab');
+        const projectId = searchParams.get('pid');
+        console.log("parsed from url:", projectId, tabParam)
+
+        if (projectId && isValidProjectId(projectId)) {
+            console.log("valid url found, set projectId")
+            // project is a valid project, use URL to dicatate the curProject
+            selectProject(projectId)
+            setActiveTab(VALID_TABS.includes(tabParam) ? tabParam : 'start')
+        } else {
+            // without a valid project, redirect user to the start tab and strip any params
+            setActiveTab('start')
+            selectProject(null)
+            // override bad url
+            router.replace('/?tab=start')
         }
-        
-        setActiveTab(tab);
-        router.push(`/?tab=${tab}`);
+    }, [searchParams, isLoaded]);
+
+    // Handle tab change with URL update and project validation & update
+    // this function do not directly change the state but merely
+    // validate the input with internal rules
+    const handleTabChange = (tab, projectId=null) => {
+        const validTab = VALID_TABS.includes(tab) ? tab : 'start'
+        if (validTab === 'start') {
+            // start tab is always accessible, but the pid will be stripped
+            router.push('/?tab=start');
+        } else if (isProjectSelected || projectId) {
+            router.push(`/?tab=${tab}&&pid=${projectId || curProjectId}`);
+        }
     };
 
     return (
@@ -89,7 +86,7 @@ function HomeContent() {
                     Video
                 </button>
             </div>
-            {activeTab === 'start' && <Start />}
+            {activeTab === 'start' && <Start onRedirect={handleTabChange}/>}
             {activeTab === 'image' && isProjectSelected && <ImageTool />}
             {activeTab === 'video' && isProjectSelected && <VideoTool />}
         </div>

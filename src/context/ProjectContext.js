@@ -51,15 +51,19 @@ export function ProjectProvider({ children }) {
         }
     }, []);
 
+    const isValidProjectId = (projectId) => (
+        projects.find((p) => p.id === projectId)
+    )
+
     // Method to select a project
     const selectProject = useCallback(
         (projectId) => {
             // Validate that the project exists
-            const projectExists = projects.find((p) => p.id === projectId);
-            if (projectExists) {
+            if (isValidProjectId(projectId)) {
                 setCurProjectId(projectId);
             } else {
-                console.warn(`Project with id ${projectId} not found, keeping current selection`);
+                console.warn(`Project with id ${projectId} not found, reset projectId`);
+                setCurProjectId(null)
             }
         },
         [projects]
@@ -98,6 +102,7 @@ export function ProjectProvider({ children }) {
         selectProject,
         deleteProject,
         getCurrentProject,
+        isValidProjectId,
     };
 
     return <ProjectContext.Provider value={value}>{children}</ProjectContext.Provider>;
