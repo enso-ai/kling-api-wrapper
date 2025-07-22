@@ -76,11 +76,12 @@ export default function Home() {
             <VideoProvider>
                 <ImageContextProvider>
                     <ImageGenModalContextProvider>
-                        <TabContextProvider>
-                            <Suspense fallback={<div className={styles.container}>Loading...</div>}>
+                        <Suspense fallback={<div className={styles.container}>Loading...</div>}>
+                            {/* TabContext uses useSearchParams, which is required be wrapped by Suspense with a fallback*/}
+                            <TabContextProvider>
                                 <HomeContent />
-                            </Suspense>
-                        </TabContextProvider>
+                            </TabContextProvider>
+                        </Suspense>
                     </ImageGenModalContextProvider>
                 </ImageContextProvider>
             </VideoProvider>
