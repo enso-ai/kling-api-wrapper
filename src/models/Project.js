@@ -1,3 +1,5 @@
+export const DEFAULT_PROJECT_ID = '00000000-0000-0000-0000-000000000001';
+
 class Project {
     constructor(formData = {}) {
         this.id = formData.id || crypto.randomUUID(); // Generate a unique ID
@@ -44,7 +46,7 @@ class Project {
     // Static method to create default project
     static createDefault() {
         return new Project({
-            id: '00000000-0000-0000-0000-000000000001', // Fixed UUID for default project
+            id: DEFAULT_PROJECT_ID,
             project_name: 'Default Project',
         });
     }

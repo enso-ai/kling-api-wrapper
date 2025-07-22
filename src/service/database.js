@@ -1,5 +1,5 @@
 import Dexie from 'dexie';
-import Project from '@/models/Project';
+import Project, { DEFAULT_PROJECT_ID } from '@/models/Project';
 
 export class VideoDB extends Dexie {
   constructor() {
@@ -206,8 +206,7 @@ export const updateProjectModified = async (projectId) => {
 // Get or create default project
 export const getOrCreateDefaultProject = async () => {
   try {
-    const defaultId = '00000000-0000-0000-0000-000000000001';
-    let project = await getProject(defaultId);
+    let project = await getProject(DEFAULT_PROJECT_ID);
     
     if (!project) {
       project = Project.createDefault();
