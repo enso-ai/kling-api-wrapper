@@ -8,9 +8,10 @@ import styles from './PromptTab.module.css';
 import { IMAGE_SIZE_LANDSCAPE, IMAGE_SIZE_PORTRAIT } from '@/constants/image';
 
 const PromptTab = ({ onClose, prefillData }) => {
-    const { imageRecords, startImageGeneration } = useImageContext();
+    const { imageRecords, startImageGeneration, defaultProjectImages } = useImageContext();
 
     // State management
+    const [activeTab, setActiveTab] = useState('project');
     const [referenceImageStack, setReferenceImageStack] = useState([]);
     const [prompt, setPrompt] = useState('');
     const [imageSize, setImageSize] = useState(IMAGE_SIZE_PORTRAIT);
@@ -18,6 +19,13 @@ const PromptTab = ({ onClose, prefillData }) => {
     const [isGenerating, setIsGenerating] = useState(false);
     const [generationError, setGenerationError] = useState(null);
     const [validationError, setValidationError] = useState(null);
+
+    // Tab logic
+    const showFavoritesTab = defaultProjectImages.length > 0;
+    const currentImages = activeTab === 'project' ? imageRecords : defaultProjectImages;
+
+    // Handle tab switching
+    const handleTabSwitch = (tab) => setActiveTab(tab);
 
     // Handle prefill data
     useEffect(() => {
@@ -178,10 +186,27 @@ const PromptTab = ({ onClose, prefillData }) => {
                     <div className={styles.elementImagesColumn}>
                         <label className={styles.sectionLabel}>Previous Results:</label>
 
-                        {imageRecords.length > 0 ? (
-                            <>
+                        {showFavoritesTab && (
+                            <div className={styles.tabNavigation}>
+                                <button 
+                                    className={`${styles.tabButton} ${activeTab === 'project' ? styles.active : ''}`}
+                                    onClick={() => handleTabSwitch('project')}
+                                >
+                                    Project
+                                </button>
+                                <button 
+                                    className={`${styles.tabButton} ${activeTab === 'favorites' ? styles.active : ''}`}
+                                    onClick={() => handleTabSwitch('favorites')}
+                                >
+                                    Favorites
+                                </button>
+                            </div>
+                        )}
+
+                        <div className={styles.imageListContainer}>
+                            {currentImages.length > 0 ? (
                                 <div className={styles.verticalImageList}>
-                                    {imageRecords.map((record) => {
+                                    {currentImages.map((record) => {
                                         const isDisabled = referenceImageStack.length >= 10;
                                         return (
                                             <div
@@ -209,13 +234,15 @@ const PromptTab = ({ onClose, prefillData }) => {
                                         );
                                     })}
                                 </div>
-                            </>
-                        ) : (
-                            <div className={styles.noImagesMessage}>
-                                No images available. Generate some images first to use as
-                                references.
-                            </div>
-                        )}
+                            ) : (
+                                <div className={styles.noImagesMessage}>
+                                    {activeTab === 'project' 
+                                        ? "No images available. Generate some images first to use as references."
+                                        : "No favorite images available."
+                                    }
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
 

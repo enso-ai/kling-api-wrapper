@@ -6,6 +6,7 @@ import React, {
     useRef,
     useEffect,
     useMemo,
+    useState,
 } from 'react';
 import { apiClient } from '@/service/backend';
 import ImageRecord from '@/models/ImageRecord';
@@ -14,6 +15,7 @@ import {
     loadImageRecordsPageByProject,
     getTotalImageRecordsCountByProject,
 } from '@/service/database';
+import { DEFAULT_PROJECT_ID } from '@/models/Project';
 import { useProjectContext } from './ProjectContext';
 
 const MAX_RECORDS = 20; // Maximum number of records to load per page
@@ -121,6 +123,7 @@ const ImageContext = createContext();
 export const ImageContextProvider = ({ children }) => {
     const { curProjectId, isLoaded: projectsLoaded } = useProjectContext();
     const [state, dispatch] = useReducer(imageReducer, initialState);
+    const [defaultProjectImages, setDefaultProjectImages] = useState([]);
 
     // Use ref to access current state in async functions
     const stateRef = useRef(state);
@@ -182,6 +185,44 @@ export const ImageContextProvider = ({ children }) => {
         };
 
         loadInitialRecords();
+    }, [projectsLoaded, curProjectId]);
+
+    // Load default project images when project changes (but not if current project IS the default)
+    useEffect(() => {
+        if (!projectsLoaded || curProjectId === DEFAULT_PROJECT_ID ) {
+            // reset list
+            setDefaultProjectImages([])
+        }
+
+        const loadDefaultImages = async () => {
+            try {
+                const totalCount = await getTotalImageRecordsCountByProject(DEFAULT_PROJECT_ID);
+                
+                if (totalCount > 0) {
+                    const allDefaultImages = await loadImageRecordsPageByProject(
+                        DEFAULT_PROJECT_ID, 
+                        1, 
+                        totalCount
+                    );
+                    
+                    const images = allDefaultImages.map((data) => {
+                        const record = ImageRecord.fromDatabase(data);
+                        record.selectedImageIdx = 0;
+                        return record;
+                    });
+                    
+                    images.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                    setDefaultProjectImages(images);
+                } else {
+                    setDefaultProjectImages([]);
+                }
+            } catch (error) {
+                console.error('Failed to load default project images:', error);
+                setDefaultProjectImages([]); // Clear on error
+            }
+        };
+
+        loadDefaultImages();
     }, [projectsLoaded, curProjectId]);
 
     // Save a record to the database
@@ -552,8 +593,11 @@ export const ImageContextProvider = ({ children }) => {
             // Record management
             removeImageRecord,
             updateSelectedImage,
+
+            // Default project images
+            defaultProjectImages,
         }),
-        [state]
+        [state, defaultProjectImages]
     );
 
     return <ImageContext.Provider value={contextValue}>{children}</ImageContext.Provider>;

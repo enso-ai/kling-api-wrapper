@@ -4,6 +4,44 @@
   flex-direction: column;
 }
 
+/* Tab Navigation */
+.tabNavigation {
+  display: flex;
+  margin-bottom: 12px;
+  border-bottom: 1px solid #f0f0f0;
+  background: white;
+}
+
+.tabButton {
+  flex: 1;
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s ease;
+  font-size: 14px;
+  font-weight: 500;
+  color: #666;
+}
+
+.tabButton.active {
+  border-bottom-color: #007bff;
+  color: #007bff;
+  font-weight: 600;
+}
+
+.tabButton:hover:not(.active) {
+  background-color: #f8f9fa;
+  color: #333;
+}
+
+.imageListContainer {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+
 /* Two Column Layout */
 .twoColumnLayout {
   position: relative;
