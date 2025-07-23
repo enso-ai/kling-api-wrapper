@@ -395,7 +395,7 @@ export const importImageFromDefault = async (originalImageId, targetProjectId) =
         if (!originalImage) return null
 
         const copyData = {
-            ...originalImage.toDatabase(),
+            ...originalImage,
             id: crypto.randomUUID(),
             projectId: targetProjectId,
             favoriteId: null, // Independent copy

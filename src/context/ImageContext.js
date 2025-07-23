@@ -647,8 +647,8 @@ export const ImageContextProvider = ({ children }) => {
                 payload: clonedImage,
             });
 
-            console.log(`Image ${imageId} imported to current project as ${copy.id}`);
-            return copy;
+            console.log(`Image ${imageId} imported to current project as ${clonedImage.id}`);
+            return clonedImage;
         } catch (error) {
             console.error('Failed to import image to current project:', error);
             throw error;
@@ -692,7 +692,7 @@ export const ImageContextProvider = ({ children }) => {
             importImage,
             canShareImages: canShareImages(),
         }),
-        [state, defaultProjectImages, shareImageToFavorites, unshareImageFromFavorites, importImageToCurrentProject, canShareImages]
+        [state, defaultProjectImages, bookmarkImage, unbookmarkImage, importImage, canShareImages]
     );
 
     return <ImageContext.Provider value={contextValue}>{children}</ImageContext.Provider>;
