@@ -49,6 +49,9 @@ const ImportTab = ({ onClose }) => {
         );
     }
 
+    const imgs = [...defaultProjectImages, ...defaultProjectImages]
+    // const imgs = defaultProjectImages
+
     return (
         <div className={styles.container}>
             <div className={styles.header}>
@@ -59,7 +62,7 @@ const ImportTab = ({ onClose }) => {
             </div>
 
             <div className={styles.imageGrid}>
-                {defaultProjectImages.map((imageRecord) => {
+                {imgs.map((imageRecord) => { // defaultProjectImages
                     const selectedImageUrl = getSelectedImageUrl(imageRecord);
                     const isImporting = importingImageIds.has(imageRecord.id);
 
@@ -73,24 +76,16 @@ const ImportTab = ({ onClose }) => {
                                     alt={imageRecord.prompt || 'Generated image'}
                                     className={styles.image}
                                 />
-                                <div className={styles.overlay}>
-                                    <button
-                                        className={`${styles.importButton} ${isImporting ? styles.importing : ''}`}
-                                        onClick={() => handleImportImage(imageRecord.id)}
-                                        disabled={isImporting}
-                                    >
-                                        {isImporting ? 'Importing...' : 'Import'}
-                                    </button>
-                                </div>
                             </div>
-                            
-                            {imageRecord.prompt && (
-                                <div className={styles.imageInfo}>
-                                    <p className={styles.prompt} title={imageRecord.prompt}>
-                                        {imageRecord.prompt}
-                                    </p>
-                                </div>
-                            )}
+                            <div className={styles.overlay}>
+                                <button
+                                    className={`${styles.importButton} ${isImporting ? styles.importing : ''}`}
+                                    onClick={() => handleImportImage(imageRecord.id)}
+                                    disabled={isImporting}
+                                >
+                                    {isImporting ? 'Importing...' : 'Import'}
+                                </button>
+                            </div>
                         </div>
                     );
                 })}
