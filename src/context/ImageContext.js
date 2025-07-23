@@ -195,6 +195,7 @@ export const ImageContextProvider = ({ children }) => {
         if (!projectsLoaded || curProjectId === DEFAULT_PROJECT_ID ) {
             // reset list
             setDefaultProjectImages([])
+            return
         }
 
         const loadDefaultImages = async () => {
