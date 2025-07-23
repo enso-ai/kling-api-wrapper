@@ -353,7 +353,7 @@ export const getBookmarkById = async (bookmarkId) => {
 };
 
 // Create bookmark copy in default project
-export const shareImageToFavorites = async (originalImageId) => {
+export const createBookmarkImage = async (originalImageId) => {
   return await db.transaction('rw', db.imageRecords, async () => {
     // Get original image
     const originalData = await db.imageRecords.get(originalImageId);
@@ -389,8 +389,11 @@ export const shareImageToFavorites = async (originalImageId) => {
 };
 
 // Create independent copy in target project from default project
-export const createImageCopy = async (originalImage, targetProjectId) => {
+export const importImageFromDefault = async (originalImageId, targetProjectId) => {
     try {
+        const originalImage = await db.imageRecords.get(originalImageId)
+        if (!originalImage) return null
+
         const copyData = {
             ...originalImage.toDatabase(),
             id: crypto.randomUUID(),
@@ -412,20 +415,18 @@ export const createImageCopy = async (originalImage, targetProjectId) => {
 };
 
 // Remove bookmark and clear favorite reference
-export const removeBookmarkAndReference = async (
-    originalImageId,
-    bookmarkId
-) => {
+export const removeBookmarkImage = async (originalImageId) => {
     try {
-        // Remove bookmark from default project (silently continue if not found)
-        await db.imageRecords.delete(bookmarkId);
-
-        // Clear favorite reference from original image
         const originalData = await db.imageRecords.get(originalImageId);
-        if (originalData) {
+        if (originalData && originalData.favoriteId) {
+            await db.imageRecords.delete(originalData.favoriteId);
+            // Remove bookmark from default project
+            // (silently continue if not found)
             originalData.favoriteId = null;
             await db.imageRecords.put(originalData);
         }
+
+        // Clear favorite reference from original image
     } catch (error) {
         console.error("Failed to remove bookmark and reference:", error);
         throw error;
