@@ -1,13 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styles from './ImageBlock.module.css';
 import { useImageContext } from '@/context/ImageContext';
-import { FaChevronLeft, FaChevronRight, FaTrash, FaDownload } from 'react-icons/fa';
+import { FaChevronLeft, FaChevronRight, FaTrash, FaDownload, FaStar, FaRegStar } from 'react-icons/fa';
 import { downloadImage } from '@/utils/download';
 import EditButton from './EditButton';
 import InpaintingButton from './InpaintingButton';
 
 function ImageBlock({ imageRecord, onOpenDetailModal }) {
-    const { removeImageRecord, updateSelectedImage } = useImageContext();
+    const { removeImageRecord, updateSelectedImage, bookmarkImage, unbookmarkImage, canShareImages } = useImageContext();
+    const [isStarring, setIsStarring] = useState(false);
 
     const handleImageClick = () => {
         if (onOpenDetailModal) {
@@ -55,6 +56,29 @@ function ImageBlock({ imageRecord, onOpenDetailModal }) {
         const currentIdx = imageRecord.selectedImageIdx || 0;
         const currentImageUrl = imageRecord.imageUrls[currentIdx];
         await downloadImage(currentImageUrl, currentIdx);
+    };
+
+    const handleStarClick = async (e) => {
+        e.stopPropagation();
+        
+        if (isStarring) return; // Prevent multiple clicks
+        
+        setIsStarring(true);
+        
+        try {
+            const isShared = !!imageRecord.favoriteId;
+            
+            if (isShared) {
+                await unbookmarkImage(imageRecord.id);
+            } else {
+                await bookmarkImage(imageRecord.id);
+            }
+        } catch (error) {
+            console.error('Failed to toggle bookmark:', error);
+            alert('Failed to update favorites. Please try again.');
+        } finally {
+            setIsStarring(false);
+        }
     };
 
     // Reusable control buttons component
@@ -108,6 +132,7 @@ function ImageBlock({ imageRecord, onOpenDetailModal }) {
         const currentIdx = imageRecord.selectedImageIdx || 0;
         const currentImageUrl = imageRecord.imageUrls[currentIdx];
         const hasMultipleImages = imageRecord.imageUrls.length > 1;
+        const isShared = !!imageRecord.favoriteId;
 
         return (
             <div className={styles.imageWrapper}>
@@ -116,6 +141,18 @@ function ImageBlock({ imageRecord, onOpenDetailModal }) {
                     alt={imageRecord.prompt || 'Generated image'}
                     className={styles.image}
                 />
+
+                {/* Star button for favorites */}
+                {canShareImages && (
+                    <button
+                        className={`${styles.starButton} ${isShared ? styles.shared : styles.unshared}`}
+                        onClick={handleStarClick}
+                        disabled={isStarring}
+                        title={isShared ? "Remove from favorites" : "Add to favorites"}
+                    >
+                        {isShared ? <FaStar /> : <FaRegStar />}
+                    </button>
+                )}
 
                 {/* Navigation arrows for multiple images */}
                 {hasMultipleImages && (
