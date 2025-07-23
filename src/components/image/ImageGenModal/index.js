@@ -2,8 +2,10 @@
 
 import React, { useEffect, useState } from 'react';
 import { useImageGenModalContext } from '@/context/ImageGenModalContext';
+import { useProjectContext } from '@/context/ProjectContext';
 import PromptTab from './tabs/PromptTab';
 import InpaintingTab from './tabs/InpaintingTab';
+import ImportTab from './tabs/ImportTab';
 import styles from './ImageGenModal.module.css';
 
 const ImageGenModal = () => {
@@ -12,6 +14,7 @@ const ImageGenModal = () => {
         imageGenModalPrefillData, 
         closeImageGenModal 
     } = useImageGenModalContext();
+    const { isDefaultProject } = useProjectContext();
     
     const [activeTab, setActiveTab] = useState('prompt');
 
@@ -60,6 +63,8 @@ const ImageGenModal = () => {
                 return <PromptTab onClose={closeImageGenModal} prefillData={imageGenModalPrefillData} />;
             case 'inpainting':
                 return <InpaintingTab onClose={closeImageGenModal} prefillData={imageGenModalPrefillData} />;
+            case 'import':
+                return <ImportTab onClose={closeImageGenModal} />;
             default:
                 return null;
         }
@@ -94,6 +99,16 @@ const ImageGenModal = () => {
                         >
                             Inpainting
                         </button>
+                        {!isDefaultProject && (
+                            <button
+                                className={`${styles.tabButton} ${
+                                    activeTab === 'import' ? styles.active : ''
+                                }`}
+                                onClick={() => handleTabClick('import')}
+                            >
+                                Import from Favorites
+                            </button>
+                        )}
                     </div>
 
                     <div className={styles.content}>{renderTabContent()}</div>
