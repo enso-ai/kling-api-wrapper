@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { 
     listProjects, 
     createProject as dbCreateProject, 
@@ -55,7 +55,7 @@ export function ProjectProvider({ children }) {
         projects.find((p) => p.id === projectId)
     )
 
-    const isDefaultProject = useMemo(() => curProjectId === DEFAULT_PROJECT_ID [curProjectId])
+    const isDefaultProject = useMemo(() => curProjectId === DEFAULT_PROJECT_ID, [curProjectId]);
 
     // Method to select a project
     const selectProject = useCallback(
