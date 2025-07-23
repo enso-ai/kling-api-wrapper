@@ -28,6 +28,7 @@
 .imageGrid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    grid-auto-rows: minmax(min-content, max-content);
     gap: 1rem;
     padding: 0.5rem;
     overflow: auto;
@@ -35,7 +36,9 @@
 
 .imageItem {
     position: relative;
-    background: #ffffff;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1;
     border-radius: 8px;
     overflow: hidden;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -47,13 +50,10 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.imageWrapper {
-    aspect-ratio: 1;
-}
-
 .image {
     width: 100%;
     height: 100%;
+    display: block;
     object-fit: cover;
 }
 

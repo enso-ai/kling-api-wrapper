@@ -49,8 +49,6 @@ const ImportTab = ({ onClose }) => {
         );
     }
 
-    const imgs = [...defaultProjectImages, ...defaultProjectImages]
-    // const imgs = defaultProjectImages
 
     return (
         <div className={styles.container}>
@@ -62,7 +60,7 @@ const ImportTab = ({ onClose }) => {
             </div>
 
             <div className={styles.imageGrid}>
-                {imgs.map((imageRecord) => { // defaultProjectImages
+                {defaultProjectImages.map((imageRecord) => {
                     const selectedImageUrl = getSelectedImageUrl(imageRecord);
                     const isImporting = importingImageIds.has(imageRecord.id);
 
@@ -70,13 +68,11 @@ const ImportTab = ({ onClose }) => {
 
                     return (
                         <div key={imageRecord.id} className={styles.imageItem}>
-                            <div className={styles.imageWrapper}>
-                                <img
-                                    src={selectedImageUrl}
-                                    alt={imageRecord.prompt || 'Generated image'}
-                                    className={styles.image}
-                                />
-                            </div>
+                            <img
+                                src={selectedImageUrl}
+                                alt={imageRecord.prompt || 'Generated image'}
+                                className={styles.image}
+                            />
                             <div className={styles.overlay}>
                                 <button
                                     className={`${styles.importButton} ${isImporting ? styles.importing : ''}`}
