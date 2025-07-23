@@ -5,7 +5,7 @@ import {
     getOrCreateDefaultProject,
     deleteProjectCascade 
 } from '@/service/database';
-import Project from '@/models/Project';
+import Project, { DEFAULT_PROJECT_ID } from '@/models/Project';
 
 const ProjectContext = createContext();
 
@@ -55,6 +55,8 @@ export function ProjectProvider({ children }) {
         projects.find((p) => p.id === projectId)
     )
 
+    const isDefaultProject = useMemo(() => curProjectId === DEFAULT_PROJECT_ID [curProjectId])
+
     // Method to select a project
     const selectProject = useCallback(
         (projectId) => {
@@ -103,6 +105,7 @@ export function ProjectProvider({ children }) {
         deleteProject,
         getCurrentProject,
         isValidProjectId,
+        isDefaultProject,
     };
 
     return <ProjectContext.Provider value={value}>{children}</ProjectContext.Provider>;
