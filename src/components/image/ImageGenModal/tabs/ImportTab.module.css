@@ -1,0 +1,191 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    max-height: calc(90vh - 200px);
+    min-height: 40vh;
+    overflow: hidden;
+}
+
+.header {
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0 0 0.5rem 0;
+}
+
+.subtitle {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin: 0;
+}
+
+.imageGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    grid-auto-rows: minmax(min-content, max-content);
+    gap: 1rem;
+    padding: 0.5rem;
+    overflow: auto;
+}
+
+.imageItem {
+    position: relative;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.imageItem:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.image {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+}
+
+.imageItem:hover .image {
+    transform: scale(1.05);
+}
+
+.overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.imageItem:hover .overlay {
+    opacity: 1;
+}
+
+.importButton {
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 80px;
+}
+
+.importButton:hover {
+    background: #2563eb;
+    transform: scale(1.05);
+}
+
+.importButton:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.importing {
+    background: #9ca3af !important;
+    cursor: not-allowed !important;
+}
+
+.emptyState {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 300px;
+    text-align: center;
+    padding: 2rem;
+}
+
+.emptyText {
+    font-size: 1rem;
+    color: #6b7280;
+    margin: 0 0 0.5rem 0;
+    font-weight: 500;
+}
+
+.emptySubtext {
+    font-size: 0.875rem;
+    color: #9ca3af;
+    margin: 0;
+    max-width: 300px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .imageGrid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 0.75rem;
+        max-height: 350px;
+    }
+    
+    .title {
+        font-size: 1.125rem;
+    }
+    
+    .subtitle {
+        font-size: 0.8rem;
+    }
+    
+    .importButton {
+        font-size: 0.8rem;
+        padding: 0.4rem 0.8rem;
+        min-width: 70px;
+    }
+}
+
+@media (max-width: 480px) {
+    .imageGrid {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 0.5rem;
+        max-height: 300px;
+    }
+    
+    .header {
+        margin-bottom: 1rem;
+    }
+    
+    .container {
+        padding: 0;
+    }
+}
+
+/* Scrollbar styling for the image grid */
+.imageGrid::-webkit-scrollbar {
+    width: 6px;
+}
+
+.imageGrid::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 3px;
+}
+
+.imageGrid::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+}
+
+.imageGrid::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}

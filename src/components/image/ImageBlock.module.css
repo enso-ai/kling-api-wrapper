@@ -219,3 +219,52 @@
   height: 16px;
   color: white;
 }
+
+/* Star button for favorites */
+.starButton {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  z-index: 10;
+  opacity: 0;
+  visibility: hidden;
+}
+
+.container:hover .starButton {
+  opacity: 1;
+  visibility: visible;
+}
+
+.starButton:hover {
+  background: rgba(0, 0, 0, 0.8);
+  transform: scale(1.1);
+}
+
+.starButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.starButton.shared {
+  color: #ffd700; /* Filled star - gold */
+}
+
+.starButton.unshared {
+  color: #ffffff; /* Empty star - white */
+}
+
+.starButton svg {
+  width: 14px;
+  height: 14px;
+}

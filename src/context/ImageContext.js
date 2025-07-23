@@ -14,6 +14,9 @@ import {
     db,
     loadImageRecordsPageByProject,
     getTotalImageRecordsCountByProject,
+    createBookmarkImage,
+    removeBookmarkImage,
+    importImageFromDefault,
 } from '@/service/database';
 import { DEFAULT_PROJECT_ID } from '@/models/Project';
 import { useProjectContext } from './ProjectContext';
@@ -121,7 +124,7 @@ const ImageContext = createContext();
 
 // Provider component
 export const ImageContextProvider = ({ children }) => {
-    const { curProjectId, isLoaded: projectsLoaded } = useProjectContext();
+    const { curProjectId, isLoaded: projectsLoaded, isDefaultProject } = useProjectContext();
     const [state, dispatch] = useReducer(imageReducer, initialState);
     const [defaultProjectImages, setDefaultProjectImages] = useState([]);
 
@@ -192,6 +195,7 @@ export const ImageContextProvider = ({ children }) => {
         if (!projectsLoaded || curProjectId === DEFAULT_PROJECT_ID ) {
             // reset list
             setDefaultProjectImages([])
+            return
         }
 
         const loadDefaultImages = async () => {
@@ -571,6 +575,92 @@ export const ImageContextProvider = ({ children }) => {
         [executeInpainting]
     );
 
+    // Share image to favorites (disabled if current project is default)
+    const bookmarkImage = useCallback(async (imageId) => {
+        if (isDefaultProject) {
+            throw new Error('Cannot share from default project');
+        }
+
+        try {
+            // Create bookmark copy in default project
+            // Note, if the source image already has a
+            // bookmark record, it will directly return
+            // the existing bookmark record
+            const bookmark = await createBookmarkImage(imageId);
+
+            // Update state to reflect the change
+            dispatch({
+                type: IMAGE_ACTIONS.SET_RECORDS,
+                payload: state.imageRecords.map(record => 
+                    record.id === imageId 
+                        ? { ...record, favoriteId: bookmark.id }
+                        : record
+                )
+            });
+
+            console.log(`Image ${imageId} shared to favorites as bookmark ${bookmark.id}`);
+        } catch (error) {
+            console.error('Failed to share image to favorites:', error);
+            throw error;
+        }
+    }, [isDefaultProject, state.imageRecords]);
+
+    // Unshare image from favorites  
+    const unbookmarkImage = useCallback(async (imageId) => {
+        if (isDefaultProject) {
+            throw new Error('Cannot unshare from default project');
+        }
+
+        try {
+            // Find the original image
+            await removeBookmarkImage(imageId)
+
+            // Update state to reflect the change
+            dispatch({
+                type: IMAGE_ACTIONS.SET_RECORDS,
+                payload: state.imageRecords.map(record => 
+                    record.id === imageId 
+                        ? { ...record, favoriteId: null }
+                        : record
+                )
+            });
+
+            console.log(`Image ${imageId} unshared from favorites`);
+        } catch (error) {
+            console.error('Failed to unshare image from favorites:', error);
+            throw error;
+        }
+    }, [isDefaultProject, state.imageRecords]);
+
+    // Import image from default project to current project
+    const importImage = useCallback(async (imageId) => {
+        if (isDefaultProject) {
+            throw new Error('Cannot import within default project');
+        }
+
+        try {
+            // Find the image in default project images
+            const clonedImage = await importImageFromDefault(imageId, curProjectId)
+
+            // Add to current project state
+            dispatch({
+                type: IMAGE_ACTIONS.ADD_RECORD,
+                payload: clonedImage,
+            });
+
+            console.log(`Image ${imageId} imported to current project as ${clonedImage.id}`);
+            return clonedImage;
+        } catch (error) {
+            console.error('Failed to import image to current project:', error);
+            throw error;
+        }
+    }, [isDefaultProject, defaultProjectImages, curProjectId]);
+
+    // Check if sharing is available (not in default project)
+    const canShareImages = useCallback(() => {
+        return !isDefaultProject;
+    }, [isDefaultProject]);
+
     const contextValue = useMemo(
         () => ({
             // Image records state
@@ -596,8 +686,14 @@ export const ImageContextProvider = ({ children }) => {
 
             // Default project images
             defaultProjectImages,
+
+            // Sharing functions
+            bookmarkImage,
+            unbookmarkImage,
+            importImage,
+            canShareImages: canShareImages(),
         }),
-        [state, defaultProjectImages]
+        [state, defaultProjectImages, bookmarkImage, unbookmarkImage, importImage, canShareImages]
     );
 
     return <ImageContext.Provider value={contextValue}>{children}</ImageContext.Provider>;
