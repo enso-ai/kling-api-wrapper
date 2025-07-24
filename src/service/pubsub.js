@@ -12,19 +12,22 @@ const topicName = 'playground-events';
 const pubSubClient = new PubSub({ projectId });
 
 /**
- * Publishes a custom event to the Pub/Sub topic.
- * @param {string} event_name - The name of the event (e.g., 'user_login').
+ * Logs a generated content event to the Pub/Sub topic.
+ * @param {string} media_type - The type of media generated (e.g., 'image', 'text').
  * @param {string} user_id - The ID of the user associated with the event.
- * @param {object} params - A JavaScript object containing event-specific parameters. This will be stringified.
+ * @param {object} input - A JavaScript object containing the input parameters (e.g., prompt). This will be stringified.
+ * @param {string[]} output - An array of URLs for the media.
  */
-export async function emitMessage(event_name, user_id, params) {
+export async function logGeneratedContent(media_type, user_id, input, output) {
   try {
-    // --- Construct the Event Data ---
+    // --- Construct the Event Data to match the new schema ---
     const eventData = {
-      event_name, // from function parameter
+      media_type, // from function parameter
       user_id,    // from function parameter
-      // The 'params' field is stringified to be compatible with BigQuery's JSON type.
-      params: JSON.stringify(params), // from function parameter
+      // The 'input' field is stringified to be compatible with BigQuery's JSON type.
+      input: JSON.stringify(input),
+      // The 'output' field is a native array of strings for BigQuery's REPEATED type.
+      output,
       // The 'created' timestamp is generated automatically.
       created: new Date().toISOString(),
     };
@@ -34,10 +37,10 @@ export async function emitMessage(event_name, user_id, params) {
 
     // Publishes the message
     const messageId = await pubSubClient.topic(topicName).publishMessage({ data: dataBuffer });
-    console.log(`Message ${messageId} published for event: ${event_name}`);
+    console.log(`Message ${messageId} published for media_type: ${media_type}`);
     return messageId; // Return the ID on success
   } catch (error) {
-    console.error(`[emitMessage] Error publishing event "${event_name}": ${error.message}`);
+    console.error(`[logGeneratedContent] Error publishing event: ${error.message}`);
     // Re-throw or handle the error as needed by the calling application.
     throw error;
   }

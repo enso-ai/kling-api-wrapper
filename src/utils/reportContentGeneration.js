@@ -1,9 +1,8 @@
-import { emitMessage } from "@/service/pubsub/eventEmitter";
+import { logGeneratedContent } from "@/service/pubsub";
 
-const EVENT_NAME_IMAGE_GEN = "image_gen"
-const IMAGE_GEN_METHOD_TEXT = 'text'
-const IMAGE_GEN_METHOD_EXTEND = 'extend'
-const IMAGE_GEN_METHOD_INPAINTING = 'inpainting'
+export const IMAGE_GEN_METHOD_TEXT = 'text'
+export const IMAGE_GEN_METHOD_EXTEND = 'extend'
+export const IMAGE_GEN_METHOD_INPAINTING = 'inpainting'
 
 const VALID_IMAGE_GEN_METHODS = [
     IMAGE_GEN_METHOD_TEXT,
@@ -18,14 +17,14 @@ export const reportImageGeneration = (user_id, method, input, gcs_urls) => {
     }
 
     try {
-        emitMessage(
-            EVENT_NAME_IMAGE_GEN,
+        logGeneratedContent(
+            'image',
             user_id,
             {
                 method,
                 input,
-                gcs_urls,
-            }
+            },
+            gcs_urls
         )
     } catch(ex) {
         // reportImageGeneration will never throw exception
