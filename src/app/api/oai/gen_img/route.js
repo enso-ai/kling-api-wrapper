@@ -27,7 +27,7 @@ export async function POST(request) {
         const images = await generateImage(prompt, size, n);
 
         // Extract user_id
-        const user_id = extractUserId(req)
+        const user_id = extractUserId(request)
 
         // Analytics
         reportImageGeneration(
