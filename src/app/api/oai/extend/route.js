@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { extendImage } from '@/utils/image_gen.js';
-import { reportImageGeneration, IMAGE_GEN_METHOD_EXTEND } from '@/utils/analytics';
+import { reportImageGeneration, IMAGE_GEN_METHOD_EXTEND } from '@/utils/reportContentGeneration';
 
 export async function POST(request) {
     try {
@@ -62,6 +62,7 @@ export async function POST(request) {
 
         //[tood] extract user_id
         const user_id = 'anonymouse'
+
         // analytics
         reportImageGeneration(
             user_id,
