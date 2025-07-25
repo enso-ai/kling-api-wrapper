@@ -28,79 +28,79 @@ function getOpenAIClient() {
 // Default settings based on requirements
 const DEFAULT_GENERATION_MODEL = "gpt-image-1";
 const DEFAULT_GENERATION_SIZE = "1024x1536"; // Portrait
-const DEFAULT_QUALITY = "high";
-const DEFAULT_OUTPUT_FORMAT = "png";
-const DEFAULT_MODERATION = "low";
+const DEFAULT_QUALITY = 'medium'; // Medium quality
+const DEFAULT_OUTPUT_FORMAT = 'png';
+const DEFAULT_MODERATION = 'low';
 const DEFAULT_N = 1;
 
 // Helper function to transform OpenAI SDK errors to our custom format
 function transformError(error) {
     // Network-level errors
-    if (error.code === "ENOTFOUND" || error.code === "EAI_NODATA") {
+    if (error.code === 'ENOTFOUND' || error.code === 'EAI_NODATA') {
         return {
-            error: "DNS_ERROR",
-            message: "Unable to resolve API endpoint",
+            error: 'DNS_ERROR',
+            message: 'Unable to resolve API endpoint',
         };
     }
 
-    if (error.code === "ECONNREFUSED" || error.code === "ECONNRESET") {
-        return { error: "NETWORK_ERROR", message: "Network connection failed" };
+    if (error.code === 'ECONNREFUSED' || error.code === 'ECONNRESET') {
+        return { error: 'NETWORK_ERROR', message: 'Network connection failed' };
     }
 
-    if (error.name === "AbortError") {
-        return { error: "CONNECTION_TIMEOUT", message: "Request timed out" };
+    if (error.name === 'AbortError') {
+        return { error: 'CONNECTION_TIMEOUT', message: 'Request timed out' };
     }
 
     // OpenAI SDK-specific errors
     if (error instanceof OpenAI.AuthenticationError) {
         return {
-            error: "INVALID_API_KEY",
-            message: "OpenAI API key is invalid",
+            error: 'INVALID_API_KEY',
+            message: 'OpenAI API key is invalid',
         };
     }
 
     if (error instanceof OpenAI.RateLimitError) {
         return {
-            error: "RATE_LIMIT_EXCEEDED",
-            message: "API rate limit exceeded",
+            error: 'RATE_LIMIT_EXCEEDED',
+            message: 'API rate limit exceeded',
         };
     }
 
     if (error instanceof OpenAI.BadRequestError) {
-        if (error.error?.code === "moderation_blocked") {
+        if (error.error?.code === 'moderation_blocked') {
             return {
-                error: "CONTENT_MODERATION_BLOCKED",
-                message: "Content blocked by OpenAI moderation",
+                error: 'CONTENT_MODERATION_BLOCKED',
+                message: 'Content blocked by OpenAI moderation',
             };
         } else {
             return {
-                error: "INVALID_REQUEST",
-                message: "Request parameters are invalid",
+                error: 'INVALID_REQUEST',
+                message: 'Request parameters are invalid',
             };
         }
     }
 
     if (error instanceof OpenAI.PermissionDeniedError) {
         return {
-            error: "CONTENT_VIOLATION",
-            message: "Content violates OpenAI policies",
+            error: 'CONTENT_VIOLATION',
+            message: 'Content violates OpenAI policies',
         };
     }
 
     if (error instanceof OpenAI.InternalServerError) {
-        return { error: "SERVER_ERROR", message: "OpenAI server error" };
+        return { error: 'SERVER_ERROR', message: 'OpenAI server error' };
     }
 
     if (error instanceof OpenAI.APIError) {
         return {
-            error: "API_ERROR",
+            error: 'API_ERROR',
             message: `OpenAI API error: ${error.message}`,
         };
     }
 
     return {
-        error: "UNKNOWN_ERROR",
-        message: error?.message || "An unknown error occurred",
+        error: 'UNKNOWN_ERROR',
+        message: error?.message || 'An unknown error occurred',
     };
 }
 
@@ -111,21 +111,21 @@ export class MessagePayload {
 
     addText(text, role) {
         this.content.push({
-            role: role || "user",
+            role: role || 'user',
             content: text,
         });
     }
 
     addTextWithImage(text, imageUrl, role) {
         this.content.push({
-            role: role || "user",
+            role: role || 'user',
             content: [
                 {
-                    type: "input_text",
+                    type: 'input_text',
                     text: text,
                 },
                 {
-                    type: "input_image",
+                    type: 'input_image',
                     image_url: imageUrl,
                 },
             ],
@@ -154,6 +154,7 @@ async function generateImageWithOpenAI(prompt, options = {}) {
                 output_format: options.output_format,
             }),
         };
+        console.log('Generating image with options:', generateOptions);
 
         const result = await openaiClient.images.generate(generateOptions);
 
@@ -203,6 +204,7 @@ async function editImagesWithOpenAI(images, mask, prompt, options = {}) {
             moderation: options.moderation || DEFAULT_MODERATION,
             ...(options.user && { user: options.user }),
         };
+        console.log('Generating image with options:', editOptions);
 
         // Add mask if provided
         if (mask) {
