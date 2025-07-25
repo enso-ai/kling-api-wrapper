@@ -33,3 +33,19 @@ export const reportImageGeneration = (user_id, method, input, gcs_urls) => {
         console.error("Failed to emit Message:", ex)
     }
 }
+
+export const reportVideoGeneration = (user_id, input, video_url) => {
+    try {
+        logGeneratedContent(
+            'video',
+            user_id,
+            input,
+            [video_url],
+        )
+    } catch(ex) {
+        // reportImageGeneration will never throw exception
+        // as this is only for analytics, which should not
+        // block main logic.
+        console.error("Failed to emit Message:", ex)
+    }
+}
