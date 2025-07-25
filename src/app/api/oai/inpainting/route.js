@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { inpaintingImage } from '@/utils/image_gen.js';
+import { reportImageGeneration, IMAGE_GEN_METHOD_INPAINTING } from '@/utils/reportContentGeneration';
+import { extractUserId } from '@/utils/userinfo';
 
 export async function POST(request) {
     try {
@@ -33,6 +35,23 @@ export async function POST(request) {
 
         // Call the inpainting function
         const images = await inpaintingImage(image_gcs_url, mask, prompt, size, n);
+
+        // Extract user_id
+        const user_id = extractUserId(request)
+
+        // Analytics
+        reportImageGeneration(
+            user_id,
+            IMAGE_GEN_METHOD_INPAINTING,
+            {
+                prompt,
+                // for inpainting, only one image is provided in payload
+                input_img_urls: images[0].url,
+                size,
+            },
+            images.map(img => img.imageUrl),
+        )
+
         return NextResponse.json({
             success: true,
             data: {

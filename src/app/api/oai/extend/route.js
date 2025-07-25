@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { extendImage } from '@/utils/image_gen.js';
+import { reportImageGeneration, IMAGE_GEN_METHOD_EXTEND } from '@/utils/reportContentGeneration';
+import { extractUserId } from '@/utils/userinfo';
 
 export async function POST(request) {
     try {
@@ -58,6 +60,21 @@ export async function POST(request) {
 
         // Call the extend function with srcImages format
         const extendedImages = await extendImage(images, prompt, size, n);
+
+        // Extract user_id
+        const user_id = extractUserId(request)
+
+        // Analytics
+        reportImageGeneration(
+            user_id,
+            IMAGE_GEN_METHOD_EXTEND,
+            {
+                prompt,
+                input_img_urls: images.filter(img => img.url).map(img=>img.url),
+                size,
+            },
+            extendedImages.map(img => img.imageUrl),
+        )
 
         return NextResponse.json({
             success: true,

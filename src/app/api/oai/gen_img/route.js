@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { generateImage } from '@/utils/image_gen.js';
+import { reportImageGeneration, IMAGE_GEN_METHOD_TEXT } from '@/utils/reportContentGeneration';
+import { extractUserId } from '@/utils/userinfo';
 
 export async function POST(request) {
     try {
@@ -23,6 +25,20 @@ export async function POST(request) {
 
         // Call the generation function
         const images = await generateImage(prompt, size, n);
+
+        // Extract user_id
+        const user_id = extractUserId(request)
+
+        // Analytics
+        reportImageGeneration(
+            user_id,
+            IMAGE_GEN_METHOD_TEXT,
+            {
+                prompt,
+                size,
+            },
+            images.map(img => img.imageUrl),
+        )
 
         // Return response with GCS URLs instead of base64 (clean format)
         return NextResponse.json({
