@@ -10,42 +10,38 @@ const VALID_IMAGE_GEN_METHODS = [
     IMAGE_GEN_METHOD_INPAINTING
 ]
 
-export const reportImageGeneration = (user_id, method, input, gcs_urls) => {
+export const reportImageGeneration = (userId, projectId, method, input, gcsUrls) => {
     if (!VALID_IMAGE_GEN_METHODS.includes(method)) {
-        console.error('Invalid method:', method)
-        return
+        console.error('Invalid method:', method);
+        return;
     }
 
     try {
         logGeneratedContent(
             'image',
-            user_id,
+            userId,
+            projectId,
             {
                 method,
                 input,
             },
-            gcs_urls
-        )
-    } catch(ex) {
+            gcsUrls
+        );
+    } catch (ex) {
         // reportImageGeneration will never throw exception
         // as this is only for analytics, which should not
         // block main logic.
-        console.error("Failed to emit Message:", ex)
+        console.error('Failed to emit Message:', ex);
     }
-}
+};
 
-export const reportVideoGeneration = (user_id, input, video_url) => {
+export const reportVideoGeneration = (userId, projectId, input, videoUrl) => {
     try {
-        logGeneratedContent(
-            'video',
-            user_id,
-            input,
-            [video_url],
-        )
-    } catch(ex) {
+        logGeneratedContent('video', userId, projectId, input, [videoUrl]);
+    } catch (ex) {
         // reportImageGeneration will never throw exception
         // as this is only for analytics, which should not
         // block main logic.
-        console.error("Failed to emit Message:", ex)
+        console.error('Failed to emit Message:', ex);
     }
-}
+};

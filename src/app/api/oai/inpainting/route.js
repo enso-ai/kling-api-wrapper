@@ -8,7 +8,7 @@ export async function POST(request) {
         const body = await request.json();
 
         // Extract camelCase parameters from HTTP payload
-        const { image_gcs_url, mask, prompt, size, n = 1 } = body;
+        const { project_id: projectId, image_gcs_url, mask, prompt, size, n = 1 } = body;
 
         // Validate required parameter - image
         if (!image_gcs_url) {
@@ -37,11 +37,12 @@ export async function POST(request) {
         const images = await inpaintingImage(image_gcs_url, mask, prompt, size, n);
 
         // Extract user_id
-        const user_id = extractUserId(request)
+        const userId = extractUserId(request);
 
         // Analytics
         reportImageGeneration(
-            user_id,
+            userId,
+            projectId,
             IMAGE_GEN_METHOD_INPAINTING,
             {
                 prompt,
@@ -49,8 +50,8 @@ export async function POST(request) {
                 input_img_urls: images[0].url,
                 size,
             },
-            images.map(img => img.imageUrl),
-        )
+            images.map((img) => img.imageUrl)
+        );
 
         return NextResponse.json({
             success: true,

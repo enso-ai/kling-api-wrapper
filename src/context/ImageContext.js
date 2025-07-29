@@ -393,6 +393,7 @@ export const ImageContextProvider = ({ children }) => {
                         n: numberOfImages,
                         size: size,
                         asset_type: 'element_images',
+                        project_id: curProjectId,
                     });
                 } else {
                     // Image extension
@@ -401,6 +402,7 @@ export const ImageContextProvider = ({ children }) => {
                         prompt: prompt.trim(),
                         n: numberOfImages,
                         size: size,
+                        project_id: curProjectId,
                     });
                 }
 
@@ -441,7 +443,7 @@ export const ImageContextProvider = ({ children }) => {
                 });
             }
         },
-        [addImages]
+        [addImages, curProjectId]
     );
 
     const startImageGeneration = useCallback(
@@ -497,6 +499,7 @@ export const ImageContextProvider = ({ children }) => {
                     n: numberOfImages,
                     size: size,
                     asset_type: 'element_images',
+                    project_id: curProjectId,
                 });
 
                 if (!result.success) {
@@ -537,7 +540,7 @@ export const ImageContextProvider = ({ children }) => {
                 });
             }
         },
-        [addImages]
+        [addImages, curProjectId]
     );
 
     const startInpaintingGeneration = useCallback(

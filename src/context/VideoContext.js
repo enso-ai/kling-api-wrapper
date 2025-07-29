@@ -228,7 +228,7 @@ export function VideoProvider({ children }) {
                         );
                     } else {
                         // For regular video records, use the standard API
-                        taskData = await apiClient.getTaskById(record.taskId);
+                        taskData = await apiClient.getTaskById(record.taskId, curProjectId);
                     }
                     record.updateWithTaskResult(taskData);
                 }
@@ -249,7 +249,7 @@ export function VideoProvider({ children }) {
                 return null;
             }
         },
-        [videoRecords, saveRecordToDB]
+        [videoRecords, saveRecordToDB, curProjectId]
     );
 
     const removeVideoRecord = useCallback(async (id) => {

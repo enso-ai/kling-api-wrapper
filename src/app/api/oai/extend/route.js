@@ -8,7 +8,7 @@ export async function POST(request) {
         const body = await request.json();
 
         // Extract parameters from HTTP payload - supporting new srcImages format
-        const { images, prompt, size, n = 1 } = body;
+        const { project_id: projectId, images, prompt, size, n = 1 } = body;
 
         // Validate required parameter - images array (srcImages format)
         if (!images || !Array.isArray(images) || images.length === 0) {
@@ -26,13 +26,16 @@ export async function POST(request) {
                     { status: 400 }
                 );
             }
-            
+
             // Validate URL format if present
             if (image.url) {
                 try {
                     new URL(image.url); // This will throw if the URL is invalid
                 } catch (error) {
-                    return NextResponse.json({ error: `Invalid image URL: ${image.url}` }, { status: 400 });
+                    return NextResponse.json(
+                        { error: `Invalid image URL: ${image.url}` },
+                        { status: 400 }
+                    );
                 }
             }
         }
@@ -61,20 +64,21 @@ export async function POST(request) {
         // Call the extend function with srcImages format
         const extendedImages = await extendImage(images, prompt, size, n);
 
-        // Extract user_id
-        const user_id = extractUserId(request)
+        // Extract userId
+        const userId = extractUserId(request);
 
         // Analytics
         reportImageGeneration(
-            user_id,
+            userId,
+            projectId,
             IMAGE_GEN_METHOD_EXTEND,
             {
                 prompt,
-                input_img_urls: images.filter(img => img.url).map(img=>img.url),
+                input_img_urls: images.filter((img) => img.url).map((img) => img.url),
                 size,
             },
-            extendedImages.map(img => img.imageUrl),
-        )
+            extendedImages.map((img) => img.imageUrl)
+        );
 
         return NextResponse.json({
             success: true,

@@ -40,9 +40,14 @@ const createApiClient = () => {
     };
 
     // Gets information about a specific task
-    const getTaskById = async (taskId) => {
+    const getTaskById = async (taskId, projectId = null) => {
         try {
-            const response = await fetch(`/api/videos/${taskId}`);
+            let url = `/api/videos/${taskId}`;
+            if (projectId) {
+                url += `?pid=${encodeURIComponent(projectId)}`;
+            }
+            
+            const response = await fetch(url);
 
             const data = await response.json();
 
@@ -63,6 +68,7 @@ const createApiClient = () => {
             interval = 5000,
             timeout = 300000, // 5 minutes
             onProgress,
+            projectId = null,
         } = options;
 
         const startTime = Date.now();
@@ -75,7 +81,7 @@ const createApiClient = () => {
                 }
 
                 try {
-                    const taskData = await getTaskById(taskId);
+                    const taskData = await getTaskById(taskId, projectId);
 
                     if (onProgress) {
                         onProgress(taskData);
@@ -277,13 +283,12 @@ const createApiClient = () => {
      */
     const generateImage = async (options) => {
         try {
-            const { project_id, ...apiOptions } = options;
             const response = await fetch('/api/oai/gen_img', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(apiOptions),
+                body: JSON.stringify(options),
             });
 
             const data = await response.json();
@@ -317,13 +322,12 @@ const createApiClient = () => {
      */
     const extendImage = async (options) => {
         try {
-            const { project_id, asset_type, ...apiOptions } = options;
             const response = await fetch('/api/oai/extend', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(apiOptions),
+                body: JSON.stringify(options),
             });
 
             const data = await response.json();
@@ -359,13 +363,12 @@ const createApiClient = () => {
      */
     const inpaintImage = async (options) => {
         try {
-            const { project_id, ...apiOptions } = options;
             const response = await fetch('/api/oai/inpainting', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(apiOptions),
+                body: JSON.stringify(options),
             });
 
             const data = await response.json();
