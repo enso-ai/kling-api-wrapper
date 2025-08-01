@@ -133,11 +133,10 @@
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
-/* Download button for main image */
-.downloadButton {
+/* Action buttons for main image */
+.downloadButton, .fullscreenButton {
   position: absolute;
   bottom: 24px;
-  right: 24px;
   width: 40px;
   height: 40px;
   background: rgba(255, 255, 255, 0.95);
@@ -153,19 +152,27 @@
   z-index: 10;
 }
 
-.downloadButton:hover {
+.downloadButton {
+  right: 24px;
+}
+
+.fullscreenButton {
+  right: 76px; /* 24px margin + 40px button width + 12px gap */
+}
+
+.downloadButton:hover, .fullscreenButton:hover {
   background: rgba(255, 255, 255, 1);
   transform: scale(1.05);
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
 }
 
-.downloadButton svg {
+.downloadButton svg, .fullscreenButton svg {
   width: 18px;
   height: 18px;
   color: #374151;
 }
 
-.downloadButton:hover svg {
+.downloadButton:hover svg, .fullscreenButton:hover svg {
   color: #111827;
 }
 

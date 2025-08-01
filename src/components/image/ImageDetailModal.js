@@ -1,13 +1,15 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import styles from './ImageDetailModal.module.css';
-import { FaTimes, FaDownload } from 'react-icons/fa';
+import { FaTimes, FaDownload, FaExpand } from 'react-icons/fa';
 import { useImageContext } from '../../context/ImageContext';
 import { downloadImage } from '../../utils/download';
 import { hasSrcImages, getSrcImageUrl, getFirstSrcImageUrl } from '../../utils/image';
 import InpaintingComposite from './InpaintingComposite';
+import FullscreenImageModal from './FullscreenImageModal';
 
 export default function ImageDetailModal({ imageRecordId, onClose }) {
     const { imageRecords, updateSelectedImage } = useImageContext();
+    const [isFullscreenOpen, setIsFullscreenOpen] = useState(false);
 
     // Memoized lookup of the current imageRecord
     const imageRecord = useMemo(() => {
@@ -88,7 +90,14 @@ export default function ImageDetailModal({ imageRecordId, onClose }) {
                                             alt={imageRecord.prompt || 'Generated image'}
                                             className={styles.mainImage}
                                         />
-                                        {/* Download button */}
+                                        {/* Action buttons */}
+                                        <button
+                                            className={styles.fullscreenButton}
+                                            onClick={() => setIsFullscreenOpen(true)}
+                                            title="View fullscreen"
+                                        >
+                                            <FaExpand />
+                                        </button>
                                         <button
                                             className={styles.downloadButton}
                                             onClick={handleDownloadClick}
@@ -212,6 +221,13 @@ export default function ImageDetailModal({ imageRecordId, onClose }) {
                     </div>
                 </div>
             </div>
+            
+            {/* Fullscreen Modal */}
+            <FullscreenImageModal
+                imageUrl={currentImageUrl}
+                isOpen={isFullscreenOpen}
+                onClose={() => setIsFullscreenOpen(false)}
+            />
         </div>
     );
 }
